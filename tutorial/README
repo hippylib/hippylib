@@ -1,0 +1,17 @@
+Content:
+
+1. FEniCS101 notebook illustrates the use of FEniCS for the solution of a linear boundary value problem.
+2. PoissonDeterministic notebook illustrates how to compute gradient and Hessian information and solve a non-linear parameter inversion for the Poisson equation in a deterministic setting. 
+3. SubsurfaceBayesian notebook illustrates how to solve a non-linear parameter inversion for the Poisson equation in a Bayesian setting.
+4. AdvectionDiffusionBayesian notebook illustrates how to solve a time-dependent linear inverse problem in a Bayesian setting.
+5. HessianSpectrum notebook illustrates the spectral property of the Hessian operator for a linear source inversion problem.
+
+- nb.py: a collection of plotting utilities using matplotlib
+
+To run the notebook open a FEniCS terminal and type
+
+$ ipython notebook
+
+A new tab will open in your web-brower showing the notebooks.
+Click on the notebook you would like to use.
+To run all the code in the notebook simply click on Cell --> Run All.

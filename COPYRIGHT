@@ -1,0 +1,46 @@
+# Copyright (c) 2016, The University of Texas at Austin & University of
+# California, Merced.
+#
+# All Rights reserved.
+# See file COPYRIGHT for details.
+#
+# This file is part of the hIPPYlib library. For more information and source code
+# availability see https://hippylib.github.io.
+#
+# hIPPYlib is free software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License (as published by the Free
+# Software Foundation) version 3.0 dated June 2007.
+
+COPYRIGHT
+
+The following copyright applies to each file in the hIPPYlib
+distribution, unless otherwise stated in the file:
+
+Copyright (c) 2016, The University of Texas at Austin & University of
+California, Merced.
+
+LICENSE
+
+hIPPYlib is a free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License (as published by the
+Free Software Foundation) version 3.0 dated June 2007.
+
+hIPPYlib is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the terms
+and conditions of the GNU Lesser General Public License for more
+details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library (file LICENSE); if not, write to the
+Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301 USA.
+
+
+CONTACT INFORMATION
+
+Please see
+
+            https://hippylib.github.io
+
+for more information and source code availability.

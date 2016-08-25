@@ -13,7 +13,7 @@
 
 import dolfin as dl
 from pointwiseObservation import assemblePointwiseObservation
-from variables import STATE
+from variables import STATE, PARAMETER
 
 class Misfit:
     """Abstract class to model the misfit componenet of the cost functional.
@@ -26,17 +26,26 @@ class Misfit:
     def cost(self,x):
         """Given x evaluate the cost functional.
         Only the state u and (possibly) the parameter a are accessed. """
+        return 0
         
+    def grad(self, i, x, out):
+        """Given the state and the paramter in x, compute the partial gradient of the misfit
+        functional in with respect to the state (i == STATE) or with respect to the parameter (i == PARAMETER).
+        """
+        out.zero()
         
     def adj_rhs(self,x,rhs):
         """Evaluate the RHS for the adjoint problem.
         Only the state u and (possibly) the parameter a are accessed. """
+        self.grad(STATE, x, rhs)
+        rhs *= -1.
     
     def setLinearizationPoint(self,x):
         """Set the point for linearization."""
         
     def apply_ij(self,i,j, dir, out):
         """Apply the second variation \delta_ij (i,j = STATE,PARAMETER) of the cost in direction dir."""
+        out.zero()
         
 class PointwiseStateObservation(Misfit):
     """This class implements pointwise state observations at given locations.
@@ -61,12 +70,17 @@ class PointwiseStateObservation(Misfit):
         self.Bu.axpy(-1., self.d)
         return (.5/self.noise_variance)*self.Bu.inner(self.Bu)
     
-    def adj_rhs(self, x, out):
-        self.B.mult(x[STATE], self.Bu)
-        self.Bu.axpy(-1., self.d)
-        self.B.transpmult(self.Bu, out)
-        out *= (-1./self.noise_variance)
-    
+    def grad(self, i, x, out):
+        if i == STATE:
+            self.B.mult(x[STATE], self.Bu)
+            self.Bu.axpy(-1., self.d)
+            self.B.transpmult(self.Bu, out)
+            out *= (1./self.noise_variance)
+        elif i == PARAMETER:
+            out.zero()
+        else:
+            raise IndexError()
+                
     def setLinearizationPoint(self,x):
         return
        
@@ -117,12 +131,15 @@ class ContinuousStateObservation(Misfit):
         self.W.mult(r,Wr)
         return r.inner(Wr)/(2.*self.noise_variance)
     
-    def adj_rhs(self, x, out):
-        r = self.d.copy()
-        r.axpy(-1., x[STATE])
-        self.W.mult(r, out)
-        out *= (1./self.noise_variance)
-       
+    def grad(self, i, x, out):
+        if i == STATE:
+            self.W.mult(x[STATE]-self.d, out)
+            out *= (1./self.noise_variance)
+        elif i == PARAMETER:
+            out.zero()
+        else:
+            raise IndexError()
+                   
     def apply_ij(self,i,j,dir,out):
         if i == STATE and j == STATE:
             self.W.mult(dir, out)

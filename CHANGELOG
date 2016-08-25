@@ -15,6 +15,12 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
                            
+Version 1.0.1, released on Aug 25, 2016
+=====================================
+
+- Add support in hippylib.Model and hippylib.Misfit for misfit functional with explicit dependence on the parameter
+
+
 Version 1.0, released on Aug 8, 2016
 =====================================
 

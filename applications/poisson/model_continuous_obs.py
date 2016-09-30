@@ -96,15 +96,15 @@ class Poisson:
         """
         trial = TrialFunction(self.Vh[STATE])
         test = TestFunction(self.Vh[STATE])
-        c = Function(self.Vh[PARAMETER], x[PARAMETER])
+        c = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
         Avarf = inner(exp(c)*nabla_grad(trial), nabla_grad(test))*dx
         if not assemble_adjoint:
             bform = inner(self.f, test)*dx
             Matrix, rhs = assemble_system(Avarf, bform, self.bc)
         else:
             # Assemble the adjoint of A (i.e. the transpose of A)
-            s = Function(self.Vh[STATE], x[STATE])
-            obs = Function(self.Vh[STATE], self.u_o)
+            s = vector2Function(x[STATE], self.Vh[STATE])
+            obs = vector2Function(self.u_o, self.Vh[STATE])
             bform = inner(obs - s, test)*dx
             Matrix, rhs = assemble_system(adjoint(Avarf), bform, self.bc0)
             
@@ -119,8 +119,8 @@ class Poisson:
         """
         trial = TrialFunction(self.Vh[PARAMETER])
         test = TestFunction(self.Vh[STATE])
-        s = Function(Vh[STATE], x[STATE])
-        c = Function(Vh[PARAMETER], x[PARAMETER])
+        s = vector2Function(x[STATE], Vh[STATE])
+        c = vector2Function(x[PARAMETER], Vh[PARAMETER])
         Cvarf = inner(exp(c) * trial * nabla_grad(s), nabla_grad(test)) * dx
         C = assemble(Cvarf)
 #        print "||c||", x[PARAMETER].norm("l2"), "||s||", x[STATE].norm("l2"), "||C||", C.norm("linf")
@@ -147,8 +147,8 @@ class Poisson:
         """
         trial = TrialFunction(self.Vh[STATE])
         test  = TestFunction(self.Vh[PARAMETER])
-        a = Function(self.Vh[ADJOINT], x[ADJOINT])
-        c = Function(self.Vh[PARAMETER], x[PARAMETER])
+        a = vector2Function(x[ADJOINT], self.Vh[ADJOINT])
+        c = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
         varf = inner(exp(c)*nabla_grad(trial),nabla_grad(a))*test*dx
         Wau = assemble(varf)
         Wau_t = Transpose(Wau)
@@ -162,9 +162,9 @@ class Poisson:
         """
         trial = TrialFunction(self.Vh[PARAMETER])
         test  = TestFunction(self.Vh[PARAMETER])
-        s = Function(self.Vh[STATE], x[STATE])
-        c = Function(self.Vh[PARAMETER], x[PARAMETER])
-        a = Function(self.Vh[ADJOINT], x[ADJOINT])
+        s = vector2Function(x[STATE], self.Vh[STATE])
+        c = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
+        a = vector2Function(x[ADJOINT], self.Vh[ADJOINT])
         varf = inner(nabla_grad(a),exp(c)*nabla_grad(s))*trial*test*dx
         return assemble(varf)
 
@@ -184,7 +184,7 @@ class Poisson:
         MAX = u_o.norm("linf")
         noise = .01 * MAX * np.random.normal(0, 1, len(u_o.array()))
         u_o.set_local(u_o.array() + noise)
-        plot(Function(Vh[STATE], u_o), title = "Observation")
+        plot(vector2Function(u_o, Vh[STATE]), title = "Observation")
     
     def cost(self, x):
         """
@@ -359,7 +359,7 @@ if __name__ == "__main__":
     print "Final gradient norm: ", solver.final_grad_norm
     print "Final cost: ", solver.final_cost
     
-    xx = [Function(Vh[i], x[i]) for i in range(len(Vh))]
+    xx = [vector2Function(x[i], Vh[i]) for i in range(len(Vh))]
     plot(xx[STATE], title = "State")
     plot(exp(xx[PARAMETER]), title = "exp(Parameter)")
     plot(xx[ADJOINT], title = "Adjoint")

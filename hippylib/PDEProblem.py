@@ -13,7 +13,7 @@
 
 import dolfin as dl
 from variables import STATE, PARAMETER, ADJOINT
-from linalg import Transpose
+from linalg import Transpose, vector2Function
 
 class PDEProblem:
     """ Consider the PDE Problem:
@@ -68,7 +68,7 @@ class PDEProblem:
         """
 
 class PDEVariationalProblem(PDEProblem):
-    def __init__(self, Vh, varf_handler, bc, bc0):
+    def __init__(self, Vh, varf_handler, bc, bc0, is_fwd_linear = False):
         self.Vh = Vh
         self.varf_handler = varf_handler
         self.bc = bc
@@ -80,6 +80,11 @@ class PDEVariationalProblem(PDEProblem):
         self.Wau = []
         self.Waa = []
         self.Wuu = []
+        
+        self.solver_fwd_inc = dl.PETScLUSolver()
+        self.solver_adj_inc = dl.PETScLUSolver()
+        
+        self.is_fwd_linear = is_fwd_linear
         
     def generate_state(self):
         """ return a vector in the shape of the state """
@@ -98,20 +103,33 @@ class PDEVariationalProblem(PDEProblem):
         """ Solve the possibly nonlinear Fwd Problem:
         Given a, find u such that
         \delta_p F(u,a,p;\hat_p) = 0 \for all \hat_p"""
-        state.set_local(x[STATE].array())
-        u = dl.Function(self.Vh[STATE], state)
-        a = dl.Function(self.Vh[PARAMETER], x[PARAMETER])
-        p = dl.TestFunction(self.Vh[ADJOINT])
-        res_form = self.varf_handler(u,a,p)
-        dl.solve(res_form == 0, u, self.bc)
+        if self.is_fwd_linear:
+            u = dl.TrialFunction(self.Vh[STATE])
+            a = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
+            p = dl.TestFunction(self.Vh[ADJOINT])
+            res_form = self.varf_handler(u,a,p)
+            A_form = dl.lhs(res_form)
+            b_form = dl.rhs(res_form)
+            A, b = dl.assemble_system(A_form, b_form, bcs=self.bc)
+            solver = dl.PETScLUSolver()
+            solver.set_operator(A)
+            solver.solve(state, b)
+        else:
+            u = vector2Function(x[STATE], self.Vh[STATE])
+            a = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
+            p = dl.TestFunction(self.Vh[ADJOINT])
+            res_form = self.varf_handler(u,a,p)
+            dl.solve(res_form == 0, u, self.bc)
+            state.zero()
+            state.axpy(1., u.vector())
         
     def solveAdj(self, adj, x, adj_rhs, tol):
         """ Solve the linear Adj Problem: 
             Given a, u; find p such that
             \delta_u F(u,a,p;\hat_u) = 0 \for all \hat_u
         """
-        u = dl.Function(self.Vh[STATE], x[STATE])
-        a = dl.Function(self.Vh[PARAMETER], x[PARAMETER])
+        u = vector2Function(x[STATE], self.Vh[STATE])
+        a = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
         p = dl.Function(self.Vh[ADJOINT])
         du = dl.TestFunction(self.Vh[STATE])
         dp = dl.TrialFunction(self.Vh[ADJOINT])
@@ -124,9 +142,9 @@ class PDEVariationalProblem(PDEProblem):
      
     def eval_da(self, x, out):
         """Given u,a,p; eval \delta_a F(u,a,p; \hat_a) \for all \hat_a """
-        u = dl.Function(self.Vh[STATE], x[STATE])
-        a = dl.Function(self.Vh[PARAMETER], x[PARAMETER])
-        p = dl.Function(self.Vh[ADJOINT], x[ADJOINT])
+        u = vector2Function(x[STATE], self.Vh[STATE])
+        a = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
+        p = vector2Function(x[ADJOINT], self.Vh[ADJOINT])
         da = dl.TestFunction(self.Vh[PARAMETER])
         res_form = self.varf_handler(u,a,p)
         out.zero()
@@ -135,9 +153,9 @@ class PDEVariationalProblem(PDEProblem):
     def setLinearizationPoint(self,x):
         """ Set the values of the state and parameter
             for the incremental Fwd and Adj solvers """
-        u = dl.Function(self.Vh[STATE], x[STATE])
-        a = dl.Function(self.Vh[PARAMETER], x[PARAMETER])
-        p = dl.Function(self.Vh[ADJOINT], x[ADJOINT])
+        u = vector2Function(x[STATE], self.Vh[STATE])
+        a = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
+        p = vector2Function(x[ADJOINT], self.Vh[ADJOINT])
         x_fun = [u,a,p]
         
         f_form = self.varf_handler(u,a,p)
@@ -163,6 +181,9 @@ class PDEVariationalProblem(PDEProblem):
         
         self.Waa = dl.assemble(dl.derivative(g_form[PARAMETER],a))
         
+        self.solver_fwd_inc.set_operator(self.A)
+        self.solver_adj_inc.set_operator(self.At)
+        
                 
     def solveIncremental(self, out, rhs, is_adj, mytol):
         """ If is_adj = False:
@@ -175,13 +196,12 @@ class PDEVariationalProblem(PDEProblem):
             Given u, a, find \tilde_p s.t.:
             \delta_{up} F(u,a,p; \hat_u, \tilde_p) = rhs for all \delta_u.
         """
-        solver = dl.PETScLUSolver()
         if is_adj:
-            solver.set_operator(self.At)
+            self.solver_fwd_inc.solve(out, rhs)
         else:
-            solver.set_operator(self.A)
+            self.solver_adj_inc.solve(out, rhs)
             
-        solver.solve(out, rhs)
+        
     
     def apply_ij(self,i,j, dir, out):   
         """

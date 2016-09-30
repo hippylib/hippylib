@@ -62,7 +62,7 @@ if __name__ == "__main__":
     def pde_varf(u,a,p):
         return dl.exp(a)*dl.inner(dl.nabla_grad(u), dl.nabla_grad(p))*dl.dx - f*p*dl.dx
     
-    pde = PDEVariationalProblem(Vh, pde_varf, bc, bc0)
+    pde = PDEVariationalProblem(Vh, pde_varf, bc, bc0, is_fwd_linear=True)
  
     ntargets = 300
     np.random.seed(seed=1)
@@ -143,20 +143,20 @@ if __name__ == "__main__":
 
     print sep, "Save State, Parameter, Adjoint, and observation in paraview", sep
     xxname = ["State", "Parameter", "Adjoint"]
-    xx = [dl.Function(Vh[i], x[i], name=xxname[i]) for i in range(len(Vh))]
+    xx = [vector2Function(x[i], Vh[i], name=xxname[i]) for i in range(len(Vh))]
     dl.File("results/poisson_state.pvd") << xx[STATE]
-    dl.File("results/poisson_state_true.pvd") << dl.Function(Vh[STATE], utrue, name = xxname[STATE])
+    dl.File("results/poisson_state_true.pvd") << vector2Function(utrue, Vh[STATE], name = xxname[STATE])
     dl.File("results/poisson_parameter.pvd") << xx[PARAMETER]
-    dl.File("results/poisson_parameter_true.pvd") << dl.Function(Vh[PARAMETER], atrue, name = xxname[PARAMETER])
-    dl.File("results/poisson_parameter_prmean.pvd") << dl.Function(Vh[PARAMETER], prior.mean, name = xxname[PARAMETER])
+    dl.File("results/poisson_parameter_true.pvd") << vector2Function(atrue, Vh[PARAMETER], name = xxname[PARAMETER])
+    dl.File("results/poisson_parameter_prmean.pvd") << vector2Function(prior.mean, Vh[PARAMETER], name = xxname[PARAMETER])
     dl.File("results/poisson_adjoint.pvd") << xx[ADJOINT]
         
     exportPointwiseObservation(targets, misfit.d, "results/poisson_observation.vtp")
     
     fid = dl.File("results/pointwise_variance.pvd")
-    fid << dl.Function(Vh[PARAMETER], post_pw_variance, name="Posterior")
-    fid << dl.Function(Vh[PARAMETER], pr_pw_variance, name="Prior")
-    fid << dl.Function(Vh[PARAMETER], corr_pw_variance, name="Correction")
+    fid << vector2Function(post_pw_variance,Vh[PARAMETER], name="Posterior")
+    fid << vector2Function(pr_pw_variance, Vh[PARAMETER], name="Prior")
+    fid << vector2Function(corr_pw_variance, Vh[PARAMETER], name="Correction")
     
     
     print sep, "Generate samples from Prior and Posterior\n","Export generalized Eigenpairs", sep

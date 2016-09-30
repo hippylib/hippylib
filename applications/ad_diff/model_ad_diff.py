@@ -334,7 +334,7 @@ class TimeDependentAD:
         out_file = dl.File(filename)
         ufunc = dl.Function(self.Vh[STATE], name=varname)
         t = self.t_init
-        out_file << (dl.Function(self.Vh[STATE], x[PARAMETER], name=varname),t)
+        out_file << (vector2Function(x[PARAMETER], self.Vh[STATE], name=varname),t)
         while t < self.t_final:
             t += self.dt
             x[STATE].retrieve(ufunc.vector(), t)
@@ -474,9 +474,9 @@ if __name__ == "__main__":
 
     if compute_trace:
         fid = dl.File("results/pointwise_variance.pvd")
-        fid << dl.Function(Vh, post_pw_variance, name="Posterior")
-        fid << dl.Function(Vh, pr_pw_variance, name="Prior")
-        fid << dl.Function(Vh, corr_pw_variance, name="Correction")
+        fid << vector2Function(post_pw_variance, Vh, name="Posterior")
+        fid << vector2Function(pr_pw_variance, Vh, name="Prior")
+        fid << vector2Function(corr_pw_variance, Vh, name="Correction")
     
     posterior.exportU(Vh, "hmisfit/evect.pvd")
     np.savetxt("hmisfit/eigevalues.dat", d)
@@ -503,7 +503,7 @@ if __name__ == "__main__":
     plt.figure()
     plt.plot(range(0,k), d, 'b*', range(0,k), np.ones(k), '-r')
     plt.yscale('log')
-    dl.plot(dl.Function(Vh,a, name = "Initial Condition"))
+    dl.plot(vector2Function(a, Vh, name = "Initial Condition"))
     plt.show()
     dl.interactive()
 

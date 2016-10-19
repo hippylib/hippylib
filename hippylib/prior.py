@@ -13,12 +13,10 @@
 
 import dolfin as dl
 import numpy as np
-from linalg import MatMatMult, MatAtB, get_diagonal, amg_method
+from linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2
 from traceEstimator import TraceEstimator
-from pointwiseObservation import assemblePointwiseObservation
 import math
 from expression import code_Mollifier
-from cgsampler import CGSampler
 
 
 class _RinvM:
@@ -87,7 +85,7 @@ class _Prior:
         else:
             raise NameError("Unknown method")
         
-    def pointwise_variance(self, method, path_len = 8):
+    def pointwise_variance(self, method, k = 1000000):
         """
         Compute/Estimate the prior pointwise variance.
         
@@ -98,6 +96,8 @@ class _Prior:
         self.init_vector(pw_var,0)
         if method == "Exact":
             get_diagonal(self.Rsolver, pw_var, solve_mode=True)
+        elif method == "Estimator":
+            estimate_diagonal_inv2(self.Rsolver, k, pw_var)
         else:
             raise NameError("Unknown method")
         
@@ -163,7 +163,7 @@ class LaplacianPrior(_Prior):
         self.Msolver.parameters["error_on_nonconvergence"] = True
         self.Msolver.parameters["nonzero_initial_guess"] = False
         
-        Q1h = dl.FunctionSpace(Vh.mesh(), 'Quadrature', 2*Vh._FunctionSpace___degree)
+        Q1h = dl.FunctionSpace(Vh.mesh(), 'Quadrature', 2*Vh._ufl_element.degree())
         ndim = Vh.mesh().geometry().dim()
         Qh = dl.MixedFunctionSpace([Q1h for i in range(ndim+1)])
         ph = dl.TrialFunction(Qh)
@@ -318,7 +318,7 @@ class BiLaplacianPrior(_Prior):
         self.Asolver.parameters["error_on_nonconvergence"] = True
         self.Asolver.parameters["nonzero_initial_guess"] = False
         
-        Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', 2*Vh._FunctionSpace___degree)
+        Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', 2*Vh._ufl_element.degree())
         ph = dl.TrialFunction(Qh)
         qh = dl.TestFunction(Qh)
         Mqh = dl.assemble(ph*qh*dl.dx)
@@ -435,7 +435,7 @@ class MollifiedBiLaplacianPrior(_Prior):
         self.Asolver.parameters["error_on_nonconvergence"] = True
         self.Asolver.parameters["nonzero_initial_guess"] = False
         
-        Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', 2*Vh._FunctionSpace___degree)
+        Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', 2*Vh._ufl_element.degree())
         ph = dl.TrialFunction(Qh)
         qh = dl.TestFunction(Qh)
         Mqh = dl.assemble(ph*qh*dl.dx)

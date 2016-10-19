@@ -14,15 +14,22 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
                                                                     
 
                           https://hippylib.github.io
+                          
+Version 1.0.2, released on Sep 30, 2016
+=======================================
+
+- Use vector2Function to safely convert dolfin.Vector to dolfin.Function
+- Optimize the PDEVariationalProblem to exploit the case when the forward problem is linear
+- Update notebook 1_FEniCS101
                            
 Version 1.0.1, released on Aug 25, 2016
-=====================================
+=======================================
 
 - Add support in hippylib.Model and hippylib.Misfit for misfit functional with explicit dependence on the parameter
 
 
-Version 1.0, released on Aug 8, 2016
-=====================================
+Version 1.0.0, released on Aug 8, 2016
+======================================
 
 - Uploaded to https://hippylib.github.io.
 - Initial release.

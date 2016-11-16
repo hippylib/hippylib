@@ -174,7 +174,7 @@ def singlePassG(A, B, Binv, Omega,k, check_Bortho = False, check_Aortho=False, c
     for ivect in range(0,nvec):
         w.set_local(Z[:,ivect])
         B.mult(w,y)
-        BZ[:, ivect] = y
+        BZ[:, ivect] = y.array()
         
     R = np.linalg.cholesky( np.dot(Z.T,BZ ))
     Q = np.linalg.solve(R, Z.T).T
@@ -245,7 +245,7 @@ def doublePassG(A, B, Binv, Omega,k, check_Bortho = False, check_Aortho=False, c
     for ivect in range(0,nvec):
         w.set_local(Z[:,ivect])
         B.mult(w,y)
-        BZ[:, ivect] = y
+        BZ[:, ivect] = y.array()
         
     R = np.linalg.cholesky( np.dot(Z.T,BZ ))
     Q = np.linalg.solve(R, Z.T).T

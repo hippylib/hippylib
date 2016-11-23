@@ -24,13 +24,13 @@ class cpp_linalg
 {
 public:
 	//out = A*B
-	Matrix MatMatMult(const GenericMatrix & A, const GenericMatrix & B);
+	std::shared_ptr<Matrix> MatMatMult(const GenericMatrix & A, const GenericMatrix & B);
 	//out = Pt*A*P
-	Matrix MatPtAP(const GenericMatrix & A, const GenericMatrix & P);
+	std::shared_ptr<Matrix> MatPtAP(const GenericMatrix & A, const GenericMatrix & P);
 	//out = At*B
-	Matrix MatAtB(const GenericMatrix & A, const GenericMatrix & B);
+	std::shared_ptr<Matrix> MatAtB(const GenericMatrix & A, const GenericMatrix & B);
 	//out = At
-	Matrix Transpose(const GenericMatrix & A);
+	std::shared_ptr<Matrix> Transpose(const GenericMatrix & A);
 };
 
 }

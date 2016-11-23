@@ -30,6 +30,7 @@ algorithms for PDE-based deterministic and Bayesian inverse problems.
 """
 
 # utils
+from checkDolfinVersion import dlversion, checkdlversion
 from expression import code_AnisTensor2D, code_Mollifier
 from linalg import MatMatMult, MatPtAP, Transpose, to_dense, trace, get_diagonal, estimate_diagonal_inv2, randn_perturb, amg_method, Solver2Operator, vector2Function
 from pointwiseObservation import assemblePointwiseObservation, exportPointwiseObservation
@@ -56,3 +57,5 @@ from cgsampler import CGSampler
 # hIPPYlib outputs
 from reducedHessian import ReducedHessian
 from posterior import GaussianLRPosterior, LowRankHessian
+
+checkdlversion()

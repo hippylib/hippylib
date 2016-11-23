@@ -1,5 +1,5 @@
                         Inverse Problem PYthon library
-                                 version 1.0
+                                 version 1.1
 
 
  __        ______  _______   _______   __      __  __  __  __       
@@ -17,7 +17,8 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
                           https://hippylib.github.io
                            
 The current version of hIPPYlib depends on [FEniCS](http://fenicsproject.org/) version 1.6.
-Below you can find how to install the correct version of FEniCS on your system.
+It also provides experimental support for FEniCS version 2016.1.
+Below you can find how to install FEniCS 1.6 on your system.
 
 - **MacOS 10.10 and 10.11 systems:**
 

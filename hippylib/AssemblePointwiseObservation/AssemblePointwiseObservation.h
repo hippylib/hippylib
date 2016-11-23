@@ -23,7 +23,7 @@ class PointwiseObservation
 {
 public:
 	PointwiseObservation(const FunctionSpace & Vh, const Array<double> & targets);
-	Matrix GetMatrix();
+	std::shared_ptr<Matrix> GetMatrix();
 
 private:
 	Mat mat;

@@ -17,6 +17,7 @@ from linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2
 from traceEstimator import TraceEstimator
 import math
 from expression import code_Mollifier
+from checkDolfinVersion import dlversion
 
 
 class _RinvM:
@@ -163,15 +164,22 @@ class LaplacianPrior(_Prior):
         self.Msolver.parameters["error_on_nonconvergence"] = True
         self.Msolver.parameters["nonzero_initial_guess"] = False
         
-        Q1h = dl.FunctionSpace(Vh.mesh(), 'Quadrature', 2*Vh._ufl_element.degree())
         ndim = Vh.mesh().geometry().dim()
-        Qh = dl.MixedFunctionSpace([Q1h for i in range(ndim+1)])
+        qdegree = 2*Vh._ufl_element.degree()
+        metadata = {"quadrature_degree" : qdegree}
+        if dlversion() <= (1,6,0):
+            Qh = dl.VectorFunctionSpace(Vh.mesh(), 'Quadrature', qdegree, dim=(ndim+1) )
+        else:
+            element = dl.VectorElement("Quadrature", Vh.mesh().ufl_cell(),
+                                       qdegree, dim=(ndim+1), quad_scheme="default")
+            Qh = dl.FunctionSpace(Vh.mesh(), element)
+            
         ph = dl.TrialFunction(Qh)
         qh = dl.TestFunction(Qh)
         
         pph = dl.split(ph)
         
-        Mqh = dl.assemble(dl.inner(ph, qh)*dl.dx)
+        Mqh = dl.assemble(dl.inner(ph, qh)*dl.dx(metadata = metadata))
         ones = dl.Vector()
         Mqh.init_vector(ones,0)
         ones.set_local( np.ones(ones.array().shape, dtype =ones.array().dtype ) )
@@ -182,9 +190,9 @@ class LaplacianPrior(_Prior):
         
         sqrtdelta = math.sqrt(delta)
         sqrtgamma = math.sqrt(gamma)
-        varfGG = sqrtdelta*pph[0]*test*dl.dx
+        varfGG = sqrtdelta*pph[0]*test*dl.dx(metadata = metadata)
         for i in range(ndim):
-            varfGG = varfGG + sqrtgamma*pph[i+1]*test.dx(i)*dl.dx
+            varfGG = varfGG + sqrtgamma*pph[i+1]*test.dx(i)*dl.dx(metadata = metadata)
             
         GG = dl.assemble(varfGG)
         self.sqrtR = MatMatMult(GG, Mqh)
@@ -318,16 +326,23 @@ class BiLaplacianPrior(_Prior):
         self.Asolver.parameters["error_on_nonconvergence"] = True
         self.Asolver.parameters["nonzero_initial_guess"] = False
         
-        Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', 2*Vh._ufl_element.degree())
+        qdegree = 2*Vh._ufl_element.degree()
+        metadata = {"quadrature_degree" : qdegree}
+        if dlversion() <= (1,6,0):
+            Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', qdegree)
+        else:
+            element = dl.FiniteElement("Quadrature", Vh.mesh().ufl_cell(), qdegree, quad_scheme="default")
+            Qh = dl.FunctionSpace(Vh.mesh(), element)
+            
         ph = dl.TrialFunction(Qh)
         qh = dl.TestFunction(Qh)
-        Mqh = dl.assemble(ph*qh*dl.dx)
+        Mqh = dl.assemble(ph*qh*dl.dx(metadata=metadata))
         ones = dl.interpolate(dl.Constant(1.), Qh).vector()
         dMqh = Mqh*ones
         Mqh.zero()
         dMqh.set_local( ones.array() / np.sqrt(dMqh.array() ) )
         Mqh.set_diagonal(dMqh)
-        MixedM = dl.assemble(ph*test*dl.dx)
+        MixedM = dl.assemble(ph*test*dl.dx(metadata=metadata))
         self.sqrtM = MatMatMult(MixedM, Mqh)
                      
         self.R = _BilaplacianR(self.A, self.Msolver)      
@@ -435,16 +450,23 @@ class MollifiedBiLaplacianPrior(_Prior):
         self.Asolver.parameters["error_on_nonconvergence"] = True
         self.Asolver.parameters["nonzero_initial_guess"] = False
         
-        Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', 2*Vh._ufl_element.degree())
+        qdegree = 2*Vh._ufl_element.degree()
+        metadata = {"quadrature_degree" : qdegree}
+        if dlversion() <= (1,6,0):
+            Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', qdegree)
+        else:
+            element = dl.FiniteElement("Quadrature", Vh.mesh().ufl_cell(), qdegree, quad_scheme="default")
+            Qh = dl.FunctionSpace(Vh.mesh(), element)
+            
         ph = dl.TrialFunction(Qh)
         qh = dl.TestFunction(Qh)
-        Mqh = dl.assemble(ph*qh*dl.dx)
+        Mqh = dl.assemble(ph*qh*dl.dx(metadata=metadata))
         ones = dl.interpolate(dl.Constant(1.), Qh).vector()
         dMqh = Mqh*ones
         Mqh.zero()
         dMqh.set_local( ones.array() / np.sqrt(dMqh.array() ) )
         Mqh.set_diagonal(dMqh)
-        MixedM = dl.assemble(ph*test*dl.dx)
+        MixedM = dl.assemble(ph*test*dl.dx(metadata=metadata))
         self.sqrtM = MatMatMult(MixedM, Mqh)
              
         self.R = _BilaplacianR(self.A, self.Msolver)      

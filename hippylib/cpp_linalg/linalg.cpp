@@ -20,7 +20,7 @@
 namespace dolfin
 {
 
-Matrix cpp_linalg::MatMatMult(const GenericMatrix & A, const GenericMatrix & B)
+std::shared_ptr<Matrix> cpp_linalg::MatMatMult(const GenericMatrix & A, const GenericMatrix & B)
 {
     const PETScMatrix* Ap = &as_type<const PETScMatrix>(A);
     const PETScMatrix* Bp = &as_type<const PETScMatrix>(B);
@@ -36,10 +36,10 @@ Matrix cpp_linalg::MatMatMult(const GenericMatrix & A, const GenericMatrix & B)
 
     PETScMatrix CCC = PETScMatrix(CC);
 
-    return Matrix(CCC);
+    return std::shared_ptr<Matrix>( new Matrix(CCC) );
 }
 
-Matrix cpp_linalg::MatPtAP(const GenericMatrix & A, const GenericMatrix & P)
+std::shared_ptr<Matrix> cpp_linalg::MatPtAP(const GenericMatrix & A, const GenericMatrix & P)
 {
 	const PETScMatrix* Ap = &as_type<const PETScMatrix>(A);
 	const PETScMatrix* Pp = &as_type<const PETScMatrix>(P);
@@ -54,10 +54,10 @@ Matrix cpp_linalg::MatPtAP(const GenericMatrix & A, const GenericMatrix & P)
 
     PETScMatrix CCC = PETScMatrix(CC);
 
-    return Matrix(CCC);
+    return std::shared_ptr<Matrix>( new Matrix(CCC) );
 }
 
-Matrix cpp_linalg::MatAtB(const GenericMatrix & A, const GenericMatrix & B)
+std::shared_ptr<Matrix> cpp_linalg::MatAtB(const GenericMatrix & A, const GenericMatrix & B)
 {
     const PETScMatrix* Ap = &as_type<const PETScMatrix>(A);
     const PETScMatrix* Bp = &as_type<const PETScMatrix>(B);
@@ -73,10 +73,10 @@ Matrix cpp_linalg::MatAtB(const GenericMatrix & A, const GenericMatrix & B)
 
     PETScMatrix CCC = PETScMatrix(CC);
 
-    return Matrix(CCC);
+    return std::shared_ptr<Matrix>(new Matrix(CCC) );
 }
 
-Matrix cpp_linalg::Transpose(const GenericMatrix & A)
+std::shared_ptr<Matrix> cpp_linalg::Transpose(const GenericMatrix & A)
 {
 	const PETScMatrix* Ap = &as_type<const PETScMatrix>(A);
 	Mat At;
@@ -87,7 +87,7 @@ Matrix cpp_linalg::Transpose(const GenericMatrix & A)
 	MatGetLocalToGlobalMapping(Ap->mat(),&rmappingA, &cmappingA);
 	MatSetLocalToGlobalMapping(At, cmappingA, rmappingA);
 
-	return Matrix(PETScMatrix(At));
+	return std::shared_ptr<Matrix>(new Matrix(PETScMatrix(At)));
 }
 
 }

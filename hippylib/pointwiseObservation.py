@@ -13,6 +13,7 @@
 
 import dolfin as dl
 import numpy as np
+from checkDolfinVersion import dlversion
 import os
     
 abspath = os.path.dirname( os.path.abspath(__file__) )
@@ -21,11 +22,11 @@ header_file = open(os.path.join(sdir,"AssemblePointwiseObservation.h"), "r")
 code = header_file.read()
 header_file.close()
 #check the dolfin version to decide which cpp to include
-if dl.dolfin_version()[2] == "4":
+if dlversion() == (1,4,0):
     cpp_sources = ["AssemblePointwiseObservation_v14.cpp"]
-elif dl.dolfin_version()[2] == "5":
+elif dlversion() == (1,5,0):
     cpp_sources = ["AssemblePointwiseObservation_v15.cpp"]
-elif dl.dolfin_version()[2] == "6":
+elif dlversion() >= (1,6,0):
     cpp_sources = ["AssemblePointwiseObservation_v16.cpp"]
 else:
     raise Exception("Dolfin Version")

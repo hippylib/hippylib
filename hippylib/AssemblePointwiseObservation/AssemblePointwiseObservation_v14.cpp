@@ -102,7 +102,7 @@ PointwiseObservation::PointwiseObservation(const FunctionSpace & Vh, const Array
 	 MatAssemblyEnd(mat,MAT_FINAL_ASSEMBLY);
 }
 
-Matrix PointwiseObservation::GetMatrix()
+std::shared_ptr<Matrix> PointwiseObservation::GetMatrix()
 {
-	return Matrix( PETScMatrix(mat) );
+	return std::shared_ptr<Matrix>(new Matrix( PETScMatrix(mat) ) );
 }

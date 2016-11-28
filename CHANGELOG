@@ -15,9 +15,10 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
                           
-Version 1.1.0, released on Nov XX, 2016
+Version 1.1.0, released on Nov 28, 2016
+=======================================
 
-- Add experimental support for FEniCS 2016.1
+- Add partial support for FEniCS 2016.1 (Applications and Tutorial)
 - Improve performance of the randomized eigensolvers
 
 Version 1.0.2, released on Sep 30, 2016

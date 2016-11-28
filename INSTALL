@@ -17,7 +17,7 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
                           https://hippylib.github.io
                            
 The current version of hIPPYlib depends on [FEniCS](http://fenicsproject.org/) version 1.6.
-It also provides experimental support for FEniCS version 2016.1.
+It also provides partial support for FEniCS versions 1.5 and 2016.1 (Applications and Tutorial).
 Below you can find how to install FEniCS 1.6 on your system.
 
 - **MacOS 10.10 and 10.11 systems:**

@@ -35,7 +35,7 @@ std::shared_ptr<Matrix> cpp_linalg::MatMatMult(const GenericMatrix & A, const Ge
     MatSetLocalToGlobalMapping(CC, rmappingA, cmappingB);
 
     PETScMatrix CCC = PETScMatrix(CC);
-
+    MatDestroy(&CC);
     return std::shared_ptr<Matrix>( new Matrix(CCC) );
 }
 
@@ -53,7 +53,7 @@ std::shared_ptr<Matrix> cpp_linalg::MatPtAP(const GenericMatrix & A, const Gener
 
 
     PETScMatrix CCC = PETScMatrix(CC);
-
+    MatDestroy(&CC);
     return std::shared_ptr<Matrix>( new Matrix(CCC) );
 }
 
@@ -72,7 +72,7 @@ std::shared_ptr<Matrix> cpp_linalg::MatAtB(const GenericMatrix & A, const Generi
     MatSetLocalToGlobalMapping(CC, cmappingA, cmappingB);
 
     PETScMatrix CCC = PETScMatrix(CC);
-
+    MatDestroy(&CC);
     return std::shared_ptr<Matrix>(new Matrix(CCC) );
 }
 
@@ -87,7 +87,9 @@ std::shared_ptr<Matrix> cpp_linalg::Transpose(const GenericMatrix & A)
 	MatGetLocalToGlobalMapping(Ap->mat(),&rmappingA, &cmappingA);
 	MatSetLocalToGlobalMapping(At, cmappingA, rmappingA);
 
-	return std::shared_ptr<Matrix>(new Matrix(PETScMatrix(At)));
+	std::shared_ptr<Matrix> out(new Matrix(PETScMatrix(At)));
+	MatDestroy(&At);
+	return out;
 }
 
 }

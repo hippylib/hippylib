@@ -24,6 +24,7 @@ class PointwiseObservation
 public:
 	PointwiseObservation(const FunctionSpace & Vh, const Array<double> & targets);
 	std::shared_ptr<Matrix> GetMatrix();
+	~PointwiseObservation(){ MatDestroy(&mat); }
 
 private:
 	Mat mat;

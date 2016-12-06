@@ -52,10 +52,10 @@ if __name__ == "__main__":
     print "Number of dofs: STATE={0}, PARAMETER={1}, ADJOINT={2}".format(Vh[STATE].dim(), Vh[PARAMETER].dim(), Vh[ADJOINT].dim())
     
     # Initialize Expressions
-    f = dl.Expression("0.0")
+    f = dl.Constant(0.0)
         
-    u_bdr = dl.Expression("x[1]")
-    u_bdr0 = dl.Expression("0.0")
+    u_bdr = dl.Expression("x[1]", element = Vh[STATE].ufl_element() )
+    u_bdr0 = dl.Constant(0.0)
     bc = dl.DirichletBC(Vh[STATE], u_bdr, u_boundary)
     bc0 = dl.DirichletBC(Vh[STATE], u_bdr0, u_boundary)
     
@@ -70,11 +70,10 @@ if __name__ == "__main__":
     print "Number of observation points: {0}".format(ntargets)
     misfit = PointwiseStateObservation(Vh[STATE], targets)
     
-    
     gamma = .1
     delta = .5
     
-    anis_diff = dl.Expression(code_AnisTensor2D)
+    anis_diff = dl.Expression(code_AnisTensor2D, degree = 1)
     anis_diff.theta0 = 2.
     anis_diff.theta1 = .5
     anis_diff.alpha = math.pi/4
@@ -101,7 +100,7 @@ if __name__ == "__main__":
     model = Model(pde,prior, misfit)
            
     print sep, "Test the gradient and the Hessian of the model", sep
-    a0 = dl.interpolate(dl.Expression("sin(x[0])"), Vh[PARAMETER])
+    a0 = dl.interpolate(dl.Expression("sin(x[0])", element=Vh[PARAMETER].ufl_element()), Vh[PARAMETER])
     modelVerify(model, a0.vector(), 1e-12)
 
     print sep, "Find the MAP point", sep

@@ -429,7 +429,7 @@ class MollifiedBiLaplacianPrior(_Prior):
         self.Msolver.parameters["nonzero_initial_guess"] = False
         
         #mfun = Mollifier(gamma/delta, dl.inv(Theta), order, locations)
-        mfun = dl.Expression(code_Mollifier)
+        mfun = dl.Expression(code_Mollifier, degree = Vh.ufl_element().degree()+2)
         mfun.l = gamma/delta
         mfun.o = order
         mfun.theta0 = 1./Theta.theta0

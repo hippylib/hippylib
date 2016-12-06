@@ -35,12 +35,13 @@ class Poisson:
         self.Vh = Vh
         
         # Initialize Expressions
-        self.atrue = Expression('log(2 + 7*(pow(pow(x[0] - 0.5,2) + pow(x[1] - 0.5,2),0.5) > 0.2))')
-        self.f = Expression("1.0")
+        self.atrue = Expression('log(2 + 7*(pow(pow(x[0] - 0.5,2) + pow(x[1] - 0.5,2),0.5) > 0.2))',
+                                element=Vh[PARAMETER].ufl_element())
+        self.f = Constant(1.0)
         self.u_o = Vector()
         
-        self.u_bdr = Expression("0.0")
-        self.u_bdr0 = Expression("0.0")
+        self.u_bdr = Constant(0.0)
+        self.u_bdr0 = Constant(0.0)
         self.bc = DirichletBC(self.Vh[STATE], self.u_bdr, u_boundary)
         self.bc0 = DirichletBC(self.Vh[STATE], self.u_bdr0, u_boundary)
         
@@ -338,10 +339,10 @@ if __name__ == "__main__":
     Prior = LaplacianPrior(Vh[PARAMETER], gamma=1e-8, delta=1e-9)
     model = Poisson(mesh, Vh, Prior)
         
-    a0 = interpolate(Expression("sin(x[0])"), Vh[PARAMETER])
+    a0 = interpolate(Expression("sin(x[0])", element=Vh[PARAMETER].ufl_element()), Vh[PARAMETER])
     modelVerify(model, a0.vector(), 1e-12)
 
-    a0 = interpolate(Expression("0.0"),Vh[PARAMETER])
+    a0 = interpolate(Constant(0.0),Vh[PARAMETER])
     solver = ReducedSpaceNewtonCG(model)
     solver.parameters["abs_tolerance"] = 1e-9
     solver.parameters["inner_rel_tolerance"] = 1e-15

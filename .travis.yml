@@ -14,4 +14,4 @@ install:
     
 script:
     - ls
-    - docker run -d quay.io/fenicsproject/stable:2016.1.0.r4 /bin/sh -c "dolfin-version"
+    - docker run quay.io/fenicsproject/stable:2016.1.0.r4 /bin/sh -c "dolfin-version"

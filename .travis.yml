@@ -7,11 +7,10 @@ services:
 
 before_install:
     - docker pull quay.io/fenicsproject/stable:2016.1.0
-    - docker run -t quay.io/fenicsproject/stable:2016.1.0 /bin/bash -c "dolfin-version"
-    - docker ps -a
     
 install:
     
 script:
     - ls
-    - docker run -t quay.io/fenicsproject/stable:2016.1.0 /bin/bash -c "dolfin-version"
+    - docker run --name hip -d quay.io/fenicsproject/stable:2016.1.0 /bin/bash -c "dolfin-version"
+    - docker logs hip

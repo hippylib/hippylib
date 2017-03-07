@@ -12,5 +12,5 @@ install:
     
 script:
     - ls
-    - docker run --name hip -d quay.io/fenicsproject/stable:2016.1.0 /bin/bash -c "dolfin-version"
-    - docker logs hip
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2016.1.0 "dolfin-version"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.1.0 "mpirun -n 4 python model_subsurf.py"

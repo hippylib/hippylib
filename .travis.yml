@@ -1,19 +1,22 @@
 sudo: required
 
-language: python
-
 services:
     - docker
 
 before_install:
     - docker pull quay.io/fenicsproject/stable:2016.1.0
     - docker volume create --name instant-cache-2016.1
-    
-install:
-    
+    - docker pull quay.io/fenicsproject/stable:1.6.0
+    - docker volume create --name instant-cache-1.6
+        
 script:
     - ls
     - echo Test 2016.1
     - docker run --rm -v instant-cache-2016.1:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2016.1.0 "dolfin-version"
     - docker run --rm -v instant-cache-2016.1:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.1.0 "python model_subsurf.py"
     - docker run --rm -v instant-cache-2016.1:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2016.1.0 "python model_ad_diff.py"
+    
+    - echo Test 1.6.0
+    - docker run --rm -v instant-cache-1.6:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:1.6.0 "dolfin-version"
+    - docker run --rm -v instant-cache-1.6:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:1.6.0 "python model_subsurf.py"
+    - docker run --rm -v instant-cache-1.6:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:1.6.0 "python model_ad_diff.py"

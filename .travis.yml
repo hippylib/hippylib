@@ -14,6 +14,6 @@ install:
 script:
     - ls
     - echo Test 2016.1
-    - docker run --rm --v instant-cache-2016.1:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2016.1.0 "dolfin-version"
-    - docker run --rm --v instant-cache-2016.1:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.1.0 "python model_subsurf.py"
-    - docker run --rm --v instant-cache-2016.1:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2016.1.0 "python model_ad_diff.py"
+    - docker run --rm -v instant-cache-2016.1:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2016.1.0 "dolfin-version"
+    - docker run --rm -v instant-cache-2016.1:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.1.0 "python model_subsurf.py"
+    - docker run --rm -v instant-cache-2016.1:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2016.1.0 "python model_ad_diff.py"

@@ -6,8 +6,6 @@ services:
 before_install:
     - docker pull quay.io/fenicsproject/stable:2016.1.0
     - docker volume create --name instant-cache-2016.1
-    - docker pull quay.io/fenicsproject/stable:1.6.0
-    - docker volume create --name instant-cache-1.6
         
 script:
     - ls

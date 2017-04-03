@@ -326,7 +326,11 @@ class BiLaplacianPrior(_Prior):
         self.Asolver.parameters["error_on_nonconvergence"] = True
         self.Asolver.parameters["nonzero_initial_guess"] = False
         
+        old_qr = dl.parameters["form_compiler"]["quadrature_degree"]
+        dl.parameters["form_compiler"]["quadrature_degree"] = -1
         qdegree = 2*Vh._ufl_element.degree()
+
+            
         metadata = {"quadrature_degree" : qdegree}
         if dlversion() <= (1,6,0):
             Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', qdegree)
@@ -344,7 +348,8 @@ class BiLaplacianPrior(_Prior):
         Mqh.set_diagonal(dMqh)
         MixedM = dl.assemble(ph*test*dl.dx(metadata=metadata))
         self.sqrtM = MatMatMult(MixedM, Mqh)
-                     
+        dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
+                             
         self.R = _BilaplacianR(self.A, self.Msolver)      
         self.Rsolver = _BilaplacianRsolver(self.Asolver, self.M)
          

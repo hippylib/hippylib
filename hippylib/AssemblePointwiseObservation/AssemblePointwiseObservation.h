@@ -24,10 +24,16 @@ class PointwiseObservation
 public:
 	PointwiseObservation(const FunctionSpace & Vh, const Array<double> & targets);
 	std::shared_ptr<Matrix> GetMatrix();
-	~PointwiseObservation(){ MatDestroy(&mat); }
+	~PointwiseObservation();
 
 private:
+	PetscInt computeLGtargets(MPI_Comm comm, std::shared_ptr<BoundingBoxTree> bbt,
+					 const std::size_t gdim,
+					 const Array<double> & targets,
+					 std::vector<Point> & points,
+			         std::vector<PetscInt> & LG);
 	Mat mat;
+	std::vector<int> old_new;
 };
 
 }

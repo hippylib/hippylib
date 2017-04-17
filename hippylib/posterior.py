@@ -75,6 +75,7 @@ class LowRankPosteriorSampler:
         self.prior.R.mult(noise, self.help)
         self.lrsqrt.mult(self.help, s)
         s.axpy(-1, noise)
+        s *= -1.0
 
 class GaussianLRPosterior:
     """

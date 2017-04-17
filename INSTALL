@@ -1,5 +1,5 @@
                         Inverse Problem PYthon library
-                                 version 1.1
+                                 version 1.2
 
 
  __        ______  _______   _______   __      __  __  __  __       
@@ -16,8 +16,7 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
                            
-The current version of hIPPYlib depends on [FEniCS](http://fenicsproject.org/) version 1.6.
-It also provides partial support for FEniCS versions 1.5 and 2016.1 (Applications and Tutorial).
+hIPPYlib depends on [FEniCS](http://fenicsproject.org/). It supports versions 1.6, 2016.1, 2016.2.
 Below you can find how to install FEniCS 1.6 on your system.
 
 - **MacOS 10.10 and 10.11 systems:**
@@ -34,12 +33,6 @@ source /Applications/FEniCS.app/Contents/Resources/share/fenics/fenics.conf
 Alternatively you can just double-click on the FEniCS icon in your Applications directory
 and that will generate a new shell preconfigured with the paths that FEniCS needs.
 Just run FEniCS from within this shell.
-
-- **MacOS 10.9:**
-
-Download FEniCS 1.5.0 from [here](http://fenicsproject.org/download/older_releases.html#older-releases).
-Find  your  MacOS  version and  download  the appropriate  binaries  of  FEniCS  1.5.0.
-Note FEniCS 1.5.0 will not be supported by future releases of hIPPYlib
 
 - **Ubuntu LTS 14.04:**
 

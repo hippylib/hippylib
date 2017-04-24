@@ -24,7 +24,7 @@ chmod +x fenics-install.sh
 ./fenics-install.sh
 ```
 This can take several hours.  When it completes, a file
-`fenics.costum` will be generated.  This files contains all the paths
+`fenics.custom` will be generated.  This files contains all the paths
 you need to add to your enviroment to run FEniCS.
 
 3. *Source the fenics configuration file*

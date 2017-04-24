@@ -6,6 +6,7 @@ This script will build FEniCS 2016.2 with all the suggested dependencies to full
 ## Step-by-step build
 
 1. *Select the correct hashdist profile file*
+
 If you are running MacOS
 ```
 ln -s local-darwin.yaml local.yaml
@@ -25,6 +26,7 @@ When it completes, a file `fenics.costum` will be generated.
 This files contains all the paths you need to add to your enviroment to run FEniCS.
 
 3. *Source the fenics configuration file*
+
 Everytime you open a new shell, you will have to add all the FEniCS paths to your enviroment 
 before you can use FEniCS.
 ```

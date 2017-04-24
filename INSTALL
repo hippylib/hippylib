@@ -35,6 +35,8 @@ small modifications with respect to the ones provided by the FEniCS
 community to ensure that all the dependencies needed by hIPPYlib are
 installed.
 
+See `fenics-hashdist/README.md` for further details.
+
 ## Run FEniCS from Docker (Linux, MacOS, Windows)
 
 An easy way to run FEniCS is to use their prebuilt Docker images.

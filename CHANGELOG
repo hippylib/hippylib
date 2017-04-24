@@ -15,9 +15,12 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
                           
-Version 1.2.0,
+Version 1.2.0, released on
 =======================================
-- Add support for FEniCS 2016.2
+- Add docker container instructions
+- Add hashdist scripts to build FEniCS 2016.2 on MacOS and Linux
+- Update notebook to nbformat 4
+- Let FEniCS 2016.2 be the preferred version of FEniCS
 - Add travis integration
                           
 Version 1.1.0, released on Nov 28, 2016

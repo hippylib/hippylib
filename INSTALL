@@ -2,10 +2,10 @@
                                  version 1.2
 
 
- __        ______  _______   _______   __      __  __  __  __
-/  |      /      |/       \ /       \ /  \    /  |/  |/  |/  |
-$$ |____  $$$$$$/ $$$$$$$  |$$$$$$$  |$$  \  /$$/ $$ |$$/ $$ |
-$$      \   $$ |  $$ |__$$ |$$ |__$$ | $$  \/$$/  $$ |/  |$$      \
+ __        ______  _______   _______   __      __  __  __  __       
+/  |      /      |/       \ /       \ /  \    /  |/  |/  |/  |      
+$$ |____  $$$$$$/ $$$$$$$  |$$$$$$$  |$$  \  /$$/ $$ |$$/ $$ |____  
+$$      \   $$ |  $$ |__$$ |$$ |__$$ | $$  \/$$/  $$ |/  |$$      \ 
 $$$$$$$  |  $$ |  $$    $$/ $$    $$/   $$  $$/   $$ |$$ |$$$$$$$  |
 $$ |  $$ |  $$ |  $$$$$$$/  $$$$$$$/     $$$$/    $$ |$$ |$$ |  $$ |
 $$ |  $$ | _$$ |_ $$ |      $$ |          $$ |    $$ |$$ |$$ |__$$ |
@@ -57,7 +57,7 @@ We first create a new Docker container to run the 'jupyter-notebook'
 command and to expose port `8888`.  From a command line shell, go to
 the `hippylib` folder and type:
 ```
-docker run --name hippylib-nb -w /home/fenics/hippylib -v $(pwd):/home/fenics/hippylib -d -p 127.0.0.1:8888:8888 quay.io/fenicsproject/stable:2016.2.0.r2 'jupyter-notebook --ip=0.0.0.0'
+docker run --name hippylib-nb -w /home/fenics/hippylib -v $(pwd):/home/fenics/hippylib -d -p 127.0.0.1:8888:8888 quay.io/fenicsproject/stable:2016.2.0 'jupyter-notebook --ip=0.0.0.0'
 docker logs hippylib-nb
 ```
 The notebook will be available at
@@ -77,7 +77,7 @@ on the workflow presented above.
 We first create a new Docker container to run the 'jupyter-notebook' command and to expose port `8888` on the virtual machine.
 From a command line shell, go to the `hippylib` folder and type:
 ```
-docker run --name hippylib-nb -w /home/fenics/hippylib -v $(pwd):/home/fenics/hippylib -d -p $(docker-machine ip $(docker-machine active)):8888:8888 quay.io/fenicsproject/stable:2016.2.0.r2 'jupyter-notebook --ip=0.0.0.0'
+docker run --name hippylib-nb -w /home/fenics/hippylib -v $(pwd):/home/fenics/hippylib -d -p $(docker-machine ip $(docker-machine active)):8888:8888 quay.io/fenicsproject/stable:2016.2.0 'jupyter-notebook --ip=0.0.0.0'
 docker logs hippylib-nb
 ```
 To find out the IP of the virtual machine we type:

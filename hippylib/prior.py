@@ -329,9 +329,12 @@ class BiLaplacianPrior(_Prior):
         old_qr = dl.parameters["form_compiler"]["quadrature_degree"]
         dl.parameters["form_compiler"]["quadrature_degree"] = -1
         qdegree = 2*Vh._ufl_element.degree()
-
-            
         metadata = {"quadrature_degree" : qdegree}
+
+        if dlversion() == (2017,1,0):
+            representation_old = dl.parameters["form_compiler"]["representation"]
+            dl.parameters["form_compiler"]["representation"] = "quadrature"
+            
         if dlversion() <= (1,6,0):
             Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', qdegree)
         else:
@@ -348,7 +351,11 @@ class BiLaplacianPrior(_Prior):
         Mqh.set_diagonal(dMqh)
         MixedM = dl.assemble(ph*test*dl.dx(metadata=metadata))
         self.sqrtM = MatMatMult(MixedM, Mqh)
+
         dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
+        
+        if dlversion() == (2017,1,0):
+            dl.parameters["form_compiler"]["representation"] = representation_old
                              
         self.R = _BilaplacianR(self.A, self.Msolver)      
         self.Rsolver = _BilaplacianRsolver(self.Asolver, self.M)
@@ -455,8 +462,15 @@ class MollifiedBiLaplacianPrior(_Prior):
         self.Asolver.parameters["error_on_nonconvergence"] = True
         self.Asolver.parameters["nonzero_initial_guess"] = False
         
+        old_qr = dl.parameters["form_compiler"]["quadrature_degree"]
+        dl.parameters["form_compiler"]["quadrature_degree"] = -1
         qdegree = 2*Vh._ufl_element.degree()
         metadata = {"quadrature_degree" : qdegree}
+        
+        if dlversion() == (2017,1,0):
+            representation_old = dl.parameters["form_compiler"]["representation"]
+            dl.parameters["form_compiler"]["representation"] = "quadrature"
+        
         if dlversion() <= (1,6,0):
             Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', qdegree)
         else:
@@ -473,6 +487,11 @@ class MollifiedBiLaplacianPrior(_Prior):
         Mqh.set_diagonal(dMqh)
         MixedM = dl.assemble(ph*test*dl.dx(metadata=metadata))
         self.sqrtM = MatMatMult(MixedM, Mqh)
+        
+        dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
+        
+        if dlversion() == (2017,1,0):
+            dl.parameters["form_compiler"]["representation"] = representation_old
              
         self.R = _BilaplacianR(self.A, self.Msolver)      
         self.Rsolver = _BilaplacianRsolver(self.Asolver, self.M)

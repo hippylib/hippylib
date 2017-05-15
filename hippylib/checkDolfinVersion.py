@@ -8,7 +8,7 @@ import dolfin as dl
 def dlversion():
     return (dl.DOLFIN_VERSION_MAJOR, dl.DOLFIN_VERSION_MINOR, dl.DOLFIN_VERSION_MICRO)
 
-supported_versions = [(1,6,0), (2016,1,0), (2016,2,0)]
+supported_versions = [(1,6,0), (2016,1,0), (2016,2,0), (2017,1,0)]
 
 def checkdlversion():
     if dlversion() not in supported_versions:

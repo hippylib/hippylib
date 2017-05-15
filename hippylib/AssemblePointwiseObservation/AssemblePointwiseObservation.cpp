@@ -12,7 +12,7 @@
  * Software Foundation) version 3.0 dated June 2007.
 */
 
-#include <dolfin.h>
+#include <dolfin/common/version.h>
 #include <dolfin/fem/GenericDofMap.h>
 #include <dolfin/geometry/BoundingBoxTree.h>
 #include <vector>

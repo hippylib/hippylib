@@ -15,8 +15,13 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
                           
+Version 1.3.0, released on June 20, 2017
+========================================
+- Switch license to GPL-2
+- Add support for FEniCS 2017.1
+
 Version 1.2.0, released on April 24, 2017
-=======================================
+=========================================
 - Update instruction to build FEniCS: hashdist and docker
 - Update notebook to nbformat 4
 - Let FEniCS 2016.2 be the preferred version of FEniCS

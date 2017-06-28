@@ -20,6 +20,7 @@ parameters:
 # profile.
 
 packages:
+  ca-bundle: 
   launcher:
   cmake:
   python:
@@ -61,13 +62,20 @@ packages:
   vtk:
     vtk_wrap_python: false
   dijitso:
+    version: '2016.2.0'
   ffc:
+    version: '2016.2.0'
   fiat:
+    version: '2016.2.0'
   instant:
+    version: '2016.2.0'
   ufl:
+    version: '2016.2.0'
   dolfin:
+    version: '2016.2.0'
     build_with: |
       hdf5, parmetis, petsc, petsc4py, suitesparse, scotch, slepc, slepc4py, vtk, zlib
   mshr:
+    version: '2016.2.0'
     build_with: |
       vtk

@@ -87,7 +87,7 @@ cd $DIR
 
 # Download HashDist
 echo "Downloading HashDist..."
-git clone https://github.com/hashdist/hashdist.git
+git clone https://github.com/hippylib/hashdist.git
 echo ""
 
 # Download HashStack
@@ -129,6 +129,7 @@ if   [ "x$OS" = "xLinux" ]; then
     PROFILE="fenics.Linux.yaml"
 elif [ "x$OS" = "xDarwin" ]; then
     PROFILE="fenics.Darwin.yaml"
+    NO_CERT="--no-check-certificate"
 elif [ "x$OS" = "xCYGWIN_NT-6.1" ]; then
     PROFILE="fenics.Cygwin.yaml"
 else
@@ -194,7 +195,7 @@ if [ "x${FENICS_INSTALL_USE_HOST_PYTHON}" = "x1" ]; then
 fi
 
 # Set arguments for hit build
-HIT_BUILD_ARGS="-j${PROCS}"
+HIT_BUILD_ARGS="-j${PROCS} ${NO_CERT}"
 if [ "x${VERBOSE}" = "x1" ]; then
     HIT_BUILD_ARGS="${HIT_BUILD_ARGS} --verbose"
 fi
@@ -229,6 +230,8 @@ export CMAKE_PREFIX_PATH=\$PROFILE_INSTALL_DIR:\$CMAKE_PREFIX_PATH
 export PYTHONPATH=\$PROFILE_INSTALL_DIR/lib/python2.7/site-packages:\$PYTHONPATH
 export MANPATH=\$PROFILE_INSTALL_DIR/share/man:\$MANPATH
 export PKG_CONFIG_PATH=\$PROFILE_INSTALL_DIR/lib/pkgconfig:\$PKG_CONFIG_PATH
+export PETSC_DIR=$PROFILE_INSTALL_DIR
+export SLEPC_DIR=$PROFILE_INSTALL_DIR
 EOF
 if [ "x$OS" = "xDarwin" ]; then
     cat << EOF >> $CONFIG_FILE

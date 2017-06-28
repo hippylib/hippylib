@@ -15,8 +15,9 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
                           
-Version 1.3.0, released on June 20, 2017
+Version 1.3.0, released on June 28, 2017
 ========================================
+- Improve hashdist installation support
 - Switch license to GPL-2
 - Add support for FEniCS 2017.1
 

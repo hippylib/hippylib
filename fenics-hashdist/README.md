@@ -13,6 +13,8 @@ If you are running MacOS
 ```
 ln -s local-darwin.yaml local.yaml
 ```
+*Note*: You may have to install the Fortran compiler from [here](https://gcc.gnu.org/wiki/GFortranBinaries#MacOS).
+
 If you are running Linux:
 ```
 ln -s local-linux.yaml local.yaml
@@ -36,32 +38,3 @@ source <HIPPYLIB_BASE_DIR>/fenics-hashdist/fenics.custom
 ```
 where `<HIPPYLIB_BASE_DIR>` is the absolute path to the folder where
 hIPPYlib resides.
-
-## Note on SSL Certificate error
-
-Hashdist automatically connects to the internet to download the
-necessaries dependencies.  Some websites
-(e.g. https://pypi.python.org/pypi) require a valid SSL Certificate to
-download the package you need.
-
-If you encounter an error of this type:
-
-```
-[ERROR] urllib failed to download (reason: [SSL:
- CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:590)):
-
-<url_of_the_package_you_are_trying_to_download>
-
-
- *[CRITICAL]* You may wish to check your Internet connection or the
- remote server
- ```
- 
- it means that hashdist (urllib to be precise) was not able to find a
- valid SSL Certificate to use.
- 
- A workaround suggested
- [here](http://stackoverflow.com/questions/25981703/pip-install-fails-with-connection-error-ssl-certificate-verify-failed-certi)
- is to download the cURL certificate from
- `http://curl.haxx.se/ca/cacert.pem` and copy it in your
- `/etc/ssl/certs` folder (note: this requires sudo).

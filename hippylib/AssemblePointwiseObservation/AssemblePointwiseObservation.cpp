@@ -61,9 +61,11 @@ PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 	 std::vector<PetscInt> proc_offset(nprocs+1);
 	 std::fill(proc_offset.begin(), proc_offset.end(), 0);
 	 for(int i = 0; i < nTargets; ++i)
-		 ++proc_offset[owner[i]+1];
+		 if (owner[i] < nprocs)
+			 ++proc_offset[owner[i]+1];
 
 	 std::partial_sum(proc_offset.begin(), proc_offset.end(), proc_offset.begin());
+	 PetscInt global_rows = proc_offset[nprocs];
 
 	 old_new.resize(nTargets);
 	 for(int i = 0; i < nTargets; ++i)
@@ -75,7 +77,7 @@ PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 	 for(int jj = 0; jj < LG.size(); ++jj)
 		 LG[jj] = old_new[LG[jj]];
 
-	 return proc_offset[nprocs];
+	 return global_rows;
 }
 
 PointwiseObservation::PointwiseObservation(const FunctionSpace & Vh, const Array<double> & targets)

@@ -16,14 +16,20 @@ import numpy as np
 import os
     
 abspath = os.path.dirname( os.path.abspath(__file__) )
-sdir = os.path.join(abspath,"AssemblePointwiseObservation")
-header_file = open(os.path.join(sdir,"AssemblePointwiseObservation.h"), "r")
+source_directory = os.path.join(abspath,"AssemblePointwiseObservation")
+header_file = open(os.path.join(source_directory,"AssemblePointwiseObservation.h"), "r")
 code = header_file.read()
 header_file.close()
 cpp_sources = ["AssemblePointwiseObservation.cpp"]
+
+include_dirs = [".", source_directory]
+for ss in ['PROFILE_INSTALL_DIR', 'PETSC_DIR', 'SLEPC_DIR']:
+    if os.environ.has_key(ss):
+        include_dirs.append(os.environ[ss]+'/include')
+        
 cpp_module = dl.compile_extension_module(
-code=code, source_directory=sdir, sources=cpp_sources,
-include_dirs=[".",  sdir])
+             code = code, source_directory = source_directory,
+             sources = cpp_sources, include_dirs=include_dirs)
 
 def assemblePointwiseObservation(Vh, targets):
     """

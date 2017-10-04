@@ -28,14 +28,20 @@ def amg_method():
     return 'petsc_amg'
 
 abspath = os.path.dirname( os.path.abspath(__file__) )
-sdir = os.path.join(abspath,"cpp_linalg")
-header_file = open(os.path.join(sdir,"linalg.h"), "r")
+source_directory = os.path.join(abspath,"cpp_linalg")
+header_file = open(os.path.join(source_directory,"linalg.h"), "r")
 code = header_file.read()
 header_file.close()
 cpp_sources = ["linalg.cpp"]  
+
+include_dirs = [".", source_directory]
+for ss in ['PROFILE_INSTALL_DIR', 'PETSC_DIR', 'SLEPC_DIR']:
+    if os.environ.has_key(ss):
+        include_dirs.append(os.environ[ss]+'/include')
+
 cpp_module = compile_extension_module(
-code=code, source_directory=sdir, sources=cpp_sources,
-include_dirs=[".",  sdir])
+code=code, source_directory=source_directory, sources=cpp_sources,
+include_dirs=include_dirs)
 
 def MatMatMult(A,B):
     """

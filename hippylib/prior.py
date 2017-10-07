@@ -165,8 +165,15 @@ class LaplacianPrior(_Prior):
         self.Msolver.parameters["nonzero_initial_guess"] = False
         
         ndim = Vh.mesh().geometry().dim()
+        old_qr = dl.parameters["form_compiler"]["quadrature_degree"]
+        dl.parameters["form_compiler"]["quadrature_degree"] = -1
         qdegree = 2*Vh._ufl_element.degree()
         metadata = {"quadrature_degree" : qdegree}
+        
+        if dlversion() >= (2017,1,0):
+            representation_old = dl.parameters["form_compiler"]["representation"]
+            dl.parameters["form_compiler"]["representation"] = "quadrature"
+            
         if dlversion() <= (1,6,0):
             Qh = dl.VectorFunctionSpace(Vh.mesh(), 'Quadrature', qdegree, dim=(ndim+1) )
         else:
@@ -196,6 +203,11 @@ class LaplacianPrior(_Prior):
             
         GG = dl.assemble(varfGG)
         self.sqrtR = MatMatMult(GG, Mqh)
+        
+        dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
+        
+        if dlversion() >= (2017,1,0):
+            dl.parameters["form_compiler"]["representation"] = representation_old
                         
         self.mean = mean
         
@@ -331,7 +343,7 @@ class BiLaplacianPrior(_Prior):
         qdegree = 2*Vh._ufl_element.degree()
         metadata = {"quadrature_degree" : qdegree}
 
-        if dlversion() == (2017,1,0):
+        if dlversion() >= (2017,1,0):
             representation_old = dl.parameters["form_compiler"]["representation"]
             dl.parameters["form_compiler"]["representation"] = "quadrature"
             
@@ -354,7 +366,7 @@ class BiLaplacianPrior(_Prior):
 
         dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
         
-        if dlversion() == (2017,1,0):
+        if dlversion() >= (2017,1,0):
             dl.parameters["form_compiler"]["representation"] = representation_old
                              
         self.R = _BilaplacianR(self.A, self.Msolver)      
@@ -467,7 +479,7 @@ class MollifiedBiLaplacianPrior(_Prior):
         qdegree = 2*Vh._ufl_element.degree()
         metadata = {"quadrature_degree" : qdegree}
         
-        if dlversion() == (2017,1,0):
+        if dlversion() >= (2017,1,0):
             representation_old = dl.parameters["form_compiler"]["representation"]
             dl.parameters["form_compiler"]["representation"] = "quadrature"
         
@@ -490,7 +502,7 @@ class MollifiedBiLaplacianPrior(_Prior):
         
         dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
         
-        if dlversion() == (2017,1,0):
+        if dlversion() >= (2017,1,0):
             dl.parameters["form_compiler"]["representation"] = representation_old
              
         self.R = _BilaplacianR(self.A, self.Msolver)      

@@ -160,9 +160,9 @@ PointwiseObservation::PointwiseObservation(const FunctionSpace & Vh, const Array
 		 std::vector<double> coords;
 		 cell.get_vertex_coordinates(coords);
 		 element->evaluate_basis_all(&basis_matrix[0], points[lt].coordinates(), &coords[0], cell.orientation());
-		 ArrayView<const dolfin::la_index> cell_dofs = dofmap->cell_dofs(cell_id);
+		 auto cell_dofs = dofmap->cell_dofs(cell_id);
 		 auto it_col = cols.begin();
-		 for(auto it = cell_dofs.begin(); it != cell_dofs.end(); ++it, ++it_col)
+		 for(auto it = cell_dofs.data(); it != cell_dofs.data()+cell_dofs.size(); ++it, ++it_col)
 			 *it_col = dofmap->local_to_global_index(*it);
 		 for(int i = 0; i < sdim; ++i)
 			 for(int j = 0; j < value_dim; ++j)

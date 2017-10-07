@@ -4,18 +4,24 @@ services:
     - docker
 
 before_install:
+    - docker pull quay.io/fenicsproject/stable:2016.1.0
     - docker pull quay.io/fenicsproject/stable:2016.2.0
-    - docker volume create --name instant-cache-2016.2
     - docker pull quay.io/fenicsproject/stable:2017.1.0
-    - docker volume create --name instant-cache-2017.1
     
 script:
     - ls
+    - sed -i 's/nx = 64/nx = 32/' /home/fenics/hippylib/applications/poisson/model_subsurf.py
+    - sed -i 's/ny = 64/ny = 32/' /home/fenics/hippylib/applications/poisson/model_subsurf.py
+    - sed -i 's/mesh = dl.refine( dl.Mesh("ad_20.xml") )/mesh = dl.Mesh("ad_20.xml")/' /home/fenics/hippylib/applications/ad_diff/model_ad_diff.py
     - echo Test 2017.1
-    - docker run --rm -v instant-cache-2017.1:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2017.1.0 "dolfin-version"
-    - docker run --rm -v instant-cache-2017.1:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2017.1.0 "python model_subsurf.py"
-    - docker run --rm -v instant-cache-2017.1:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2017.1.0 "python model_ad_diff.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2017.1.0 "dolfin-version"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2017.1.0 "python model_subsurf.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2017.1.0 "python model_ad_diff.py"
     - echo Test 2016.2
-    - docker run --rm -v instant-cache-2016.2:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2016.2.0 "dolfin-version"
-    - docker run --rm -v instant-cache-2016.2:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.2.0 "python model_subsurf.py"
-    - docker run --rm -v instant-cache-2016.2:/home/fenics/.instant -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2016.2.0 "python model_ad_diff.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2016.2.0 "dolfin-version"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.2.0 "python model_subsurf.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2016.2.0 "python model_ad_diff.py"
+    - echo Test 2016.1
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2016.1.0 "dolfin-version"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.1.0 "python model_subsurf.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2016.1.0 "python model_ad_diff.py"

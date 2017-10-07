@@ -10,18 +10,23 @@ before_install:
     
 script:
     - ls
-    - sed -i 's/nx = 64/nx = 32/' /home/fenics/hippylib/applications/poisson/model_subsurf.py
-    - sed -i 's/ny = 64/ny = 32/' /home/fenics/hippylib/applications/poisson/model_subsurf.py
-    - sed -i 's/mesh = dl.refine( dl.Mesh("ad_20.xml") )/mesh = dl.Mesh("ad_20.xml")/' /home/fenics/hippylib/applications/ad_diff/model_ad_diff.py
+    - sed -i 's/nx = 64/nx = 32/' applications/poisson/model_subsurf.py
+    - sed -i 's/ny = 64/ny = 32/' applications/poisson/model_subsurf.py
+    - sed -i 's/nx = 64/nx = 32/' applications/poisson/model_continuous_obs.py
+    - sed -i 's/ny = 64/ny = 32/' applications/poisson/model_continuous_obs.py
+    - sed -i 's/mesh = dl.refine( dl.Mesh("ad_20.xml") )/mesh = dl.Mesh("ad_20.xml")/' applications/ad_diff/model_ad_diff.py
     - echo Test 2017.1
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2017.1.0 "dolfin-version"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2017.1.0 "python model_continuous_obs.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2017.1.0 "python model_subsurf.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2017.1.0 "python model_ad_diff.py"
     - echo Test 2016.2
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2016.2.0 "dolfin-version"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.2.0 "python model_continuous_obs.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.2.0 "python model_subsurf.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2016.2.0 "python model_ad_diff.py"
     - echo Test 2016.1
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2016.1.0 "dolfin-version"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.1.0 "python model_continuous_obs.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.1.0 "python model_subsurf.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2016.1.0 "python model_ad_diff.py"

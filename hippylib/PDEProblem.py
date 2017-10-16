@@ -71,8 +71,14 @@ class PDEVariationalProblem(PDEProblem):
     def __init__(self, Vh, varf_handler, bc, bc0, is_fwd_linear = False):
         self.Vh = Vh
         self.varf_handler = varf_handler
-        self.bc = bc
-        self.bc0 = bc0
+        if type(bc) is dl.DirichletBC:
+            self.bc = [bc]
+        else:
+            self.bc = bc
+        if type(bc0) is dl.DirichletBC:
+            self.bc0 = [bc0]
+        else:
+            self.bc0 = bc0
         
         self.A  = []
         self.At = []
@@ -135,7 +141,7 @@ class PDEVariationalProblem(PDEProblem):
         dp = dl.TrialFunction(self.Vh[ADJOINT])
         varf = self.varf_handler(u,a,p)
         adj_form = dl.derivative( dl.derivative(varf, u, du), p, dp )
-        Aadj, dummy = dl.assemble_system(adj_form, dl.Constant(0.)*du*dl.dx, self.bc0)
+        Aadj, dummy = dl.assemble_system(adj_form, dl.Constant(0.)*dl.inner(u,du)*dl.dx, self.bc0)
         solver = dl.PETScLUSolver()
         solver.set_operator(Aadj)
         solver.solve(adj, adj_rhs)
@@ -167,16 +173,16 @@ class PDEVariationalProblem(PDEProblem):
         self.A, dummy = dl.assemble_system(dl.derivative(g_form[ADJOINT],u), g_form[ADJOINT], self.bc0)
         self.At, dummy = dl.assemble_system(dl.derivative(g_form[STATE],p),  g_form[STATE], self.bc0)
         self.C = dl.assemble(dl.derivative(g_form[ADJOINT],a))
-        self.bc0.zero(self.C)
+        [bc0.zero(self.C) for bc0 in self.bc0]
         self.Wau = dl.assemble(dl.derivative(g_form[PARAMETER],u))
         Wau_t = Transpose(self.Wau)
-        self.bc0.zero(Wau_t)
+        [bc0.zero(Wau_t) for bc0 in self.bc0]
         self.Wau = Transpose(Wau_t)
         
         self.Wuu = dl.assemble(dl.derivative(g_form[STATE],u))
-        self.bc0.zero(self.Wuu)
+        [bc0.zero(self.Wuu) for bc0 in self.bc0]
         Wuu_t = Transpose(self.Wuu)
-        self.bc0.zero(Wuu_t)
+        [bc0.zero(Wuu_t) for bc0 in self.bc0]
         self.Wuu = Transpose(Wuu_t)
         
         self.Waa = dl.assemble(dl.derivative(g_form[PARAMETER],a))

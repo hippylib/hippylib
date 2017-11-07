@@ -11,13 +11,15 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 import dolfin as dl
 import numpy as np
-from linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2
-from traceEstimator import TraceEstimator
+from .linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2
+from .traceEstimator import TraceEstimator
 import math
-from expression import code_Mollifier
-from checkDolfinVersion import dlversion
+from .expression import code_Mollifier
+from .checkDolfinVersion import dlversion
 
 
 class _RinvM:

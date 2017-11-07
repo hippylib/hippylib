@@ -11,6 +11,8 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 import dolfin as dl
 import math
 import numpy as np
@@ -41,7 +43,7 @@ def true_model(Vh, gamma, delta, anis_diff):
 if __name__ == "__main__":
     dl.set_log_active(False)
     sep = "\n"+"#"*80+"\n"
-    print sep, "Set up the mesh and finite element spaces", sep
+    print(sep, "Set up the mesh and finite element spaces", sep)
     ndim = 2
     nx = 64
     ny = 64
@@ -49,7 +51,8 @@ if __name__ == "__main__":
     Vh2 = dl.FunctionSpace(mesh, 'Lagrange', 2)
     Vh1 = dl.FunctionSpace(mesh, 'Lagrange', 1)
     Vh = [Vh2, Vh1, Vh2]
-    print "Number of dofs: STATE={0}, PARAMETER={1}, ADJOINT={2}".format(Vh[STATE].dim(), Vh[PARAMETER].dim(), Vh[ADJOINT].dim())
+    print("Number of dofs: STATE={0}, PARAMETER={1}, ADJOINT={2}".format(
+            Vh[STATE].dim(), Vh[PARAMETER].dim(), Vh[ADJOINT].dim()) )
     
     # Initialize Expressions
     f = dl.Constant(0.0)
@@ -67,7 +70,7 @@ if __name__ == "__main__":
     ntargets = 300
     np.random.seed(seed=1)
     targets = np.random.uniform(0.1,0.9, [ntargets, ndim] )
-    print "Number of observation points: {0}".format(ntargets)
+    print("Number of observation points: {0}".format(ntargets))
     misfit = PointwiseStateObservation(Vh[STATE], targets)
     
     gamma = .1
@@ -84,7 +87,8 @@ if __name__ == "__main__":
     pen = 1e1
     prior = MollifiedBiLaplacianPrior(Vh[PARAMETER], gamma, delta, locations, atrue, anis_diff, pen)
         
-    print "Prior regularization: (delta_x - gamma*Laplacian)^order: delta={0}, gamma={1}, order={2}".format(delta, gamma,2)    
+    print("Prior regularization: (delta_x - gamma*Laplacian)^order: delta={0}, gamma={1}, order={2}".format(
+            delta, gamma,2) )
                 
     #Generate synthetic observations
     utrue = pde.generate_state()
@@ -99,11 +103,11 @@ if __name__ == "__main__":
     
     model = Model(pde,prior, misfit)
            
-    print sep, "Test the gradient and the Hessian of the model", sep
+    print(sep, "Test the gradient and the Hessian of the model", sep)
     a0 = dl.interpolate(dl.Expression("sin(x[0])", element=Vh[PARAMETER].ufl_element()), Vh[PARAMETER])
     modelVerify(model, a0.vector(), 1e-12)
 
-    print sep, "Find the MAP point", sep
+    print(sep, "Find the MAP point", sep)
     a0 = prior.mean.copy()
     solver = ReducedSpaceNewtonCG(model)
     solver.parameters["rel_tolerance"] = 1e-9
@@ -116,20 +120,20 @@ if __name__ == "__main__":
     x = solver.solve(a0)
     
     if solver.converged:
-        print "\nConverged in ", solver.it, " iterations."
+        print("\nConverged in ", solver.it, " iterations.")
     else:
-        print "\nNot Converged"
+        print("\nNot Converged")
 
-    print "Termination reason: ", solver.termination_reasons[solver.reason]
-    print "Final gradient norm: ", solver.final_grad_norm
-    print "Final cost: ", solver.final_cost
+    print("Termination reason: ", solver.termination_reasons[solver.reason])
+    print("Final gradient norm: ", solver.final_grad_norm)
+    print("Final cost: ", solver.final_cost)
         
-    print sep, "Compute the low rank Gaussian Approximation of the posterior", sep
+    print(sep, "Compute the low rank Gaussian Approximation of the posterior", sep)
     model.setPointForHessianEvaluations(x)
     Hmisfit = ReducedHessian(model, solver.parameters["inner_rel_tolerance"], gauss_newton_approx=False, misfit_only=True)
     k = 50
     p = 20
-    print "Double Pass Algorithm. Requested eigenvectors: {0}; Oversampling {1}.".format(k,p)
+    print("Double Pass Algorithm. Requested eigenvectors: {0}; Oversampling {1}.".format(k,p))
     Omega = np.random.randn(x[PARAMETER].array().shape[0], k+p)
     #d, U = singlePassG(Hmisfit, model.R, model.Rsolver, Omega, k, check_Bortho=True, check_Aortho=True, check_residual=True)
     d, U = doublePassG(Hmisfit, prior.R, prior.Rsolver, Omega, k, check_Bortho=False, check_Aortho=False, check_residual=False)
@@ -137,10 +141,10 @@ if __name__ == "__main__":
     posterior.mean = x[PARAMETER]
     
     post_tr, prior_tr, corr_tr = posterior.trace(method="Estimator", tol=1e-1, min_iter=20, max_iter=100)
-    print "Posterior trace {0:5e}; Prior trace {1:5e}; Correction trace {2:5e}".format(post_tr, prior_tr, corr_tr)
+    print("Posterior trace {0:5e}; Prior trace {1:5e}; Correction trace {2:5e}".format(post_tr, prior_tr, corr_tr))
     post_pw_variance, pr_pw_variance, corr_pw_variance = posterior.pointwise_variance("Exact")
 
-    print sep, "Save State, Parameter, Adjoint, and observation in paraview", sep
+    print(sep, "Save State, Parameter, Adjoint, and observation in paraview", sep)
     xxname = ["State", "Parameter", "Adjoint"]
     xx = [vector2Function(x[i], Vh[i], name=xxname[i]) for i in range(len(Vh))]
     dl.File("results/poisson_state.pvd") << xx[STATE]
@@ -158,7 +162,7 @@ if __name__ == "__main__":
     fid << vector2Function(corr_pw_variance, Vh[PARAMETER], name="Correction")
     
     
-    print sep, "Generate samples from Prior and Posterior\n","Export generalized Eigenpairs", sep
+    print(sep, "Generate samples from Prior and Posterior\n","Export generalized Eigenpairs", sep)
     fid_prior = dl.File("samples/sample_prior.pvd")
     fid_post  = dl.File("samples/sample_post.pvd")
     nsamples = 500
@@ -177,7 +181,7 @@ if __name__ == "__main__":
     posterior.exportU(Vh[PARAMETER], "hmisfit/evect.pvd")
     np.savetxt("hmisfit/eigevalues.dat", d)
     
-    print sep, "Visualize results", sep
+    print(sep, "Visualize results", sep)
     dl.plot(xx[STATE], title = xxname[STATE])
     dl.plot(dl.exp(xx[PARAMETER]), title = xxname[PARAMETER])
     dl.plot(xx[ADJOINT], title = xxname[ADJOINT])

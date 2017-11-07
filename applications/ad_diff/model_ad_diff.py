@@ -11,6 +11,8 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 import dolfin as dl
 import numpy as np
 import matplotlib.pyplot as plt
@@ -188,7 +190,8 @@ class TimeDependentAD:
                 self.ud.retrieve(ud,t)
                 ud.axpy(-1., u)
                 self.Q.mult(ud,rhs_obs)
-#                print "t = ", t, "solveAdj ||ud-u||_inf = ", ud.norm("linf"), " ||rhs_obs|| = ", rhs_obs.norm("linf")
+#                print("t = ", t, "solveAdj ||ud-u||_inf = ",
+#                        ud.norm("linf"), " ||rhs_obs|| = ", rhs_obs.norm("linf"))
                 rhs.axpy(1./self.noise_variance, rhs_obs)
                 
             self.solvert.solve(p, rhs)
@@ -386,13 +389,13 @@ if __name__ == "__main__":
     dl.set_log_active(False)
     np.random.seed(1)
     sep = "\n"+"#"*80+"\n"
-    print sep, "Set up the mesh and finite element spaces.\n","Compute wind velocity", sep
+    print(sep, "Set up the mesh and finite element spaces.\n","Compute wind velocity", sep)
     mesh = dl.refine( dl.Mesh("ad_20.xml") )
     wind_velocity = computeVelocityField(mesh)
     Vh = dl.FunctionSpace(mesh, "Lagrange", 2)
-    print "Number of dofs: {0}".format( Vh.dim() )
+    print("Number of dofs: {0}".format( Vh.dim() ))
     
-    print sep, "Set up Prior Information and model", sep
+    print(sep, "Set up Prior Information and model", sep)
     
     ic_expr = dl.Expression('min(0.5,exp(-100*(pow(x[0]-0.35,2) +  pow(x[1]-0.7,2))))', element=Vh.ufl_element())
     true_initial_condition = dl.interpolate(ic_expr, Vh).vector()
@@ -411,11 +414,12 @@ if __name__ == "__main__":
 #    prior.mean = interpolate(Expression('min(0.6,exp(-50*(pow(x[0]-0.34,2) +  pow(x[1]-0.71,2))))'), Vh).vector()
     prior.mean = dl.interpolate(dl.Constant(0.5), Vh).vector()
     
-    print "Prior regularization: (delta - gamma*Laplacian)^order: delta={0}, gamma={1}, order={2}".format(delta, gamma,orderPrior)
+    print("Prior regularization: (delta - gamma*Laplacian)^order: delta={0}, gamma={1}, order={2}".format(
+           delta, gamma,orderPrior) )
 
     problem = TimeDependentAD(mesh, [Vh,Vh,Vh], 0., 4., 1., .2, wind_velocity, True, prior)
     
-    print sep, "Generate synthetic observation", sep
+    print(sep, "Generate synthetic observation", sep)
     rel_noise = 0.001
     utrue = problem.generate_vector(STATE)
     x = [utrue, true_initial_condition, None]
@@ -426,30 +430,30 @@ if __name__ == "__main__":
     problem.ud.randn_perturb(noise_std_dev)
     problem.noise_variance = noise_std_dev*noise_std_dev
     
-    print sep, "Test the gradient and the Hessian of the model", sep
+    print(sep, "Test the gradient and the Hessian of the model", sep)
     a0 = true_initial_condition.copy()
     modelVerify(problem, a0, 1e-12, is_quadratic = True)
     
-    print sep, "Compute the reduced gradient and hessian", sep
+    print(sep, "Compute the reduced gradient and hessian", sep)
     [u,a,p] = problem.generate_vector()
     problem.solveFwd(u, [u,a,p], 1e-12)
     problem.solveAdj(p, [u,a,p], 1e-12)
     mg = problem.generate_vector(PARAMETER)
     grad_norm = problem.evalGradientParameter([u,a,p], mg)
         
-    print "(g,g) = ", grad_norm
+    print("(g,g) = ", grad_norm)
     
     H = ReducedHessian(problem, 1e-12, gauss_newton_approx=False, misfit_only=True) 
     
-    print sep, "Compute the low rank Gaussian Approximation of the posterior", sep   
+    print(sep, "Compute the low rank Gaussian Approximation of the posterior", sep )  
     k = 80
     p = 20
-    print "Double Pass Algorithm. Requested eigenvectors: {0}; Oversampling {1}.".format(k,p)
+    print("Double Pass Algorithm. Requested eigenvectors: {0}; Oversampling {1}.".format(k,p))
     Omega = np.random.randn(a.array().shape[0], k+p)
     d, U = singlePassG(H, prior.R, prior.Rsolver, Omega, k, check_Bortho=False, check_Aortho=False, check_residual=False)
     posterior = GaussianLRPosterior( prior, d, U )
     
-    print sep, "Find the MAP point", sep
+    print(sep, "Find the MAP point", sep)
     
     H.misfit_only = False
         
@@ -462,17 +466,18 @@ if __name__ == "__main__":
     problem.solveFwd(u, [u,a,p], 1e-12)
  
     total_cost, reg_cost, misfit_cost = problem.cost([u,a,p])
-    print "Total cost {0:5g}; Reg Cost {1:5g}; Misfit {2:5g}".format(total_cost, reg_cost, misfit_cost)
+    print("Total cost {0:5g}; Reg Cost {1:5g}; Misfit {2:5g}".format(total_cost, reg_cost, misfit_cost) )
     
     posterior.mean = a
 
     compute_trace = False
     if compute_trace:
         post_tr, prior_tr, corr_tr = posterior.trace(method="Exact", tol=5e-2, min_iter=20, max_iter=100)
-        print "Posterior trace {0:5g}; Prior trace {1:5g}; Correction trace {2:5g}".format(post_tr, prior_tr, corr_tr)
+        print("Posterior trace {0:5g}; Prior trace {1:5g}; Correction trace {2:5g}".format(
+                post_tr, prior_tr, corr_tr) )
         post_pw_variance, pr_pw_variance, corr_pw_variance = posterior.pointwise_variance("Exact")
     
-    print sep, "Save results", sep  
+    print(sep, "Save results", sep ) 
     problem.exportState([u,a,p], "results/conc.pvd", "concentration")
     problem.exportState([utrue,true_initial_condition,p], "results/true_conc.pvd", "concentration")
     problem.exportState([problem.ud,true_initial_condition,p], "results/noisy_conc.pvd", "concentration")
@@ -488,7 +493,7 @@ if __name__ == "__main__":
     
     
     
-    print sep, "Generate samples from Prior and Posterior", sep
+    print(sep, "Generate samples from Prior and Posterior", sep)
     fid_prior = dl.File("samples/sample_prior.pvd")
     fid_post  = dl.File("samples/sample_post.pvd")
     nsamples = 500
@@ -504,7 +509,7 @@ if __name__ == "__main__":
         fid_post << s_post
     
     
-    print sep, "Visualize results", sep 
+    print(sep, "Visualize results", sep)
     plt.figure()
     plt.plot(range(0,k), d, 'b*', range(0,k), np.ones(k), '-r')
     plt.yscale('log')

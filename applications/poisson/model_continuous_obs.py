@@ -11,6 +11,8 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 from dolfin import *
 import numpy as np
 import matplotlib.pyplot as plt
@@ -124,7 +126,7 @@ class Poisson:
         c = vector2Function(x[PARAMETER], Vh[PARAMETER])
         Cvarf = inner(exp(c) * trial * nabla_grad(s), nabla_grad(test)) * dx
         C = assemble(Cvarf)
-#        print "||c||", x[PARAMETER].norm("l2"), "||s||", x[STATE].norm("l2"), "||C||", C.norm("linf")
+#        print("||c||", x[PARAMETER].norm("l2"), "||s||", x[STATE].norm("l2"), "||C||", C.norm("linf"))
         self.bc0.zero(C)
         return C
        
@@ -223,7 +225,7 @@ class Poisson:
         solver.set_operator(A)
         nit = solver.solve(out,b)
         
-#        print "FWD", (self.A*out - b).norm("l2")/b.norm("l2"), nit
+#        print("FWD", (self.A*out - b).norm("l2")/b.norm("l2"), nit)
 
     
     def solveAdj(self, out, x, tol=1e-9):
@@ -238,7 +240,7 @@ class Poisson:
         solver.set_operator(At)
         nit = solver.solve(out,badj)
         
-#        print "ADJ", (self.At*out - badj).norm("l2")/badj.norm("l2"), nit
+#        print("ADJ", (self.At*out - badj).norm("l2")/badj.norm("l2"), nit)
     
     def evalGradientParameter(self,x, mg):
         """
@@ -289,7 +291,7 @@ class Poisson:
         solver.parameters["relative_tolerance"] = tol
         self.A.init_vector(sol,1)
         nit = solver.solve(sol,rhs)
-#        print "FwdInc", (self.A*sol-rhs).norm("l2")/rhs.norm("l2"), nit
+#        print("FwdInc", (self.A*sol-rhs).norm("l2")/rhs.norm("l2"), nit)
         
     def solveAdjIncremental(self, sol, rhs, tol):
         """
@@ -300,7 +302,7 @@ class Poisson:
         solver.parameters["relative_tolerance"] = tol
         self.At.init_vector(sol,1)
         nit = solver.solve(sol, rhs)
-#        print "AdjInc", (self.At*sol-rhs).norm("l2")/rhs.norm("l2"), nit
+#        print("AdjInc", (self.At*sol-rhs).norm("l2")/rhs.norm("l2"), nit)
     
     def applyC(self, da, out):
         self.C.mult(da,out)
@@ -352,13 +354,13 @@ if __name__ == "__main__":
     x = solver.solve(a0.vector())
     
     if solver.converged:
-        print "\nConverged in ", solver.it, " iterations."
+        print("\nConverged in ", solver.it, " iterations.")
     else:
-        print "\nNot Converged"
+        print("\nNot Converged")
 
-    print "Termination reason: ", solver.termination_reasons[solver.reason]
-    print "Final gradient norm: ", solver.final_grad_norm
-    print "Final cost: ", solver.final_cost
+    print("Termination reason: ", solver.termination_reasons[solver.reason])
+    print("Final gradient norm: ", solver.final_grad_norm)
+    print("Final cost: ", solver.final_cost)
     
     xx = [vector2Function(x[i], Vh[i]) for i in range(len(Vh))]
     plot(xx[STATE], title = "State")

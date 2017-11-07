@@ -11,6 +11,8 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 from dolfin import Vector
 import numpy as np
 import math
@@ -296,7 +298,7 @@ def BorthogonalityTest(B, U):
         
     UtBU = np.dot(U.T, BU)
     err = UtBU - np.eye(nvec, dtype=UtBU.dtype)
-    print "|| UtBU - I ||_F = ", np.linalg.norm(err, 'fro')
+    print("|| UtBU - I ||_F = ", np.linalg.norm(err, 'fro') )
     
 def AorthogonalityCheck(A, U, d):
     """
@@ -324,9 +326,9 @@ def AorthogonalityCheck(A, U, d):
 #    plt.colorbar()
 #    plt.show()
     
-    print "i, ||Vt(i,:)AV(:,i) - I_i||_F, V[:,i] = 1/sqrt(lambda_i) U[:,i]"
+    print("i, ||Vt(i,:)AV(:,i) - I_i||_F, V[:,i] = 1/sqrt(lambda_i) U[:,i]")
     for i in range(1,nvec+1):
-        print i, np.linalg.norm(err[0:i,0:i], 'fro')
+        print(i, np.linalg.norm(err[0:i,0:i], 'fro') )
 
     
 def residualCheck(A,B, U, d):
@@ -345,11 +347,11 @@ def residualCheck(A,B, U, d):
     
     nvec = d.shape[0]
     
-    print "lambda", "||Au - lambdaBu||"
+    print("lambda", "||Au - lambdaBu||")
     for i in range(0,nvec):
         u.set_local(U[:,i])
         A.mult(u,Au)
         B.mult(u,Bu)
         Au.axpy(-d[i], Bu)
-        print d[i], Au.norm("l2")
+        print(d[i], Au.norm("l2"))
         

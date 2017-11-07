@@ -11,9 +11,11 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 import dolfin as dl
-from pointwiseObservation import assemblePointwiseObservation
-from variables import STATE, PARAMETER
+from .pointwiseObservation import assemblePointwiseObservation
+from .variables import STATE, PARAMETER
 
 class Misfit:
     """Abstract class to model the misfit componenet of the cost functional.

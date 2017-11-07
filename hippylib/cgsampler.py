@@ -11,6 +11,8 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 from dolfin import Vector
 import numpy as np
 import math
@@ -90,7 +92,7 @@ class CGSampler:
         rnorm2_old = self.r.inner(self.r)
         
         if self.parameters["verbose"] > 0:
-            print "initial residual = ", math.sqrt(rnorm2_old)
+            print( "initial residual = ", math.sqrt(rnorm2_old) )
         
         while (not self.converged) and (self.iter < noise.shape[0]):
             gamma = rnorm2_old/d
@@ -112,6 +114,6 @@ class CGSampler:
                 self.iter = self.iter+1
          
         if self.parameters["verbose"] > 0:       
-            print "Final residual {0} after {1} iterations".format( math.sqrt(rnorm2_old), self.iter)
+            print( "Final residual {0} after {1} iterations".format( math.sqrt(rnorm2_old), self.iter) )
             
         

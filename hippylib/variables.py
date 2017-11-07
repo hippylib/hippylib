@@ -11,6 +11,8 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 """
 Enumerator for the variables of the inverse problem:
 - the STATE, PARAMETER, and ADJOINT variables.

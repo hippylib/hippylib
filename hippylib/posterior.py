@@ -11,8 +11,10 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 from dolfin import Vector, Function, File
-from lowRankOperator import LowRankOperator
+from .lowRankOperator import LowRankOperator
 import numpy as np
 
 class LowRankHessian:

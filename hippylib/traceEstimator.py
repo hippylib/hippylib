@@ -11,6 +11,8 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 from dolfin import Vector
 import numpy as np
 import math
@@ -106,7 +108,7 @@ class TraceEstimator:
         exp_tr2 = sum_tr2 / float(self.iter)
         var_tr = exp_tr2 - exp_tr*exp_tr
         
-#        print exp_tr, math.sqrt( var_tr ), self.accurancy*exp_tr
+#        print(exp_tr, math.sqrt( var_tr ), self.accurancy*exp_tr)
         
         self.converged = True
         while (math.sqrt( var_tr ) > self.accurancy*exp_tr):
@@ -119,7 +121,7 @@ class TraceEstimator:
             exp_tr = sum_tr / float(self.iter)
             exp_tr2 = sum_tr2 / float(self.iter)
             var_tr = exp_tr2 - exp_tr*exp_tr
-#            print exp_tr, math.sqrt( var_tr ), self.accurancy*exp_tr
+#            print(exp_tr, math.sqrt( var_tr ), self.accurancy*exp_tr)
             if (self.iter > max_iter):
                 self.converged = False
                 break

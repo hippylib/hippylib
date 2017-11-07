@@ -11,9 +11,11 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 import dolfin as dl
-from variables import STATE, PARAMETER, ADJOINT
-from linalg import Transpose, vector2Function
+from .variables import STATE, PARAMETER, ADJOINT
+from .linalg import Transpose, vector2Function
 
 class PDEProblem:
     """ Consider the PDE Problem:

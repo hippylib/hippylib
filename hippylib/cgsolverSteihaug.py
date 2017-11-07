@@ -11,6 +11,8 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 from dolfin import Vector
 import math
 
@@ -121,7 +123,7 @@ class CGSolverSteihaug:
         nom = nom0
         
         if self.parameters["print_level"] == 1:
-            print " Iterartion : ", 0, " (B r, r) = ", nom
+            print( " Iterartion : ", 0, " (B r, r) = ", nom)
             
         rtol2 = nom * self.parameters["rel_tolerance"] * self.parameters["rel_tolerance"]
         atol2 = self.parameters["abs_tolerance"] * self.parameters["abs_tolerance"]
@@ -132,8 +134,8 @@ class CGSolverSteihaug:
             self.reasonid   = 1
             self.final_norm = math.sqrt(nom)
             if(self.parameters["print_level"] >= 0):
-                print self.reason[self.reasonid]
-                print "Converged in ", self.iter, " iterations with final norm ", self.final_norm
+                print( self.reason[self.reasonid] )
+                print( "Converged in ", self.iter, " iterations with final norm ", self.final_norm )
             return
         
         self.A.mult(self.d, self.z)  #z = A d
@@ -144,8 +146,8 @@ class CGSolverSteihaug:
             self.reasonid = 2
             self.final_norm = math.sqrt(nom)
             if(self.parameters["print_level"] >= 0):
-                print self.reason[self.reasonid]
-                print "Converged in ", self.iter, " iterations with final norm ", self.final_norm
+                print( self.reason[self.reasonid])
+                print( "Converged in ", self.iter, " iterations with final norm ", self.final_norm)
             return
         
         # start iteration
@@ -159,15 +161,15 @@ class CGSolverSteihaug:
             betanom = self.r.inner(self.z)
             
             if self.parameters["print_level"] == 1:
-                print " Iteration : ", self.iter, " (B r, r) = ", betanom
+                print( " Iteration : ", self.iter, " (B r, r) = ", betanom)
                 
             if betanom < r0:
                 self.converged = True
                 self.reasonid = 1
                 self.final_norm = math.sqrt(betanom)
                 if(self.parameters["print_level"] >= 0):
-                    print self.reason[self.reasonid]
-                    print "Converged in ", self.iter, " iterations with final norm ", self.final_norm
+                    print( self.reason[self.reasonid])
+                    print( "Converged in ", self.iter, " iterations with final norm ", self.final_norm)
                 break
             
             self.iter += 1
@@ -176,8 +178,8 @@ class CGSolverSteihaug:
                 self.reasonid = 0
                 self.final_norm = math.sqrt(betanom)
                 if(self.parameters["print_level"] >= 0):
-                    print self.reason[self.reasonid]
-                    print "Not Converged. Final residual norm ", self.final_norm
+                    print( self.reason[self.reasonid])
+                    print( "Not Converged. Final residual norm ", self.final_norm)
                 break
             
             beta = betanom/nom
@@ -193,8 +195,8 @@ class CGSolverSteihaug:
                 self.reasonid = 2
                 self.final_norm = math.sqrt(nom)
                 if(self.parameters["print_level"] >= 0):
-                    print self.reason[self.reasonid]
-                    print "Converged in ", self.iter, " iterations with final norm ", self.final_norm
+                    print( self.reason[self.reasonid])
+                    print( "Converged in ", self.iter, " iterations with final norm ", self.final_norm)
                 break
             
             nom = betanom

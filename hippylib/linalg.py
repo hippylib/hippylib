@@ -11,6 +11,8 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 from dolfin import compile_extension_module, Vector, PETScKrylovSolver, Function
 import os
 import numpy as np
@@ -36,7 +38,7 @@ cpp_sources = ["linalg.cpp"]
 
 include_dirs = [".", source_directory]
 for ss in ['PROFILE_INSTALL_DIR', 'PETSC_DIR', 'SLEPC_DIR']:
-    if os.environ.has_key(ss):
+    if ss in os.environ.keys():
         include_dirs.append(os.environ[ss]+'/include')
 
 cpp_module = compile_extension_module(

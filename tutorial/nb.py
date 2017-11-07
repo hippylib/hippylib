@@ -11,6 +11,8 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
 import matplotlib.colors as cls
@@ -182,7 +184,7 @@ def show_solution(Vh, ic, state, same_colorbar=True, colorbar=True, mytitle=None
         try:
             state.retrieve(myu.vector(),i)
         except:
-            print "Invalid time: ", i
+            print("Invalid time: ", i)
             
         plot(myu, subplot_loc=(subplot_loc+counter), mytitle=title_stamp.format(i), colorbar=colorbar,
              logscale=logscale, show_axis=show_axis, vmin=vmin, vmax=vmax)

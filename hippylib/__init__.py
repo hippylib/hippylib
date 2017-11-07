@@ -29,33 +29,34 @@ the building blocks for experimenting new ideas and developing scalable
 algorithms for PDE-based deterministic and Bayesian inverse problems.
 """
 
-# utils
-from checkDolfinVersion import dlversion, checkdlversion
-from expression import code_AnisTensor2D, code_Mollifier
-from linalg import MatMatMult, MatPtAP, Transpose, to_dense, trace, get_diagonal, estimate_diagonal_inv2, randn_perturb, amg_method, Solver2Operator, vector2Function
-from pointwiseObservation import assemblePointwiseObservation, exportPointwiseObservation
-from timeDependentVector import TimeDependentVector
+from __future__ import absolute_import, division, print_function
 
+
+from .checkDolfinVersion import dlversion, checkdlversion
+checkdlversion()
+
+# utils
+from .expression import code_AnisTensor2D, code_Mollifier
+from .linalg import MatMatMult, MatPtAP, Transpose, to_dense, trace, get_diagonal, estimate_diagonal_inv2, randn_perturb, amg_method, Solver2Operator, vector2Function
+from .pointwiseObservation import assemblePointwiseObservation, exportPointwiseObservation
+from .timeDependentVector import TimeDependentVector
 
 # hIPPYlib model
-from variables import *
-from PDEProblem import PDEProblem, PDEVariationalProblem
-from prior import _Prior, LaplacianPrior, BiLaplacianPrior, MollifiedBiLaplacianPrior
-from misfit import Misfit, ContinuousStateObservation, PointwiseStateObservation
-from model import Model
-from modelTemplate import ModelTemplate, modelVerify 
+from .variables import *
+from .PDEProblem import PDEProblem, PDEVariationalProblem
+from .prior import _Prior, LaplacianPrior, BiLaplacianPrior, MollifiedBiLaplacianPrior
+from .misfit import Misfit, ContinuousStateObservation, PointwiseStateObservation
+from .model import Model
+from .modelTemplate import ModelTemplate, modelVerify 
 
 # hIPPYlib algorithms
-from cgsolverSteihaug import CGSolverSteihaug
-from NewtonCG import ReducedSpaceNewtonCG
-from randomizedEigensolver import singlePass, doublePass, singlePassG, doublePassG
-from lowRankOperator import LowRankOperator
-from traceEstimator import TraceEstimator
-from cgsampler import CGSampler
-
+from .cgsolverSteihaug import CGSolverSteihaug
+from .NewtonCG import ReducedSpaceNewtonCG
+from .randomizedEigensolver import singlePass, doublePass, singlePassG, doublePassG
+from .lowRankOperator import LowRankOperator
+from .traceEstimator import TraceEstimator
+from .cgsampler import CGSampler
 
 # hIPPYlib outputs
-from reducedHessian import ReducedHessian
-from posterior import GaussianLRPosterior, LowRankHessian
-
-checkdlversion()
+from .reducedHessian import ReducedHessian
+from .posterior import GaussianLRPosterior, LowRankHessian

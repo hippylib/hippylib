@@ -11,11 +11,13 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 import numpy as np
 import matplotlib.pyplot as plt
 
-from variables import STATE, PARAMETER, ADJOINT
-from reducedHessian import ReducedHessian
+from .variables import STATE, PARAMETER, ADJOINT
+from .reducedHessian import ReducedHessian
 
 class ModelTemplate:
     """
@@ -321,6 +323,6 @@ def modelVerify(model,a0, innerTol, is_quadratic = False):
     ytHx = H.inner(yy,xx)
     xtHy = H.inner(xx,yy)
     rel_symm_error = 2*abs(ytHx - xtHy)/(ytHx + xtHy)
-    print "(yy, H xx) - (xx, H yy) = ", rel_symm_error
+    print("(yy, H xx) - (xx, H yy) = ", rel_symm_error)
     if(rel_symm_error > 1e-10):
-        print "HESSIAN IS NOT SYMMETRIC!!"
+        print("HESSIAN IS NOT SYMMETRIC!!")

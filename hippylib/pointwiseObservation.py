@@ -11,6 +11,8 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+from __future__ import absolute_import, division, print_function
+
 import dolfin as dl
 import numpy as np
 import os
@@ -24,7 +26,7 @@ cpp_sources = ["AssemblePointwiseObservation.cpp"]
 
 include_dirs = [".", source_directory]
 for ss in ['PROFILE_INSTALL_DIR', 'PETSC_DIR', 'SLEPC_DIR']:
-    if os.environ.has_key(ss):
+    if ss in os.environ.keys():
         include_dirs.append(os.environ[ss]+'/include')
         
 cpp_module = dl.compile_extension_module(

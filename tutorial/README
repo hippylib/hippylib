@@ -10,7 +10,7 @@ Content:
 
 To run the notebook open a FEniCS terminal and type
 
-$ ipython notebook
+$ jupyter notebook
 
 A new tab will open in your web-brower showing the notebooks.
 Click on the notebook you would like to use.

@@ -57,6 +57,7 @@ packages:
   jupyter:
   scipy:
   matplotlib:
+    version: '1.5.3'
   mpi4py:
   vtk:
     vtk_wrap_python: false

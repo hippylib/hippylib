@@ -16,6 +16,8 @@ from __future__ import absolute_import, division, print_function
 import dolfin as dl
 import numpy as np
 import os
+
+from .checkDolfinVersion import dlversion
     
 abspath = os.path.dirname( os.path.abspath(__file__) )
 source_directory = os.path.join(abspath,"AssemblePointwiseObservation")
@@ -88,7 +90,10 @@ def exportPointwiseObservation(points, data, fname, varname="observation"):
     f.write('</Verts>\n')
     f.write('<PointData Scalars="{}">\n'.format(varname))
     f.write('<DataArray format="ascii" type="Float32" Name="{}">\n'.format(varname))
-    f.write(np.array_str( data.array() ).replace("[", "").replace("]", "") )
+    if dlversion() >= (2017,2,0):
+        f.write(np.array_str( data.get_local() ).replace("[", "").replace("]", "") )
+    else:
+        f.write(np.array_str( data.array() ).replace("[", "").replace("]", "") )
     f.write('\n</DataArray>\n</PointData>\n<CellData>\n</CellData>\n</Piece>\n</PolyData>\n</VTKFile>')
 
     

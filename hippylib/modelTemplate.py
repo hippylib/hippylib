@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 
 from .variables import STATE, PARAMETER, ADJOINT
 from .reducedHessian import ReducedHessian
+from .linalg import randn_perturb
 
 class ModelTemplate:
     """
@@ -253,7 +254,9 @@ def modelVerify(model,a0, innerTol, is_quadratic = False):
     """
     
     h = model.generate_vector(PARAMETER)
-    h.set_local(np.random.normal(0, 1, len( h.array() )) )
+    h.zero()
+    randn_perturb(h, 1.)
+
     
     x = model.generate_vector()
     x[PARAMETER] = a0
@@ -279,7 +282,8 @@ def modelVerify(model,a0, innerTol, is_quadratic = False):
         my_eps = eps[i]
         
         x_plus = model.generate_vector()
-        x_plus[PARAMETER].set_local( a0.array() )
+        x_plus[PARAMETER].zero()
+        x_plus[PARAMETER].axpy(1.,  a0)
         x_plus[PARAMETER].axpy(my_eps, h)
         model.solveFwd(x_plus[STATE],   x_plus, innerTol)
         model.solveAdj(x_plus[ADJOINT], x_plus,innerTol)
@@ -316,9 +320,12 @@ def modelVerify(model,a0, innerTol, is_quadratic = False):
     
         
     xx = model.generate_vector(PARAMETER)
-    xx.set_local( np.random.normal(0, 1, len( xx.array() )) )
+    xx.zero()
+    randn_perturb(xx, 1.)
+
     yy = model.generate_vector(PARAMETER)
-    yy.set_local( np.random.normal(0, 1, len( yy.array() )) )
+    yy.zero()
+    randn_perturb(yy, 1.)
     
     ytHx = H.inner(yy,xx)
     xtHy = H.inner(xx,yy)

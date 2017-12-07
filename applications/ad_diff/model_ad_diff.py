@@ -71,7 +71,7 @@ class TimeDependentAD:
             
         Gamma_M = InsideBoundary()
         Gamma_M.mark(boundaries,1)
-        ds_marked = dl.Measure("ds")[boundaries]
+        ds_marked = dl.Measure("ds", subdomain_data=boundaries)
         
         self.Q = dl.assemble( self.dt*dl.inner(u, v) * ds_marked(1) )
 
@@ -449,7 +449,7 @@ if __name__ == "__main__":
     k = 80
     p = 20
     print("Double Pass Algorithm. Requested eigenvectors: {0}; Oversampling {1}.".format(k,p))
-    Omega = np.random.randn(a.array().shape[0], k+p)
+    Omega = np.random.randn(get_local_size(a), k+p)
     d, U = singlePassG(H, prior.R, prior.Rsolver, Omega, k, check_Bortho=False, check_Aortho=False, check_residual=False)
     posterior = GaussianLRPosterior( prior, d, U )
     
@@ -499,7 +499,7 @@ if __name__ == "__main__":
     nsamples = 500
     noise = dl.Vector()
     posterior.init_vector(noise,"noise")
-    noise_size = noise.array().shape[0]
+    noise_size = get_local_size(noise)
     s_prior = dl.Function(Vh, name="sample_prior")
     s_post = dl.Function(Vh, name="sample_post")
     for i in range(nsamples):

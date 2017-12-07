@@ -185,8 +185,7 @@ class Poisson:
         
         # Create noisy data, ud
         MAX = u_o.norm("linf")
-        noise = .01 * MAX * np.random.normal(0, 1, len(u_o.array()))
-        u_o.set_local(u_o.array() + noise)
+        randn_perturb(u_o, .01 * MAX )
         plot(vector2Function(u_o, Vh[STATE]), title = "Observation")
     
     def cost(self, x):
@@ -372,7 +371,7 @@ if __name__ == "__main__":
     Hmisfit = ReducedHessian(model, solver.parameters["inner_rel_tolerance"], gauss_newton_approx=False, misfit_only=True)
     p = 50
     k = min( 250, Vh[PARAMETER].dim()-p)
-    Omega = np.random.randn(x[PARAMETER].array().shape[0], k+p)
+    Omega = np.random.randn(get_local_size(x[PARAMETER]), k+p)
     d, U = singlePassG(Hmisfit, Prior.R, Prior.Rsolver, Omega, k)
     plt.figure()
     plt.plot(range(0,k), d, 'b*')

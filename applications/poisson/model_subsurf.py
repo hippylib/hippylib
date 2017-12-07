@@ -33,7 +33,7 @@ def true_model(Vh, gamma, delta, anis_diff):
     prior = BiLaplacianPrior(Vh, gamma, delta, anis_diff )
     noise = dl.Vector()
     prior.init_vector(noise,"noise")
-    noise_size = noise.array().shape[0]
+    noise_size = get_local_size(noise)
     noise.set_local( np.random.randn( noise_size ) )
     atrue = dl.Vector()
     prior.init_vector(atrue, 0)
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     k = 50
     p = 20
     print("Double Pass Algorithm. Requested eigenvectors: {0}; Oversampling {1}.".format(k,p))
-    Omega = np.random.randn(x[PARAMETER].array().shape[0], k+p)
+    Omega = np.random.randn(get_local_size( x[PARAMETER] ), k+p)
     #d, U = singlePassG(Hmisfit, model.R, model.Rsolver, Omega, k, check_Bortho=True, check_Aortho=True, check_residual=True)
     d, U = doublePassG(Hmisfit, prior.R, prior.Rsolver, Omega, k, check_Bortho=False, check_Aortho=False, check_residual=False)
     posterior = GaussianLRPosterior(prior, d, U)
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     nsamples = 500
     noise = dl.Vector()
     posterior.init_vector(noise,"noise")
-    noise_size = noise.array().shape[0]
+    noise_size = get_local_size( noise )
     s_prior = dl.Function(Vh[PARAMETER], name="sample_prior")
     s_post = dl.Function(Vh[PARAMETER], name="sample_post")
     for i in range(nsamples):

@@ -16,6 +16,7 @@ from __future__ import absolute_import, division, print_function
 from dolfin import Vector
 import numpy as np
 import math
+from .linalg import randn_perturb
 
 class CGSampler:
     """ 
@@ -60,7 +61,7 @@ class CGSampler:
         self.A.init_vector(self.Ap,0)
         
         self.A.init_vector(self.b,0)
-        self.b.set_local(np.random.randn(self.b.array().shape[0]))
+        randn_perturb(self.b, 1.)
                         
     def sample(self, noise, s):
         """

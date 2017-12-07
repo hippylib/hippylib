@@ -37,7 +37,7 @@ checkdlversion()
 
 # utils
 from .expression import code_AnisTensor2D, code_Mollifier
-from .linalg import MatMatMult, MatPtAP, Transpose, to_dense, trace, get_diagonal, estimate_diagonal_inv2, randn_perturb, amg_method, Solver2Operator, vector2Function
+from .linalg import MatMatMult, MatPtAP, Transpose, to_dense, trace, get_diagonal, estimate_diagonal_inv2, randn_perturb, amg_method, Solver2Operator, vector2Function, get_local_size
 from .pointwiseObservation import assemblePointwiseObservation, exportPointwiseObservation
 from .timeDependentVector import TimeDependentVector
 

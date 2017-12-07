@@ -15,6 +15,8 @@ from __future__ import absolute_import, division, print_function
 
 from dolfin import Vector
 import numpy as np
+from .linalg import randn_perturb
+from .checkDolfinVersion import dlversion
 
 class TimeDependentVector:
     """
@@ -70,8 +72,7 @@ class TimeDependentVector:
         to each snapshots.
         """
         for d in self.data:
-            noise = std_dev * np.random.normal(0, 1, len(d.array()))
-            d.set_local(d.array() + noise)
+            randn_perturb(d, std_dev)
     
     def axpy(self, a, other):
         """
@@ -98,7 +99,10 @@ class TimeDependentVector:
             
         assert abs(t - self.times[i]) < self.tol
         
-        self.data[i].set_local( u.array() )
+        if dlversion() >= (2017,2,0):
+            self.data[i].set_local( u.get_local() )
+        else:
+            self.data[i].set_local( u.array() )
         
     def retrieve(self, u, t):
         """
@@ -111,7 +115,10 @@ class TimeDependentVector:
             
         assert abs(t - self.times[i]) < self.tol
         
-        u.set_local( self.data[i].array() )
+        if dlversion() >= (2017,2,0):
+            u.set_local( self.data[i].get_local() )            
+        else:
+            u.set_local( self.data[i].array() )
         
     def norm(self, time_norm, space_norm):
         """

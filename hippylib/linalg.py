@@ -17,6 +17,14 @@ from dolfin import compile_extension_module, Vector, PETScKrylovSolver, Function
 import os
 import numpy as np
 
+from .checkDolfinVersion import dlversion
+
+def _to_numpy(v):
+    if dlversion() >= (2017,2,0):
+        return v.get_local()
+    else:
+        return v.array()
+
 def amg_method():
     """
     Determine which AMG preconditioner to use.
@@ -28,6 +36,9 @@ def amg_method():
             return 'ml_amg'
         
     return 'petsc_amg'
+
+def get_local_size(v):
+    return _to_numpy(v).shape[0]
 
 abspath = os.path.dirname( os.path.abspath(__file__) )
 source_directory = os.path.join(abspath,"cpp_linalg")
@@ -94,14 +105,14 @@ def to_dense(A):
         A.init_vector(x,1)
         A.init_vector(Ax,0)
         
-        n = Ax.array().shape[0]
-        m = x.array().shape[0]
+        n = get_local_size(Ax)
+        m = get_local_size(x)
         B = np.zeros( (n,m), dtype=np.float64) 
         for i in range(0,m):
             i_ind = np.array([i], dtype=np.intc)
             x.set_local(np.ones(i_ind.shape), i_ind)
             A.mult(x,Ax)
-            B[:,i] = Ax.array()
+            B[:,i] = _to_numpy(Ax)
             x.set_local(np.zeros(i_ind.shape), i_ind)
             
         return B
@@ -133,7 +144,7 @@ def get_diagonal(A, d, solve_mode=True):
         A.get_operator().init_vector(xj,0)
         
     ncol = ej.size()
-    da = np.zeros(ncol, dtype=ej.array().dtype)
+    da = np.zeros(ncol, dtype=_to_numpy(ej).dtype)
     
     for j in range(ncol):
         ej[j] = 1.
@@ -172,14 +183,15 @@ def estimate_diagonal_inv2(Asolver, k, d):
         Asolver.get_operator().init_vector(x,1)
         Asolver.get_operator().init_vector(b,0)
     
-    num = np.zeros(b.array().shape, dtype = b.array().dtype)
+    num = np.zeros(_to_numpy(b).shape, dtype = _to_numpy(b).dtype)
     den = np.zeros(num.shape, dtype = num.dtype)
     for i in range(k):
         x.zero()
-        b.set_local(np.random.randn(num.shape[0]))
+        b_array = np.random.randn(num.shape[0])
+        b.set_local(b_array)
         Asolver.solve(x,b)
-        num = num +  ( x.array() * b.array() )
-        den = den +  ( b.array() * b.array() )
+        num = num +  ( _to_numpy(x) * b_array )
+        den = den +  (      b_array * b_array )
         
     d.set_local( num / den )
         
@@ -188,9 +200,9 @@ def randn_perturb(x, std_dev):
     Add a Gaussian random perturbation to x:
     x = x + eta, eta ~ N(0, std_dev^2 I)
     """
-    n = x.array().shape[0]
+    n = get_local_size(x)
     noise = np.random.normal(0, 1, n)
-    x.set_local(x.array() + std_dev*noise)
+    x.set_local(_to_numpy(x) + std_dev*noise)
     
 class Solver2Operator:
     def __init__(self,S):

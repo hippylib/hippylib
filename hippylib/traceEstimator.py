@@ -16,6 +16,7 @@ from __future__ import absolute_import, division, print_function
 from dolfin import Vector
 import numpy as np
 import math
+from .linalg import get_local_size
 
 def rademacher_engine(n):
     """
@@ -94,7 +95,7 @@ class TraceEstimator:
         sum_tr = 0
         sum_tr2 = 0
         self.iter = 0
-        size = len(self.z.array())
+        size = get_local_size(self.z)
         
         while self.iter < min_iter:
             self.iter += 1

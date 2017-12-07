@@ -16,7 +16,8 @@ from __future__ import absolute_import, division, print_function
 from dolfin import Vector
 import numpy as np
 import math
-import matplotlib.pyplot as plt
+
+from .checkDolfinVersion import dlversion
 
 """
 Randomized algorithms for the solution of Hermitian Eigenvalues Problems (HEP)
@@ -37,6 +38,12 @@ Randomized algorithms for Generalized Hermitian Eigenvalue Problems with applica
 to computing Karhunen-Loeve expansion,
 Numerical Linear Algebra with Applications, to appear.
 """
+
+def _to_numpy(v):
+    if dlversion() >= (2017,2,0):
+        return v.get_local()
+    else:
+        return v.array()
 
 def singlePass(A,Omega,k):
     """
@@ -64,7 +71,7 @@ def singlePass(A,Omega,k):
     for ivect in range(0,nvec):
         w.set_local(Omega[:,ivect])
         A.mult(w,y)
-        Y[:,ivect] = y.array()
+        Y[:,ivect] = _to_numpy(y)
                 
     Q,_ = np.linalg.qr(Y)
         
@@ -112,7 +119,7 @@ def doublePass(A,Omega,k):
     for ivect in range(0,nvec):
         w.set_local(Omega[:,ivect])
         A.mult(w,y)
-        Y[:,ivect] = y.array()
+        Y[:,ivect] = _to_numpy(y)
                 
     Q,_ = np.linalg.qr(Y)
     
@@ -120,7 +127,7 @@ def doublePass(A,Omega,k):
     for ivect in range(0,nvec):
         w.set_local(Q[:,ivect])
         A.mult(w,y)
-        AQ[:,ivect] = y.array()
+        AQ[:,ivect] = _to_numpy(y)
                 
     T = np.dot(Q.T, AQ)
         
@@ -168,15 +175,15 @@ def singlePassG(A, B, Binv, Omega,k, check_Bortho = False, check_Aortho=False, c
         w.set_local(Omega[:,ivect])
         A.mult(w,ybar)
         Binv.solve(y, ybar)
-        Ybar[:,ivect] = ybar.array()
-        Y[:,ivect] = y.array()
+        Ybar[:,ivect] = _to_numpy(ybar)
+        Y[:,ivect] = _to_numpy(y)
                 
     Z,_ = np.linalg.qr(Y)
     BZ = np.zeros(Omega.shape)
     for ivect in range(0,nvec):
         w.set_local(Z[:,ivect])
         B.mult(w,y)
-        BZ[:, ivect] = y.array()
+        BZ[:, ivect] = _to_numpy(y)
         
     R = np.linalg.cholesky( np.dot(Z.T,BZ ))
     Q = np.linalg.solve(R, Z.T).T
@@ -239,15 +246,15 @@ def doublePassG(A, B, Binv, Omega,k, check_Bortho = False, check_Aortho=False, c
         w.set_local(Omega[:,ivect])
         A.mult(w,ybar)
         Binv.solve(y, ybar)
-        Ybar[:,ivect] = ybar.array()
-        Y[:,ivect] = y.array()
+        Ybar[:,ivect] = _to_numpy(ybar)
+        Y[:,ivect] = _to_numpy(y)
                 
     Z,_ = np.linalg.qr(Y)
     BZ = np.zeros(Omega.shape)
     for ivect in range(0,nvec):
         w.set_local(Z[:,ivect])
         B.mult(w,y)
-        BZ[:, ivect] = y.array()
+        BZ[:, ivect] = _to_numpy(y)
         
     R = np.linalg.cholesky( np.dot(Z.T,BZ ))
     Q = np.linalg.solve(R, Z.T).T
@@ -256,7 +263,7 @@ def doublePassG(A, B, Binv, Omega,k, check_Bortho = False, check_Aortho=False, c
     for ivect in range(0,nvec):
         w.set_local(Q[:,ivect])
         A.mult(w,ybar)
-        AQ[:,ivect] = ybar.array()
+        AQ[:,ivect] = _to_numpy(ybar)
                 
     T = np.dot(Q.T, AQ)
         
@@ -294,7 +301,7 @@ def BorthogonalityTest(B, U):
     for i in range(0,nvec):
         u.set_local(U[:,i])
         B.mult(u,Bu)
-        BU[:,i] = Bu.array()
+        BU[:,i] = _to_numpy(Bu)
         
     UtBU = np.dot(U.T, BU)
     err = UtBU - np.eye(nvec, dtype=UtBU.dtype)
@@ -316,8 +323,8 @@ def AorthogonalityCheck(A, U, d):
         v.set_local(U[:,i])
         v *= 1./math.sqrt(d[i])
         A.mult(v,Av)
-        AV[:,i] = Av.array()
-        V[:,i] = v.array()
+        AV[:,i] = _to_numpy(Av)
+        V[:,i] = _to_numpy(v)
         
     VtAV = np.dot(V.T, AV)    
     err = VtAV - np.eye(nvec, dtype=VtAV.dtype)

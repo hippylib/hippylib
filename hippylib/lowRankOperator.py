@@ -16,6 +16,14 @@ from __future__ import absolute_import, division, print_function
 from dolfin import Vector
 import numpy as np
 
+from .checkDolfinVersion import dlversion
+
+def _to_numpy(v):
+    if dlversion() >= (2017,2,0):
+        return v.get_local()
+    else:
+        return v.array()
+
 class LowRankOperator:
     """
     This class model the action of a low rank operator A = U D U^T.
@@ -41,13 +49,13 @@ class LowRankOperator:
         """
         Compute y = Ax = U D U^T x
         """
-        Utx = np.dot( self.U.T, x.array() )
+        Utx = np.dot( self.U.T, _to_numpy(x) )
         dUtx = self.d*Utx
         y.set_local(np.dot(self.U, dUtx))
         
     def inner(self, x, y):
-        Utx = np.dot( self.U.T, x.array() )
-        Uty = np.dot( self.U.T, y.array() )
+        Utx = np.dot( self.U.T, _to_numpy(x) )
+        Uty = np.dot( self.U.T, _to_numpy(y) )
         return np.sum(self.d*Utx*Uty)
         
         
@@ -55,7 +63,7 @@ class LowRankOperator:
         """
         Compute sol = U D^-1 U^T x
         """
-        Utx = np.dot( self.U.T, rhs.array() )
+        Utx = np.dot( self.U.T, _to_numpy(rhs) )
         dinvUtx = Utx / self.d
         sol.set_local(np.dot(self.U, dinvUtx))
         
@@ -89,7 +97,7 @@ class LowRankOperator:
             for i in range(self.U.shape[1]):
                 u.set_local(self.U[:,i])
                 W.mult(u,wu)
-                WU[:,i] = wu.array()
+                WU[:,i] = _to_numpy(wu)
             diagWUtU = np.sum(WU*self.U,0)
             tr = np.sum(self.d*diagWUtU)
             
@@ -120,7 +128,7 @@ class LowRankOperator:
             for i in range(self.U.shape[1]):
                 u.set_local(self.U[:,i])
                 W.mult(u,wu)
-                WU[:,i] = wu.array()
+                WU[:,i] = _to_numpy(wu)
             UtWU = np.dot(self.U.T, WU)
             dUtWU = self.d[:,None] * UtWU #diag(d)*UtU.
             tr2 = np.power(np.linalg.norm(dUtWU),2)

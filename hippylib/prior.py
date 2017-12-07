@@ -21,6 +21,11 @@ import math
 from .expression import code_Mollifier
 from .checkDolfinVersion import dlversion
 
+def _to_numpy(v):
+    if dlversion() >= (2017,2,0):
+        return v.get_local()
+    else:
+        return v.array()
 
 class _RinvM:
     """
@@ -189,11 +194,9 @@ class LaplacianPrior(_Prior):
         pph = dl.split(ph)
         
         Mqh = dl.assemble(dl.inner(ph, qh)*dl.dx(metadata = metadata))
-        ones = dl.Vector()
-        Mqh.init_vector(ones,0)
-        ones.set_local( np.ones(ones.array().shape, dtype =ones.array().dtype ) )
+        ones = dl.interpolate(dl.Constant( tuple([1.]*(ndim+1) ) ), Qh).vector()
         dMqh = Mqh*ones
-        dMqh.set_local( ones.array() / np.sqrt(dMqh.array() ) )
+        dMqh.set_local( _to_numpy(ones) / np.sqrt( _to_numpy(dMqh) ) )
         Mqh.zero()
         Mqh.set_diagonal(dMqh)
         
@@ -361,7 +364,7 @@ class BiLaplacianPrior(_Prior):
         ones = dl.interpolate(dl.Constant(1.), Qh).vector()
         dMqh = Mqh*ones
         Mqh.zero()
-        dMqh.set_local( ones.array() / np.sqrt(dMqh.array() ) )
+        dMqh.set_local( _to_numpy(ones) / np.sqrt( _to_numpy(dMqh) ) )
         Mqh.set_diagonal(dMqh)
         MixedM = dl.assemble(ph*test*dl.dx(metadata=metadata))
         self.sqrtM = MatMatMult(MixedM, Mqh)
@@ -497,7 +500,7 @@ class MollifiedBiLaplacianPrior(_Prior):
         ones = dl.interpolate(dl.Constant(1.), Qh).vector()
         dMqh = Mqh*ones
         Mqh.zero()
-        dMqh.set_local( ones.array() / np.sqrt(dMqh.array() ) )
+        dMqh.set_local( _to_numpy(ones) / np.sqrt( _to_numpy(dMqh) ) )
         Mqh.set_diagonal(dMqh)
         MixedM = dl.assemble(ph*test*dl.dx(metadata=metadata))
         self.sqrtM = MatMatMult(MixedM, Mqh)

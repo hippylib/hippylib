@@ -24,3 +24,7 @@ def checkdlversion():
     if dlversion() not in supported_versions:
         print("The version of FEniCS (FEniCS {0}.{1}.{2}) you are using is not supported.".format(*dlversion()) )
         exit()
+        
+def show_dl_plots():
+    if dlversion() < (2017,2,0):
+        dl.interactive()

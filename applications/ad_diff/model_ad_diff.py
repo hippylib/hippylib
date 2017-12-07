@@ -515,6 +515,6 @@ if __name__ == "__main__":
     plt.yscale('log')
     dl.plot(vector2Function(a, Vh, name = "Initial Condition"))
     plt.show()
-    dl.interactive()
+    show_dl_plots()
 
     

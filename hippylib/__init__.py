@@ -32,7 +32,7 @@ algorithms for PDE-based deterministic and Bayesian inverse problems.
 from __future__ import absolute_import, division, print_function
 
 
-from .checkDolfinVersion import dlversion, checkdlversion
+from .checkDolfinVersion import dlversion, checkdlversion, show_dl_plots
 checkdlversion()
 
 # utils

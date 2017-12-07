@@ -191,5 +191,5 @@ if __name__ == "__main__":
     plt.yscale('log')
         
     plt.show()    
-    dl.interactive()
+    show_dl_plots()
     

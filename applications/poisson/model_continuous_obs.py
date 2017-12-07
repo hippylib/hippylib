@@ -365,7 +365,6 @@ if __name__ == "__main__":
     plot(xx[STATE], title = "State")
     plot(exp(xx[PARAMETER]), title = "exp(Parameter)")
     plot(xx[ADJOINT], title = "Adjoint")
-    #interactive()
     
     model.setPointForHessianEvaluations(x)
     Hmisfit = ReducedHessian(model, solver.parameters["inner_rel_tolerance"], gauss_newton_approx=False, misfit_only=True)
@@ -377,6 +376,6 @@ if __name__ == "__main__":
     plt.plot(range(0,k), d, 'b*')
     plt.yscale('log')
     
-    interactive()
     plt.show()
+    show_dl_plots()
     

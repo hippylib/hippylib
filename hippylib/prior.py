@@ -21,6 +21,13 @@ import math
 from .expression import code_Mollifier
 from .checkDolfinVersion import dlversion
 
+try:
+    import warnings
+    from ffc.quadrature.deprecation import QuadratureRepresentationDeprecationWarning
+    warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)
+except:
+    pass
+
 def _to_numpy(v):
     if dlversion() >= (2017,2,0):
         return v.get_local()

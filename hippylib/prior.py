@@ -29,10 +29,8 @@ except:
     pass
 
 def _to_numpy(v):
-    if dlversion() >= (2017,2,0):
-        return v.get_local()
-    else:
-        return v.array()
+    return v.get_local()
+
 
 class _RinvM:
     """

@@ -39,9 +39,6 @@ to computing Karhunen-Loeve expansion,
 Numerical Linear Algebra with Applications, to appear.
 """
 
-def _to_numpy(v):
-    return v.get_local()
-
 def singlePass(A,Omega,k):
     """
     The single pass algorithm for the HEP as presented in [1].
@@ -68,7 +65,7 @@ def singlePass(A,Omega,k):
     for ivect in range(0,nvec):
         w.set_local(Omega[:,ivect])
         A.mult(w,y)
-        Y[:,ivect] = _to_numpy(y)
+        Y[:,ivect] = y.get_local()
                 
     Q,_ = np.linalg.qr(Y)
         
@@ -116,7 +113,7 @@ def doublePass(A,Omega,k):
     for ivect in range(0,nvec):
         w.set_local(Omega[:,ivect])
         A.mult(w,y)
-        Y[:,ivect] = _to_numpy(y)
+        Y[:,ivect] = y.get_local()
                 
     Q,_ = np.linalg.qr(Y)
     
@@ -124,7 +121,7 @@ def doublePass(A,Omega,k):
     for ivect in range(0,nvec):
         w.set_local(Q[:,ivect])
         A.mult(w,y)
-        AQ[:,ivect] = _to_numpy(y)
+        AQ[:,ivect] = y.get_local()
                 
     T = np.dot(Q.T, AQ)
         
@@ -172,15 +169,15 @@ def singlePassG(A, B, Binv, Omega,k, check_Bortho = False, check_Aortho=False, c
         w.set_local(Omega[:,ivect])
         A.mult(w,ybar)
         Binv.solve(y, ybar)
-        Ybar[:,ivect] = _to_numpy(ybar)
-        Y[:,ivect] = _to_numpy(y)
+        Ybar[:,ivect] = ybar.get_local()
+        Y[:,ivect] = y.get_local()
                 
     Z,_ = np.linalg.qr(Y)
     BZ = np.zeros(Omega.shape)
     for ivect in range(0,nvec):
         w.set_local(Z[:,ivect])
         B.mult(w,y)
-        BZ[:, ivect] = _to_numpy(y)
+        BZ[:, ivect] = y.get_local()
         
     R = np.linalg.cholesky( np.dot(Z.T,BZ ))
     Q = np.linalg.solve(R, Z.T).T
@@ -243,15 +240,15 @@ def doublePassG(A, B, Binv, Omega,k, check_Bortho = False, check_Aortho=False, c
         w.set_local(Omega[:,ivect])
         A.mult(w,ybar)
         Binv.solve(y, ybar)
-        Ybar[:,ivect] = _to_numpy(ybar)
-        Y[:,ivect] = _to_numpy(y)
+        Ybar[:,ivect] = ybar.get_local()
+        Y[:,ivect] = y.get_local()
                 
     Z,_ = np.linalg.qr(Y)
     BZ = np.zeros(Omega.shape)
     for ivect in range(0,nvec):
         w.set_local(Z[:,ivect])
         B.mult(w,y)
-        BZ[:, ivect] = _to_numpy(y)
+        BZ[:, ivect] = y.get_local()
         
     R = np.linalg.cholesky( np.dot(Z.T,BZ ))
     Q = np.linalg.solve(R, Z.T).T
@@ -260,7 +257,7 @@ def doublePassG(A, B, Binv, Omega,k, check_Bortho = False, check_Aortho=False, c
     for ivect in range(0,nvec):
         w.set_local(Q[:,ivect])
         A.mult(w,ybar)
-        AQ[:,ivect] = _to_numpy(ybar)
+        AQ[:,ivect] = ybar.get_local()
                 
     T = np.dot(Q.T, AQ)
         
@@ -298,7 +295,7 @@ def BorthogonalityTest(B, U):
     for i in range(0,nvec):
         u.set_local(U[:,i])
         B.mult(u,Bu)
-        BU[:,i] = _to_numpy(Bu)
+        BU[:,i] = Bu.get_local()
         
     UtBU = np.dot(U.T, BU)
     err = UtBU - np.eye(nvec, dtype=UtBU.dtype)
@@ -320,8 +317,8 @@ def AorthogonalityCheck(A, U, d):
         v.set_local(U[:,i])
         v *= 1./math.sqrt(d[i])
         A.mult(v,Av)
-        AV[:,i] = _to_numpy(Av)
-        V[:,i] = _to_numpy(v)
+        AV[:,i] = Av.get_local()
+        V[:,i] = v.get_local()
         
     VtAV = np.dot(V.T, AV)    
     err = VtAV - np.eye(nvec, dtype=VtAV.dtype)

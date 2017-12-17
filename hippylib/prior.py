@@ -28,9 +28,6 @@ try:
 except:
     pass
 
-def _to_numpy(v):
-    return v.get_local()
-
 
 class _RinvM:
     """
@@ -201,7 +198,7 @@ class LaplacianPrior(_Prior):
         Mqh = dl.assemble(dl.inner(ph, qh)*dl.dx(metadata = metadata))
         ones = dl.interpolate(dl.Constant( tuple([1.]*(ndim+1) ) ), Qh).vector()
         dMqh = Mqh*ones
-        dMqh.set_local( _to_numpy(ones) / np.sqrt( _to_numpy(dMqh) ) )
+        dMqh.set_local( ones.get_local() / np.sqrt( dMqh.get_local() ) )
         Mqh.zero()
         Mqh.set_diagonal(dMqh)
         
@@ -369,7 +366,7 @@ class BiLaplacianPrior(_Prior):
         ones = dl.interpolate(dl.Constant(1.), Qh).vector()
         dMqh = Mqh*ones
         Mqh.zero()
-        dMqh.set_local( _to_numpy(ones) / np.sqrt( _to_numpy(dMqh) ) )
+        dMqh.set_local( ones.get_local() / np.sqrt( dMqh.get_local() ) )
         Mqh.set_diagonal(dMqh)
         MixedM = dl.assemble(ph*test*dl.dx(metadata=metadata))
         self.sqrtM = MatMatMult(MixedM, Mqh)
@@ -505,7 +502,7 @@ class MollifiedBiLaplacianPrior(_Prior):
         ones = dl.interpolate(dl.Constant(1.), Qh).vector()
         dMqh = Mqh*ones
         Mqh.zero()
-        dMqh.set_local( _to_numpy(ones) / np.sqrt( _to_numpy(dMqh) ) )
+        dMqh.set_local( ones.get_local() / np.sqrt( dMqh.get_local() ) )
         Mqh.set_diagonal(dMqh)
         MixedM = dl.assemble(ph*test*dl.dx(metadata=metadata))
         self.sqrtM = MatMatMult(MixedM, Mqh)

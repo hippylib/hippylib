@@ -24,12 +24,6 @@ import sys
 sys.path.append( "../" )
 from hippylib import dlversion
 
-def _to_numpy(v):
-    if dlversion() >= (2017,2,0):
-        return v.get_local()
-    else:
-        return v.array()
-
 def mesh2triang(mesh):
     xy = mesh.coordinates()
     return tri.Triangulation(xy[:, 0], xy[:, 1], mesh.cells())
@@ -45,7 +39,7 @@ def mplot_function(f, vmin, vmax, logscale):
         raise AttributeError('Mesh must be 2D')
     # DG0 cellwise function
     if f.vector().size() == mesh.num_cells():
-        C = _to_numpy( f.vector() )
+        C = f.vector().get_local()
         if logscale:
             return plt.tripcolor(mesh2triang(mesh), C, vmin=vmin, vmax=vmax, norm=cls.LogNorm() )
         else:
@@ -141,7 +135,7 @@ def plot_pts(points, values, colorbar=True, subplot_loc=None, mytitle=None, show
     if subplot_loc is not None:
         plt.subplot(subplot_loc)
     
-    pp = plt.scatter(points[:,0], points[:,1], c=_to_numpy(values), marker=",", s=20, vmin=vmin, vmax=vmax)
+    pp = plt.scatter(points[:,0], points[:,1], c=values.get_local(), marker=",", s=20, vmin=vmin, vmax=vmax)
         
     plt.axis(show_axis)
         

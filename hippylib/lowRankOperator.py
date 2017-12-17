@@ -18,9 +18,6 @@ import numpy as np
 
 from .checkDolfinVersion import dlversion
 
-def _to_numpy(v):
-    return v.get_local()
-
 
 class LowRankOperator:
     """
@@ -47,13 +44,13 @@ class LowRankOperator:
         """
         Compute y = Ax = U D U^T x
         """
-        Utx = np.dot( self.U.T, _to_numpy(x) )
+        Utx = np.dot( self.U.T, x.get_local() )
         dUtx = self.d*Utx
         y.set_local(np.dot(self.U, dUtx))
         
     def inner(self, x, y):
-        Utx = np.dot( self.U.T, _to_numpy(x) )
-        Uty = np.dot( self.U.T, _to_numpy(y) )
+        Utx = np.dot( self.U.T, x.get_local() )
+        Uty = np.dot( self.U.T, y.get_local() )
         return np.sum(self.d*Utx*Uty)
         
         
@@ -61,7 +58,7 @@ class LowRankOperator:
         """
         Compute sol = U D^-1 U^T x
         """
-        Utx = np.dot( self.U.T, _to_numpy(rhs) )
+        Utx = np.dot( self.U.T, rhs.get_local() )
         dinvUtx = Utx / self.d
         sol.set_local(np.dot(self.U, dinvUtx))
         
@@ -95,7 +92,7 @@ class LowRankOperator:
             for i in range(self.U.shape[1]):
                 u.set_local(self.U[:,i])
                 W.mult(u,wu)
-                WU[:,i] = _to_numpy(wu)
+                WU[:,i] = wu.get_local()
             diagWUtU = np.sum(WU*self.U,0)
             tr = np.sum(self.d*diagWUtU)
             
@@ -126,7 +123,7 @@ class LowRankOperator:
             for i in range(self.U.shape[1]):
                 u.set_local(self.U[:,i])
                 W.mult(u,wu)
-                WU[:,i] = _to_numpy(wu)
+                WU[:,i] = wu.get_local()
             UtWU = np.dot(self.U.T, WU)
             dUtWU = self.d[:,None] * UtWU #diag(d)*UtU.
             tr2 = np.power(np.linalg.norm(dUtWU),2)

@@ -205,9 +205,9 @@ class PDEVariationalProblem(PDEProblem):
             \delta_{up} F(u,a,p; \hat_u, \tilde_p) = rhs for all \delta_u.
         """
         if is_adj:
-            self.solver_fwd_inc.solve(out, rhs)
-        else:
             self.solver_adj_inc.solve(out, rhs)
+        else:
+            self.solver_fwd_inc.solve(out, rhs)
             
         
     

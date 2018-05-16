@@ -18,6 +18,7 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
                           
 Development Version
 ========================================
+- **Bugfix** in `PDEVariationalProblem.solveIncremental` for non self-adjoint models 
 - Add new estimator for the trace and diagonal of the prior covariance
 using randomized eigendecomposition
 - In all examples and tutorial, use enviromental variable `HIPPYLIB_BASE_DIR` (if defined)

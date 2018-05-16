@@ -69,3 +69,5 @@ correct samples from the prior distribution.
 
 Finally, randomized and probing algorithms are available to compute
 the variance of the prior/posterior distribution.
+
+[![Build Status](https://travis-ci.org/hippylib/hippylib.svg?branch=master)](https://travis-ci.org/hippylib/hippylib)

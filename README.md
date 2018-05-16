@@ -1,6 +1,6 @@
                         Inverse Problem PYthon library
 
-
+```
  __        ______  _______   _______   __      __  __  __  __       
 /  |      /      |/       \ /       \ /  \    /  |/  |/  |/  |      
 $$ |____  $$$$$$/ $$$$$$$  |$$$$$$$  |$$  \  /$$/ $$ |$$/ $$ |____  
@@ -10,35 +10,35 @@ $$ |  $$ |  $$ |  $$$$$$$/  $$$$$$$/     $$$$/    $$ |$$ |$$ |  $$ |
 $$ |  $$ | _$$ |_ $$ |      $$ |          $$ |    $$ |$$ |$$ |__$$ |
 $$ |  $$ |/ $$   |$$ |      $$ |          $$ |    $$ |$$ |$$    $$/ 
 $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/  
+```                                                                    
                                                                     
                                                                     
 
                           https://hippylib.github.io
 
-hIPPYlib implements state-of-the-art scalable algorithms for PDE-based
-deterministic and Bayesian inverse problems. It builds on FEniCS (a
-parallel finite element element library) [http://fenicsproject.org/]
-for the discretization of the PDE and on PETSc
-[http://www.mcs.anl.gov/petsc/] for scalable and efficient linear
+`hIPPYlib` implements state-of-the-art scalable algorithms for PDE-based
+deterministic and Bayesian inverse problems. It builds on [`FEniCS`](http://fenicsproject.org/)
+(a parallel finite element element library) for the discretization of the PDE
+and on [`PETSc`](http://www.mcs.anl.gov/petsc/) for scalable and efficient linear
 algebra operations and solvers.
 
-For building instructions, see the file INSTALL. Copyright information
-and licensing restrictions can be found in the file COPYRIGHT.
+For building instructions, see the file [`INSTALL.md`](INSTALL.md). Copyright information
+and licensing restrictions can be found in the file [`COPYRIGHT`](COPYRIGHT).
 
-The best starting point for new users interested in hIPPYlib's
-features are the interactive tutorials in the tutorial folder.
+The best starting point for new users interested in `hIPPYlib`'s
+features are the interactive tutorials in the [tutorial folder](tutorial).
 
-Conceptually, hIPPYlib can be viewed as a toolbox that provides the
+Conceptually, `hIPPYlib` can be viewed as a toolbox that provides the
 building blocks for experimenting new ideas and developing scalable
 algorithms for PDE-based deterministic and Bayesian inverse problems.
 
-In hIPPYlib the user can express the forward PDE and the likelihood in
+In `hIPPYlib` the user can express the forward PDE and the likelihood in
 weak form using the friendly, compact, near-mathematical notation of
-FEniCS, which will then automatically generate efficient code for the
+`FEniCS`, which will then automatically generate efficient code for the
 discretization.  Linear and nonlinear, and stationary and
-time-dependent PDEs are supported in hIPPYlib. Currently, gradient and
+time-dependent PDEs are supported in `hIPPYlib`. Currently, gradient and
 Hessian information needs to be provided by the user; our future plan
-includes automatic generation of this information by using FEniCS
+includes automatic generation of this information by using `FEniCS`
 automatic differentiation capabilities for users who do not wish to
 derive the relevant weak forms.
 
@@ -47,24 +47,24 @@ elliptic differential operators allowing us to build on existing fast
 multigrid solvers for elliptic operators without explicitly
 constructing the dense covariance operator.
 
-hIPPYlib provides a robust implementation of the inexact
+`hIPPYlib` provides a robust implementation of the inexact
 Newton-conjugate gradient algorithm to compute the maximum a posterior
 (MAP) point. The reduced gradient and Hessian actions are
-automatically computed via their weak form specification in FEniCS by
+automatically computed via their weak form specification in `FEniCS` by
 constraining the state and adjoint variables to satisfy the forward
 and adjoint problem. The Newton system is solved inexactly by early
-termination of CG iterations via Eisenstat–Walker (to prevent
+termination of CG iterations via Eisenstat-Walker (to prevent
 oversolving) and Steihaug (to avoid negative curvature)
 criteria. Globalization is achieved with an Armijo back-tracking line
 search.
 
-hIPPYlib offers different scalable methods to sample from the prior
+`hIPPYlib` offers different scalable methods to sample from the prior
 distribution: Krylov methods to approximate the action of a matrix
 square root on a vector, the conjugate gradient sampler, and finally
 samplers that exploit the finite element assembly procedure of the
 inverse covariance operator to obtain a symmetric decomposition. To
 sample from a local Gaussian approximation (such as at the MAP point)
-hIPPYlib exploits the low rank factorization of the Hessian misfit to
+`hIPPYlib` exploits the low rank factorization of the Hessian misfit to
 correct samples from the prior distribution.
 
 Finally, randomized and probing algorithms are available to compute

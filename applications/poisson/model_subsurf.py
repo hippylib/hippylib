@@ -19,7 +19,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import sys
-sys.path.append( "../../" )
+import os
+sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
 from hippylib import *
 
 
@@ -140,9 +141,9 @@ if __name__ == "__main__":
     posterior = GaussianLRPosterior(prior, d, U)
     posterior.mean = x[PARAMETER]
     
-    post_tr, prior_tr, corr_tr = posterior.trace(method="Estimator", tol=1e-1, min_iter=20, max_iter=100)
+    post_tr, prior_tr, corr_tr = posterior.trace(method="Randomized", r=200)
     print("Posterior trace {0:5e}; Prior trace {1:5e}; Correction trace {2:5e}".format(post_tr, prior_tr, corr_tr))
-    post_pw_variance, pr_pw_variance, corr_pw_variance = posterior.pointwise_variance("Exact")
+    post_pw_variance, pr_pw_variance, corr_pw_variance = posterior.pointwise_variance(method="Randomized", r=200)
 
     print(sep, "Save State, Parameter, Adjoint, and observation in paraview", sep)
     xxname = ["State", "Parameter", "Adjoint"]

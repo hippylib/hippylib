@@ -189,26 +189,26 @@ class GaussianLRPosterior:
                 evect.vector().set_local(Ui)
             fid << evect
             
-    def trace(self, method="Exact", tol=1e-1, min_iter=20, max_iter=100):
+    def trace(self, **kwargs):
         """
         Compute/Estimate the trace of the posterior, prior distribution
         and the trace of the data informed correction.
         
         See _Prior.trace for more details.
         """
-        pr_trace = self.prior.trace(method, tol, min_iter, max_iter)
+        pr_trace = self.prior.trace(**kwargs)
         corr_trace = self.Hlr.LowRankHinv.trace(self.prior.M)
         post_trace = pr_trace - corr_trace
         return post_trace, pr_trace, corr_trace
     
-    def pointwise_variance(self, method="Exact", path_len = 8):
+    def pointwise_variance(self, **kwargs):
         """
         Compute/Estimate the pointwise variance of the posterior, prior distribution
         and the pointwise variance reduction informed by the data.
         
         See _Prior.pointwise_variance for more details. 
         """
-        pr_pointwise_variance = self.prior.pointwise_variance(method, path_len)
+        pr_pointwise_variance = self.prior.pointwise_variance(**kwargs)
         correction_pointwise_variance = Vector()
         self.init_vector(correction_pointwise_variance, 0)
         self.Hlr.LowRankHinv.get_diagonal(correction_pointwise_variance)

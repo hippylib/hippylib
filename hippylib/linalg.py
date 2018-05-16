@@ -218,6 +218,24 @@ class Solver2Operator:
         self.S.solve(self.tmp,y)
         return self.tmp.inner(x)
     
+class Operator2Solver:
+    def __init__(self,op):
+        self.op = op
+        self.tmp = Vector()
+        
+    def init_vector(self, x, dim):
+        if hasattr(self.op, "init_vector"):
+            self.op.init_vector(x,dim)
+        else:
+            raise
+        
+    def solve(self,y,x):
+        self.op.mult(x,y)
+        
+    def inner(self, x, y):
+        self.op.mult(y,self.tmp)
+        return self.tmp.inner(x)
+    
 def vector2Function(x,Vh, **kwargs):
     """
     Wrap a finite element vector x into a finite element function in the space Vh.

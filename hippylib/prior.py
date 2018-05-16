@@ -15,8 +15,9 @@ from __future__ import absolute_import, division, print_function
 
 import dolfin as dl
 import numpy as np
-from .linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2
+from .linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2, Solver2Operator, Operator2Solver, get_local_size
 from .traceEstimator import TraceEstimator
+from .randomizedEigensolver import doublePass, doublePassG
 import math
 from .expression import code_Mollifier
 from .checkDolfinVersion import dlversion
@@ -69,7 +70,7 @@ class _Prior:
       If add_mean=True add the prior mean value to s.
     """ 
                
-    def trace(self, method="Exact", tol=1e-1, min_iter=20, max_iter=100):
+    def trace(self, method="Exact", tol=1e-1, min_iter=20, max_iter=100, r=200):
         """
         Compute/Estimate the trace of the prior covariance operator.
         
@@ -92,10 +93,20 @@ class _Prior:
             tr_estimator = TraceEstimator(op, False, tol)
             tr_exp, tr_var = tr_estimator(min_iter, max_iter)
             return tr_exp
+        elif method == "Randomized":
+            dummy = dl.Vector()
+            self.init_vector(dummy,0)
+            Omega = np.random.randn(get_local_size( dummy ), r)
+            d, _ = doublePassG(Solver2Operator(self.Rsolver), 
+                               Solver2Operator(self.Msolver),
+                               Operator2Solver(self.M),
+                               Omega, r, check_Bortho=False, check_Aortho=False, check_residual=False)
+            
+            return d.sum()
         else:
             raise NameError("Unknown method")
         
-    def pointwise_variance(self, method, k = 1000000):
+    def pointwise_variance(self, method, k = 1000000, r = 200):
         """
         Compute/Estimate the prior pointwise variance.
         
@@ -108,6 +119,11 @@ class _Prior:
             get_diagonal(self.Rsolver, pw_var, solve_mode=True)
         elif method == "Estimator":
             estimate_diagonal_inv2(self.Rsolver, k, pw_var)
+        elif method == "Randomized":
+            Omega = np.random.randn(get_local_size( pw_var ), r)
+            d, U = doublePass(Solver2Operator(self.Rsolver), Omega, r)
+            pw_var.set_local(np.dot(U*U,d))
+            pw_var.apply("")
         else:
             raise NameError("Unknown method")
         

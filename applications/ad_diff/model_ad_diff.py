@@ -18,7 +18,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import sys
-sys.path.append( "../../" )
+import os
+sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
 from hippylib import *
 
 
@@ -470,12 +471,12 @@ if __name__ == "__main__":
     
     posterior.mean = a
 
-    compute_trace = False
+    compute_trace = True
     if compute_trace:
-        post_tr, prior_tr, corr_tr = posterior.trace(method="Exact", tol=5e-2, min_iter=20, max_iter=100)
+        post_tr, prior_tr, corr_tr = posterior.trace(method="Randomized", r=200)
         print("Posterior trace {0:5g}; Prior trace {1:5g}; Correction trace {2:5g}".format(
                 post_tr, prior_tr, corr_tr) )
-        post_pw_variance, pr_pw_variance, corr_pw_variance = posterior.pointwise_variance("Exact")
+        post_pw_variance, pr_pw_variance, corr_pw_variance = posterior.pointwise_variance(method="Randomized", r=300)
     
     print(sep, "Save results", sep ) 
     problem.exportState([u,a,p], "results/conc.pvd", "concentration")

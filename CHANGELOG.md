@@ -16,7 +16,7 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
                           
-Development Version
+Version 1.6.0, released on May 16, 2018
 ========================================
 - **Bugfix** in `PDEVariationalProblem.solveIncremental` for non self-adjoint models 
 - Add new estimator for the trace and diagonal of the prior covariance

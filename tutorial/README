@@ -6,8 +6,6 @@ Content:
 4. AdvectionDiffusionBayesian notebook illustrates how to solve a time-dependent linear inverse problem in a Bayesian setting.
 5. HessianSpectrum notebook illustrates the spectral property of the Hessian operator for a linear source inversion problem.
 
-- nb.py: a collection of plotting utilities using matplotlib
-
 To run the notebook open a FEniCS terminal and type
 
 $ jupyter notebook

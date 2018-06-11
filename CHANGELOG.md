@@ -12,12 +12,27 @@ $$ |  $$ |/ $$   |$$ |      $$ |          $$ |    $$ |$$ |$$    $$/
 $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/  
 ```                                                                    
                                                                     
-                                                                    
 
                           https://hippylib.github.io
                           
+Version 2.0.0, unreleased
+----------------------------------------
+- Introduce capabilities for non-Gaussian Bayesian inference using Mark Chain Monte Carlo methods.
+Kernels: mMALA, pCN, gpCN, IS. **Note: API subject to change**
+- Support domain-decomposition parallelization (new parallel random number generator, and new randomized eigensolvers)
+- The parameter, usually labeled `a`, throughout the library, has been renamed to `m`, for `model parameter`.
+  Interface changes:
+    - `PDEProblem.eval_da` --> `PDEProblem.evalGradientParameter`
+    - `Model.applyWua` --> `Model.applyWum`
+    - `Model.applyWau` --> `Model.applyWmu`
+    - `Model.applyRaa` --> `Model.applyWmm`
+    - `gda_tolerance` --> `gdm_tolerance` in the parameter list for Newton and QuasiNewton optimizers
+    - `gn_approx` --> `gass_newton_approx` as parameter in function to compute Hessian/linearization point in classes `Model`, `PDEProblem`, `Misfit`, `Qoi`, `ReducedQoi`
+- Organize `hippylib` in subpackages
+- Add `sphinx` documentation (thanks to **E. Khattatov** and **I. Ambartsumyan**)
+
 Version 1.6.0, released on May 16, 2018
-========================================
+----------------------------------------
 - **Bugfix** in `PDEVariationalProblem.solveIncremental` for non self-adjoint models 
 - Add new estimator for the trace and diagonal of the prior covariance
 using randomized eigendecomposition
@@ -25,52 +40,52 @@ using randomized eigendecomposition
 to add `hIPPYlib` to `PYTHONPATH`
                           
 Version 1.5.0, released on Jan 24, 2018
-========================================
-- Add support for FEniCS 2017.2
+----------------------------------------
+- Add support for `FEniCS 2017.2`
 
 Version 1.4.0, released on Nov 8, 2017
-========================================
-- Add support for Python 3
-- Enchantments in PDEVariationalProblem: it now supports multiple Dirichlet
-  condition and Vector & Mixed FunctionSpaces
+----------------------------------------
+- Add support for `Python 3`
+- Enchantments in `PDEVariationalProblem`: it now supports multiple Dirichlet
+  condition and vectorial/mixed function spaces
 - Bugfix: Set the correct number of global rows, when targets points fall 
   outside the computational domain
-- More extensive testing with Travis Integration                          
+- More extensive testing with `Travis` Integration
 
 Version 1.3.0, released on June 28, 2017
-========================================
-- Improve hashdist installation support
+----------------------------------------
+- Improve `hashdist` installation support
 - Switch license to GPL-2
-- Add support for FEniCS 2017.1
+- Add support for `FEniCS 2017.1`
 
 Version 1.2.0, released on April 24, 2017
-=========================================
-- Update instruction to build FEniCS: hashdist and docker
+----------------------------------------
+- Update instruction to build `FEniCS`: `hashdist` and `docker`
 - Update notebook to nbformat 4
-- Let FEniCS 2016.2 be the preferred version of FEniCS
-- Add travis integration
+- Let `FEniCS 2016.2` be the preferred version of `FEniCS`
+- Add `Travis` integration
                           
 Version 1.1.0, released on Nov 28, 2016
-=======================================
+----------------------------------------
 
-- Add partial support for FEniCS 2016.1 (Applications and Tutorial)
+- Add partial support for `FEniCS 2016.1` (Applications and Tutorial)
 - Improve performance of the randomized eigensolvers
 
 Version 1.0.2, released on Sep 30, 2016
-=======================================
+----------------------------------------
 
-- Use vector2Function to safely convert dolfin.Vector to dolfin.Function
-- Optimize the PDEVariationalProblem to exploit the case when the forward problem is linear
-- Update notebook 1_FEniCS101
+- Use `vector2Function` to safely convert `dolfin.Vector` to `dolfin.Function`
+- Optimize the `PDEVariationalProblem` to exploit the case when the forward problem is linear
+- Update notebook `1_FEniCS101.ipynb`
                            
 Version 1.0.1, released on Aug 25, 2016
-=======================================
+----------------------------------------
 
-- Add support in hippylib.Model and hippylib.Misfit for misfit functional with explicit dependence on the parameter
+- Add support in `hippylib.Model` and `hippylib.Misfit` for misfit functional with explicit dependence on the parameter
 
 
 Version 1.0.0, released on Aug 8, 2016
-======================================
+----------------------------------------
 
 - Uploaded to https://hippylib.github.io.
-- Initial release.
+- Initial release under GPL-3.

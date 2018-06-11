@@ -10,3 +10,10 @@ applications/ad_diff/samples
 applications/poisson/hmisfit
 applications/poisson/results
 applications/poisson/samples
+applications/mcmc/gpCN
+applications/mcmc/inf-MALA
+applications/mcmc/IS
+applications/mcmc/pCN
+applications/mcmc/StochasticNewton_MAP
+applications/mcmc/*.txt
+doc/_build

@@ -101,7 +101,7 @@ conda create -n fenicsproject -c conda-forge fenics=2017.2.0
 source activate fenicsproject
 ```
 
-## Buid FEniCS from source using hashdist (Linux and MacOS 10.12 or below)
+## Build FEniCS from source using hashdist (Linux and MacOS 10.12 or below)
 
 To build `FEniCS` from source we suggest using the scripts and profile
 files in `fenics-hashdist`. These scripts and profile files contain
@@ -120,4 +120,13 @@ page](https://fenicsproject.org/download/).  Note that this
 instructions always refer to the latest version of `FEniCS` which may or
 may not be yet supported by `hIPPYlib`. Always check the `hIPPYlib`
 website for supported `FEniCS` versions.
+
+## Build the hIPPYlib documentation using Sphinx
+
+To build the documentation you need to have `sphinx` (tested on v.1.7.5),
+`m2r` and `sphinx_rtd_theme` - all of these can be installed via `pip`.
+
+To build simply run `make html` from `doc` folder.
+
+
 

@@ -12,18 +12,17 @@ $$ |  $$ |/ $$   |$$ |      $$ |          $$ |    $$ |$$ |$$    $$/
 $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/  
 ```                                                                    
                                                                     
-                                                                    
 
                           https://hippylib.github.io
 
 `hIPPYlib` implements state-of-the-art scalable algorithms for PDE-based
-deterministic and Bayesian inverse problems. It builds on [`FEniCS`](http://fenicsproject.org/)
+deterministic and Bayesian inverse problems. It builds on [FEniCS](http://fenicsproject.org/)
 (a parallel finite element element library) for the discretization of the PDE
-and on [`PETSc`](http://www.mcs.anl.gov/petsc/) for scalable and efficient linear
+and on [PETSc](http://www.mcs.anl.gov/petsc/) for scalable and efficient linear
 algebra operations and solvers.
 
-For building instructions, see the file [`INSTALL.md`](INSTALL.md). Copyright information
-and licensing restrictions can be found in the file [`COPYRIGHT`](COPYRIGHT).
+For building instructions, see the file [INSTALL.md](INSTALL.md). Copyright information
+and licensing restrictions can be found in the file [COPYRIGHT](COPYRIGHT).
 
 The best starting point for new users interested in `hIPPYlib`'s
 features are the interactive tutorials in the [tutorial folder](tutorial).

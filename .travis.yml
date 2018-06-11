@@ -13,11 +13,15 @@ script:
     - sed -i 's/nx = 64/nx = 32/' applications/poisson/model_continuous_obs.py
     - sed -i 's/ny = 64/ny = 32/' applications/poisson/model_continuous_obs.py
     - sed -i 's/mesh = dl.refine( dl.Mesh("ad_20.xml") )/mesh = dl.Mesh("ad_20.xml")/' applications/ad_diff/model_ad_diff.py
+    - sed -i 's/nx = 64/nx = 32/' applications/mcmc/model_subsurf.py
+    - sed -i 's/ny = 64/ny = 32/' applications/mcmc/model_subsurf.py
+    - sed -i 's/chain.parameters["number_of_samples"] = 100/chain.parameters["number_of_samples"] = 30/' applications/mcmc/model_subsurf.py
     - echo Test 2017.2
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2017.2.0.r4 "dolfin-version"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2017.2.0.r4 "export MPLBACKEND=Agg; python3 model_continuous_obs.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2017.2.0.r4 "export MPLBACKEND=Agg; python3 model_subsurf.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2017.2.0.r4 "export MPLBACKEND=Agg; python3 model_ad_diff.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/mcmc quay.io/fenicsproject/stable:2017.2.0.r4 "export MPLBACKEND=Agg; python3 model_subsurf.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0.r4 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 1_FEniCS101.ipynb"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0.r4 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 2_PoissonDeterministic.ipynb"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0.r4 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 3_SubsurfaceBayesian.ipynb"

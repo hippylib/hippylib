@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2018, The University of Texas at Austin & University of
-# California, Merced.
+# Copyright (c) 2016-2018, The University of Texas at Austin 
+# & University of California, Merced.
 #
 # All Rights reserved.
 # See file COPYRIGHT for details.
@@ -13,9 +13,9 @@
 
 """
 hIPPYlib implements state-of-the-art scalable algorithms for PDE-based
-deterministic and Bayesian inverse problems. It builds on FEniCS (a 
-parallel finite element element library) [http://fenicsproject.org/]
-for the discretization of the PDE and on PETSc [http://www.mcs.anl.gov/petsc/]
+deterministic and Bayesian inverse problems. It builds on 
+FEniCS (http://fenicsproject.org/) (a parallel finite element element library) 
+for the discretization of the PDE and on PETSc (http://www.mcs.anl.gov/petsc/)
 for scalable and efficient linear algebra operations and solvers.
 
 For building instructions, see the file INSTALL. Copyright information
@@ -28,36 +28,16 @@ Conceptually, hIPPYlib can be viewed as a toolbox that provides
 the building blocks for experimenting new ideas and developing scalable
 algorithms for PDE-based deterministic and Bayesian inverse problems.
 """
-
 from __future__ import absolute_import, division, print_function
 
-
-from .checkDolfinVersion import dlversion, checkdlversion, show_dl_plots
-checkdlversion()
-
 # utils
-from .expression import code_AnisTensor2D, code_Mollifier
-from .linalg import MatMatMult, MatPtAP, Transpose, to_dense, trace, get_diagonal, estimate_diagonal_inv2, \
-                    randn_perturb, amg_method, Solver2Operator, Operator2Solver, vector2Function, get_local_size
-from .pointwiseObservation import assemblePointwiseObservation, exportPointwiseObservation
-from .timeDependentVector import TimeDependentVector
+from .utils import *
 
 # hIPPYlib model
-from .variables import *
-from .PDEProblem import PDEProblem, PDEVariationalProblem
-from .prior import _Prior, LaplacianPrior, BiLaplacianPrior, MollifiedBiLaplacianPrior
-from .misfit import Misfit, ContinuousStateObservation, PointwiseStateObservation
-from .model import Model
-from .modelTemplate import ModelTemplate, modelVerify 
+from .modeling import *
 
 # hIPPYlib algorithms
-from .cgsolverSteihaug import CGSolverSteihaug
-from .NewtonCG import ReducedSpaceNewtonCG
-from .randomizedEigensolver import singlePass, doublePass, singlePassG, doublePassG
-from .lowRankOperator import LowRankOperator
-from .traceEstimator import TraceEstimator
-from .cgsampler import CGSampler
+from .algorithms import *
 
-# hIPPYlib outputs
-from .reducedHessian import ReducedHessian
-from .posterior import GaussianLRPosterior, LowRankHessian
+#MCMC:
+from .mcmc import *

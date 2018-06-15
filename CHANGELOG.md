@@ -15,7 +15,7 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
                           
-Version 2.0.0, unreleased
+Version 2.0.0, released on June 15, 2018
 ----------------------------------------
 - Introduce capabilities for non-Gaussian Bayesian inference using Mark Chain Monte Carlo methods.
 Kernels: mMALA, pCN, gpCN, IS. **Note: API subject to change**

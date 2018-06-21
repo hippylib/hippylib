@@ -21,11 +21,11 @@ deterministic and Bayesian inverse problems. It builds on [FEniCS](http://fenics
 and on [PETSc](http://www.mcs.anl.gov/petsc/) for scalable and efficient linear
 algebra operations and solvers.
 
-For building instructions, see the file [INSTALL.md](INSTALL.md). Copyright information
-and licensing restrictions can be found in the file [COPYRIGHT](COPYRIGHT).
+For building instructions, see the file `INSTALL.md`. Copyright information
+and licensing restrictions can be found in the file `COPYRIGHT`.
 
 The best starting point for new users interested in `hIPPYlib`'s
-features are the interactive tutorials in the [tutorial folder](tutorial).
+features are the interactive tutorials in the `tutorial folder`.
 
 Conceptually, `hIPPYlib` can be viewed as a toolbox that provides the
 building blocks for experimenting new ideas and developing scalable

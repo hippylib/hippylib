@@ -96,13 +96,11 @@ def plot(obj, colorbar=True, subplot_loc=None, mytitle=None, show_axis='off', vm
         
     return pp
         
-def multi1_plot(objs, titles, same_colorbar=True, show_axis='off', logscale=False):
+def multi1_plot(objs, titles, same_colorbar=True, show_axis='off', logscale=False, vmin=None, vmax=None):
     """
     Plot a list of generic dolfin object in a single row
     """       
-    vmin = None
-    vmax = None 
-    if same_colorbar:
+    if vmin is None and vmax is None and same_colorbar:
         vmin = 1e30
         vmax = -1e30
         for f in objs:
@@ -273,7 +271,7 @@ def plot_eigenvectors(Vh, U, mytitle, which = [0,1,2,5,10,15]):
         if (U[i])[0] >= 0:
             s = 1./U[i].norm("linf")
         else:
-            s = -1.//U[i].norm("linf")
+            s = -1./U[i].norm("linf")
         u.vector().zero()
         u.vector().axpy(s, U[i])
         plot(u, subplot_loc=(subplot_loc+counter), mytitle=title_stamp.format(i), vmin=-1, vmax=1)

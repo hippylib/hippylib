@@ -14,7 +14,6 @@
 from __future__ import absolute_import, division, print_function
 
 from ..modeling.variables import PARAMETER
-from ..modeling.posterior import LowRankHessianMisfit
 from ..utils.random import parRandom
 
 import math
@@ -145,7 +144,6 @@ class gpCNKernel:
         self.model = model
         self.nu = nu
         self.prior = model.prior
-        self.Hm = LowRankHessianMisfit(self.prior, nu.d, nu.U)
         self.parameters = {}
         self.parameters["inner_rel_tolerance"]   = 1e-9
         self.parameters["s"]                     = 0.1
@@ -175,11 +173,9 @@ class gpCNKernel:
             return 0
         
     def delta(self,sample):
-        dm = sample.m - self.nu.mean
-        d_mean = self.nu.prior.mean - self.nu.mean
-        phi_mu = sample.cost
-        phi_nu = - self.prior.R.inner(dm, d_mean) + .5*self.Hm.inner(dm, dm)
-        return phi_mu - phi_nu
+        dm_nu = sample.m - self.nu.mean
+        dm_pr = sample.m - self.prior.mean
+        return sample.cost + .5*self.prior.R.inner(dm_pr, dm_pr) - .5*self.nu.Hlr.inner(dm_nu, dm_nu)
         
 
     def proposal(self, current):
@@ -238,7 +234,6 @@ class ISKernel:
     def delta(self,sample):
         dm_nu = sample.m - self.nu.mean
         dm_pr = sample.m - self.prior.mean
-
         return sample.cost + .5*self.prior.R.inner(dm_pr, dm_pr) - .5*self.nu.Hlr.inner(dm_nu, dm_nu)
         
 

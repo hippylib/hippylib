@@ -61,7 +61,7 @@ def _mplot_function(f, vmin, vmax, logscale):
         C = np.sqrt(U*U+V*V)
         return plt.quiver(X,Y,U,V, C, units='x', headaxislength=7, headwidth=7, headlength=7, scale=4, pivot='middle')
     
-def plot(obj, colorbar=True, subplot_loc=None, mytitle=None, show_axis='off', vmin=None, vmax=None, logscale=False):
+def plot(obj, colorbar=True, subplot_loc=None, mytitle=None, show_axis='off', vmin=None, vmax=None, logscale=False, cmap=None):
     """
     Plot a generic dolfin object (if supported)
     """
@@ -94,9 +94,12 @@ def plot(obj, colorbar=True, subplot_loc=None, mytitle=None, show_axis='off', vm
     if mytitle is not None:
         plt.title(mytitle, fontsize=20)
         
+    if cmap:
+        plt.set_cmap(cmap)
+        
     return pp
         
-def multi1_plot(objs, titles, same_colorbar=True, show_axis='off', logscale=False, vmin=None, vmax=None):
+def multi1_plot(objs, titles, same_colorbar=True, show_axis='off', logscale=False, vmin=None, vmax=None, cmap=None):
     """
     Plot a list of generic dolfin object in a single row
     """       
@@ -128,10 +131,10 @@ def multi1_plot(objs, titles, same_colorbar=True, show_axis='off', logscale=Fals
     for i in range(nobj):
         plot(objs[i], colorbar=True,
              subplot_loc=(subplot_loc+i+1), mytitle=titles[i],
-             show_axis='off', vmin=vmin, vmax=vmax, logscale=logscale)
+             show_axis='off', vmin=vmin, vmax=vmax, logscale=logscale, cmap=cmap)
 
 
-def plot_pts(points, values, colorbar=True, subplot_loc=None, mytitle=None, show_axis='on', vmin=None, vmax=None, xlim=(0,1), ylim=(0,1)):
+def plot_pts(points, values, colorbar=True, subplot_loc=None, mytitle=None, show_axis='on', vmin=None, vmax=None, xlim=(0,1), ylim=(0,1),cmap=None):
     """
     Plot a cloud of points
     """  
@@ -156,10 +159,14 @@ def plot_pts(points, values, colorbar=True, subplot_loc=None, mytitle=None, show
     if ylim is not None:
         plt.ylim(ylim)
         
+    if cmap:
+        plt.set_cmap(cmap)
+        
     return pp
 
 
-def show_solution(Vh, ic, state, same_colorbar=True, colorbar=True, mytitle=None, show_axis='off', logscale=False, times=[0, .4, 1., 2., 3., 4.]):
+def show_solution(Vh, ic, state, same_colorbar=True, colorbar=True, mytitle=None, 
+                  show_axis='off', logscale=False, times=[0, .4, 1., 2., 3., 4.], cmap = None):
     """
     Plot a :code:TimeDependentVector at specified time steps
     """
@@ -197,7 +204,7 @@ def show_solution(Vh, ic, state, same_colorbar=True, colorbar=True, mytitle=None
             print( "Invalid time: ", i)
             
         plot(myu, subplot_loc=(subplot_loc+counter), mytitle=title_stamp.format(i), colorbar=colorbar,
-             logscale=logscale, show_axis=show_axis, vmin=vmin, vmax=vmax)
+             logscale=logscale, show_axis=show_axis, vmin=vmin, vmax=vmax, cmap = cmap)
         counter = counter+1
 
     
@@ -254,7 +261,7 @@ def plot_eigenvalues(d, mytitle = None, subplot_loc=None):
     if mytitle is not None:
         plt.title(mytitle)
     
-def plot_eigenvectors(Vh, U, mytitle, which = [0,1,2,5,10,15]):
+def plot_eigenvectors(Vh, U, mytitle, which = [0,1,2,5,10,15], cmap = None):
     """
     Plot specified vectors in a :code:MultiVector
     """
@@ -274,7 +281,7 @@ def plot_eigenvectors(Vh, U, mytitle, which = [0,1,2,5,10,15]):
             s = -1./U[i].norm("linf")
         u.vector().zero()
         u.vector().axpy(s, U[i])
-        plot(u, subplot_loc=(subplot_loc+counter), mytitle=title_stamp.format(i), vmin=-1, vmax=1)
+        plot(u, subplot_loc=(subplot_loc+counter), mytitle=title_stamp.format(i), vmin=-1, vmax=1, cmap = cmap)
         counter = counter+1
     
     

@@ -366,7 +366,7 @@ class BiLaplacianPrior(_Prior):
         varf_robin = trial*test*dl.ds
         
         if robin_bc:
-            robin_coeff = np.sqrt(delta/gamma)/1.42
+            robin_coeff = gamma*np.sqrt(delta/gamma)/1.42
         else:
             robin_coeff = 0.
         

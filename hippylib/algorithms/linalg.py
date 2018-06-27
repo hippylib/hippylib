@@ -219,19 +219,24 @@ class DiagonalOperator:
         return x.inner(tmp)
     
 class Solver2Operator:
-    def __init__(self,S,mpi_comm=mpi_comm_world()):
+    def __init__(self,S,mpi_comm=mpi_comm_world(), init_vector = None):
         self.S = S
         self.tmp = Vector(mpi_comm)
+        self.my_init_vector = init_vector
+        
+        if self.my_init_vector is None:
+            if hasattr(self.S, "init_vector"):
+                self.my_init_vector = self.S.init_vector
+            elif hasattr(self.S, "operator"):
+                self.my_init_vector = self.S.operator().init_vector
+            elif hasattr(self.S, "get_operator"):
+                self.my_init_vector = self.S.get_operator().init_vector
+            else:
+                raise
         
     def init_vector(self, x, dim):
-        if hasattr(self.S, "init_vector"):
-            self.S.init_vector(x,dim)
-        elif hasattr(self.S, "operator"):
-            self.S.operator().init_vector(x,dim)
-        elif hasattr(self.S, "get_operator"):
-            self.S.get_operator().init_vector(x,dim)
-        else:
-            raise
+        self.my_init_vector(x,dim)
+        
         
     def mult(self,x,y):
         self.S.solve(y,x)

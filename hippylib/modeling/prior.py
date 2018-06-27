@@ -340,7 +340,7 @@ class BiLaplacianPrior(_Prior):
     Here :math:`\\Theta` is a SPD tensor that models anisotropy in the covariance kernel.
     """
     
-    def __init__(self, Vh, gamma, delta, Theta = None, mean=None, rel_tol=1e-12, max_iter=1000):
+    def __init__(self, Vh, gamma, delta, Theta = None, mean=None, rel_tol=1e-12, max_iter=1000, robin_bc=False):
         """
         Construct the prior model.
         Input:
@@ -363,6 +363,13 @@ class BiLaplacianPrior(_Prior):
         
         varfM = dl.inner(trial,test)*dl.dx
         
+        varf_robin = trial*test*dl.ds
+        
+        if robin_bc:
+            robin_coeff = np.sqrt(delta/gamma)/1.42
+        else:
+            robin_coeff = 0.
+        
         self.M = dl.assemble(varfM)
         if dlversion() <= (1,6,0):
             self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
@@ -374,7 +381,7 @@ class BiLaplacianPrior(_Prior):
         self.Msolver.parameters["error_on_nonconvergence"] = True
         self.Msolver.parameters["nonzero_initial_guess"] = False
         
-        self.A = dl.assemble(gamma*varfL + delta*varfM)        
+        self.A = dl.assemble(gamma*varfL + delta*varfM + robin_coeff*varf_robin)        
         if dlversion() <= (1,6,0):
             self.Asolver = dl.PETScKrylovSolver("cg", amg_method())
         else:

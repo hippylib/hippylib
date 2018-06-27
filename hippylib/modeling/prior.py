@@ -111,7 +111,7 @@ class _Prior:
         pw_var = dl.Vector(self.R.mpi_comm())
         self.init_vector(pw_var,0)
         if method == "Exact":
-            get_diagonal(Solver2Operator(self.Rsolver), pw_var)
+            get_diagonal(Solver2Operator(self.Rsolver, init_vector=self.init_vector), pw_var)
         elif method == "Estimator":
             estimate_diagonal_inv2(self.Rsolver, k, pw_var)
         elif method == "Randomized":

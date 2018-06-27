@@ -231,11 +231,12 @@ class Solver2Operator:
                 self.my_init_vector = self.S.operator().init_vector
             elif hasattr(self.S, "get_operator"):
                 self.my_init_vector = self.S.get_operator().init_vector
-            else:
-                raise
         
     def init_vector(self, x, dim):
-        self.my_init_vector(x,dim)
+        if self.my_init_vector:
+            self.my_init_vector(x,dim)
+        else:
+            raise NotImplementedError("Solver2Operator.init_vector")
         
         
     def mult(self,x,y):

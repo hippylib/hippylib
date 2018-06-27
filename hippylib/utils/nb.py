@@ -96,6 +96,8 @@ def plot(obj, colorbar=True, subplot_loc=None, mytitle=None, show_axis='off', vm
         
     if cmap:
         plt.set_cmap(cmap)
+    else:
+        plt.set_cmap('viridis')
         
     return pp
         
@@ -161,6 +163,8 @@ def plot_pts(points, values, colorbar=True, subplot_loc=None, mytitle=None, show
         
     if cmap:
         plt.set_cmap(cmap)
+    else:
+        plt.set_cmap('viridis')
         
     return pp
 

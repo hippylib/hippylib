@@ -14,6 +14,13 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
                                                                     
 
                           https://hippylib.github.io
+
+Version 2.1.0, released on July 18, 2018
+----------------------------------------
+- Alleviate boundary artifacts (inflation of marginal variance) in Bilaplacian-like priors
+using Robin boundary conditions
+- Allow the user to select different matplotlib colormaps in jupyter notebooks
+- Buxfix in the acceptance ratio of the gpCN MCMC proposal
                           
 Version 2.0.0, released on June 15, 2018
 ----------------------------------------

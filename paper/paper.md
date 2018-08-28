@@ -77,11 +77,11 @@ correct samples from the prior distribution.
 Finally, randomized and probing algorithms are available to compute
 the variance of the prior/posterior distribution.
 
-The source code for `hIPPYlib` has been archived to Zenodo with the linked DOI: [@zenodo].
+The source code for `hIPPYlib` has been archived to Zenodo with the linked [DOI](https://doi.org/10.5281/zenodo.596931).
 
 
-#Acknowledgements
+# Acknowledgements
 
 `hIPPYlib` development is partially supported by the U.S. National Science Foundation (NSF), Software Infrastructure for Sustained Innovation (SI2: SSE & SSI) Program under grants ACI-1550593, ACI-1550547.
 
-#References
+# References

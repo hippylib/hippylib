@@ -1,4 +1,8 @@
-                        Inverse Problem PYthon library
+[![Build Status](https://travis-ci.org/hippylib/hippylib.svg?branch=master)](https://travis-ci.org/hippylib/hippylib)
+
+[![status](http://joss.theoj.org/papers/053e0d08a5e9755e7b78898cff6f6208/status.svg)](http://joss.theoj.org/papers/053e0d08a5e9755e7b78898cff6f6208)
+
+                  Inverse Problem PYthon library
 
 ```
  __        ______  _______   _______   __      __  __  __  __       
@@ -13,7 +17,7 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 ```                                                                    
                                                                     
 
-                          https://hippylib.github.io
+                  https://hippylib.github.io
 
 `hIPPYlib` implements state-of-the-art scalable algorithms for PDE-based
 deterministic and Bayesian inverse problems. It builds on [FEniCS](http://fenicsproject.org/)
@@ -68,5 +72,3 @@ correct samples from the prior distribution.
 
 Finally, randomized and probing algorithms are available to compute
 the variance of the prior/posterior distribution.
-
-[![Build Status](https://travis-ci.org/hippylib/hippylib.svg?branch=master)](https://travis-ci.org/hippylib/hippylib)

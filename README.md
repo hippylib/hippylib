@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/hippylib/hippylib.svg?branch=master)](https://travis-ci.org/hippylib/hippylib)
-[![status](http://joss.theoj.org/papers/053e0d08a5e9755e7b78898cff6f6208/status.svg)](http://joss.theoj.org/papers/053e0d08a5e9755e7b78898cff6f6208)
+[![status](http://joss.theoj.org/papers/053e0d08a5e9755e7b78898cff6f6208/status.svg)](http://joss.theoj.org/papers/053e0d08a5e9755e7b78898cff6f6208)[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.596931.svg)](https://doi.org/10.5281/zenodo.596931)
 
                   Inverse Problem PYthon library
 

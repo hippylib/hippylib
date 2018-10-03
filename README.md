@@ -82,7 +82,7 @@ log likelihood.
 To sample large scale spacially correlated Gaussian random fields from the prior
 distribution, `hIPPYlib`  implements a new method that strongly relies on the
 structure of the covariance operator defined as the inverse of a differential operator:
-by exploiting the assembly procedure of finite element matrices `hIPPYlib` constructs a sparse Cholesky-like rectagular decomposition of the precision operator.
+by exploiting the assembly procedure of finite element matrices `hIPPYlib` constructs a sparse Cholesky-like rectangular decomposition of the precision operator.
 To sample from a local Gaussian approximation to the posterior (such as at the MAP point)
 `hIPPYlib` exploits the low rank factorization of the Hessian of the
 log likelihood to correct samples from the prior distribution.

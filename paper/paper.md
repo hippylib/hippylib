@@ -30,11 +30,10 @@ bibliography: paper.bib
 
 [`hIPPYlib`](https://hippylib.github.io) [@VillaPetraGhattas18] implements
 state-of-the-art scalable algorithms for deterministic and Bayesian inverse problems 
-governed by partial differential equations (PDEs); see, e.g., [@Bui-ThanhGhattasMartinEtAl13,@PetraMartinStadlerEtAl14] for an introduction to infinite
+governed by partial differential equations (PDEs); see, e.g., [@Bui-ThanhGhattasMartinEtAl13],[@PetraMartinStadlerEtAl14] for an introduction to infinite
 dimensional PDE-constrained Bayesian inverse problems.
-`hIPPYlib` builds on [`FEniCS`](http://fenicsproject.org/)
-(a parallel finite element element library, [@LoggWells10,@LoggMardalGarth12,@LangtangenLogg17])
-for the discretization of the PDE and on [`PETSc`](http://www.mcs.anl.gov/petsc/)
+`hIPPYlib` builds on the parallel finite element library [`FEniCS`](http://fenicsproject.org/),[@LoggWells10],[@LoggMardalGarth12],[@LangtangenLogg17],
+for the discretization of the PDE and on `PETSc`, [@petsc-web-page]
 for scalable and efficient linear algebra operations and solvers.
 
 Conceptually, `hIPPYlib` can be viewed as a toolbox that provides the
@@ -88,7 +87,7 @@ log likelihood.
 To sample large scale spacially correlated Gaussian random fields from the prior
 distribution, `hIPPYlib`  implements a new method that strongly relies on the
 structure of the covariance operator defined as the inverse of a differential operator:
-by exploiting the assembly procedure of finite element matrices `hIPPYlib` constructs a sparse Cholesky-like rectagular decomposition of the precision operator.
+by exploiting the assembly procedure of finite element matrices `hIPPYlib` constructs a sparse Cholesky-like rectangular decomposition of the precision operator.
 To sample from a local Gaussian approximation to the posterior (such as at the MAP point)
 `hIPPYlib` exploits the low rank factorization of the Hessian of the
 log likelihood to correct samples from the prior distribution.

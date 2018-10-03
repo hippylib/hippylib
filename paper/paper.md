@@ -30,9 +30,9 @@ bibliography: paper.bib
 
 [`hIPPYlib`](https://hippylib.github.io) [@VillaPetraGhattas18] implements
 state-of-the-art scalable algorithms for deterministic and Bayesian inverse problems 
-governed by partial differential equations (PDEs); see, e.g., [@Bui-ThanhGhattasMartinEtAl13],[@PetraMartinStadlerEtAl14] for an introduction to infinite
+governed by partial differential equations (PDEs); see, e.g., [@Bui-ThanhGhattasMartinEtAl13], [@PetraMartinStadlerEtAl14] for an introduction to infinite
 dimensional PDE-constrained Bayesian inverse problems.
-`hIPPYlib` builds on the parallel finite element library [`FEniCS`](http://fenicsproject.org/),[@LoggWells10],[@LoggMardalGarth12],[@LangtangenLogg17],
+`hIPPYlib` builds on the parallel finite element library [`FEniCS`](http://fenicsproject.org/), [@LoggWells10], [@LoggMardalGarth12], [@LangtangenLogg17],
 for the discretization of the PDE and on `PETSc`, [@petsc-web-page]
 for scalable and efficient linear algebra operations and solvers.
 

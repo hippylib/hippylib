@@ -14,5 +14,6 @@ hIPPYlib - Inverse Problem PYthon library
 
    installation
    changelog
+   contributing
    Complete API reference <modules>
 ..   Complete API reference <hippylib>

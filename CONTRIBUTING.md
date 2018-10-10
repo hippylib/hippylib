@@ -232,7 +232,7 @@ constraint on jobs.
 
 ## Contact Information
 
-- Contact the hIPPYlib team by posting to the [GitHub issue tracker](https://github.com/hippylib/hippylib).
+- Contact the hIPPYlib team by posting to the [GitHub issue tracker](https://github.com/hippylib/hippylib/issues).
   Please perform a search to make sure your question has not been answered already.
 
 ## [Developer's Certificate of Origin 1.1](https://developercertificate.org/)
@@ -258,5 +258,6 @@ By making a contribution to this project, I certify that:
     redistributed consistent with this project or the open source license(s)
     involved.
     
+---    
 > *Acknowledgement*: We thank the [MFEM team](https://github.com/mfem) for allowing us to use their
 contributing guidelines file as template.

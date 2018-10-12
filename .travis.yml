@@ -16,12 +16,24 @@ script:
     - sed -i 's/nx = 64/nx = 32/' applications/mcmc/model_subsurf.py
     - sed -i 's/ny = 64/ny = 32/' applications/mcmc/model_subsurf.py
     - sed -i 's/chain.parameters["number_of_samples"] = 100/chain.parameters["number_of_samples"] = 30/' applications/mcmc/model_subsurf.py
+    - sed -i 's/nx = 64/nx = 32/' model_subsurf_effperm.py
+    - sed -i 's/ny = 64/ny = 32/' model_subsurf_effperm.py
+    - sed -i 's/nsamples=100/nsamples=10/' model_subsurf_effperm.py
+    - sed -i 's/nx = 64/nx = 32/' model_subsurf_rare_events.py
+    - sed -i 's/ny = 64/ny = 32/' model_subsurf_rare_events.py
+    - sed -i 's/n_samples = 1000/n_samples = 10/' model_subsurf_rare_events.py
+    - sed -i 's/nopt = 10/nopt = 1/' model_subsurf_rare_events.py
     - echo Test 2017.2
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2017.2.0.r4 "dolfin-version"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2017.2.0.r4 "export MPLBACKEND=Agg; python3 model_continuous_obs.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2017.2.0.r4 "export MPLBACKEND=Agg; python3 model_subsurf.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2017.2.0.r4 "export MPLBACKEND=Agg; python3 model_ad_diff.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/mcmc quay.io/fenicsproject/stable:2017.2.0.r4 "export MPLBACKEND=Agg; python3 model_subsurf.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/fwd_UQ quay.io/fenicsproject/stable:2017.2.0.r4 "export MPLBACKEND=Agg; mpirun -n 1 python3 model_subsurf_effperm.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/fwd_UQ quay.io/fenicsproject/stable:2017.2.0.r4 "export MPLBACKEND=Agg; mpirun -n 1 python3 model_rare_events.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/forward_uq/rare_events quay.io/fenicsproject/stable:2017.2.0.r4 "export MPLBACKEND=Agg; python3 -m unittest discover -v"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0.r4 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 1_FEniCS101.ipynb"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0.r4 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 1_FEniCS101.ipynb"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0.r4 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 1_FEniCS101.ipynb"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0.r4 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 2_PoissonDeterministic.ipynb"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0.r4 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 3_SubsurfaceBayesian.ipynb"

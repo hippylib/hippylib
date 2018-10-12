@@ -15,6 +15,13 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
 
+Forward UQ development
+----------------------
+- Added forward UQ capabilities such reduced variance Monte Carlo, and
+  Importance Sampling for rare events
+- New misfit class that works with QOIs
+- New posterior class that implements mixture of Gaussians 
+
 Version 2.1.0, released on July 18, 2018
 ----------------------------------------
 - Alleviate boundary artifacts (inflation of marginal variance) in Bilaplacian-like priors

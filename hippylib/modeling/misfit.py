@@ -201,6 +201,78 @@ class ContinuousStateObservation(Misfit):
         else:
             out.zero() 
 
+class QOIMisfit(Misfit):
+    """
+    This class implements the misfit component using a quantity of interest.
+    """
+      
+    def __init__(self, qoi, pde):
+
+        """
+
+        Constructor.
+
+        Inputs:
+
+            - :code:`qoi` - Instance of the :code:`hippylib.forward_uq.qoi` class that describes how to extract the QOI from the solution of the governing PDE.
+
+            - :code:`pde` - Instance of the :code:`hippylib.modeling.PDEProblem` class that describes the governing PDE.
+                
+        """
+
+        
+        self.d = 0.0
+        self.noise_variance = 0.0
+        self.qoi = qoi
+        
+        self.dq = [pde.generate_state(), pde.generate_parameter()]
+        self.misfit = 0.
+
+
+
+    def cost(self, x):
+        
+        if self.noise_variance is None:
+            raise ValueError("Noise Variance must be specified")
+        elif self.noise_variance == 0:
+            raise  ZeroDivisionError("Noise Variance must not be 0.0 Set to 1.0 for deterministic inverse problems")
+        
+        return (0.5 / self.noise_variance * (self.qoi.eval(x) - self.d) ** 2.0)
+
+    
+    def grad(self, i, x, out):
+
+        if self.noise_variance is None:
+            raise ValueError("Noise Variance must be specified")
+        elif self.noise_variance == 0:
+            raise  ZeroDivisionError("Noise Variance must not be 0.0 Set to 1.0 for deterministic inverse problems")
+
+        self.qoi.grad(i, x, out)
+        out *= (1./self.noise_variance) * (self.qoi.eval(x) - self.d)
+            
+    def setLinearizationPoint(self,x, gauss_newton_approx=False):
+        
+        self.gauss_newton_approx = gauss_newton_approx
+        self.qoi.setLinearizationPoint(x)
+        [self.dq[i].zero() for i in range(2)]
+        [self.qoi.grad(i,x,self.dq[i]) for i in range(2)]
+        self.misfit = (self.qoi.eval(x) - self.d)
+
+
+    def apply_ij(self,i,j, dir, out):
+    
+        if self.noise_variance is None:
+            raise ValueError("Noise Variance must be specified")
+        elif self.noise_variance == 0:
+            raise  ZeroDivisionError("Noise Variance must not be 0.0 Set to 1.0 for deterministic inverse problems")
+
+
+        out.zero()
+        if not self.gauss_newton_approx:
+            self.qoi.apply_ij(i, j, dir, out)
+            out *= self.misfit
+        out.axpy((self.dq[j]).inner(dir), self.dq[i])
+        out *= 1.0/self.noise_variance
 
 class MultiStateMisfit(Misfit):
     def __init__(self, misfits):

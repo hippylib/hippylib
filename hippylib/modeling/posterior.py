@@ -17,6 +17,9 @@ from dolfin import Vector, Function, File
 from ..algorithms.lowRankOperator import LowRankOperator
 import numpy as np
 
+  
+
+
 class LowRankHessian:
     """
     Operator that represents the action of the low rank approximation
@@ -223,4 +226,173 @@ class GaussianLRPosterior:
         else:
             return kld
         
+class GaussianLRPosteriorMixture:
+
+    """
+    Class that implements a mixture of GaussianLRPosterior objects.
+    """
+
+    def __init__(self, prior, components=None, mix_weights=None):
+
+        """
+        Constructor.
+
+        Inputs:
+
+        1. :code:`prior` The prior distribution from which these posteriors \
+                         are derived. All components are assumed to be derived \
+                         from the same prior.
+
+        2. :code:`components` Initial components in the mixture. Must be a \
+                              list of GaussianLRPosterior objects if supplied.
+
+        3. :code:`mix_weights`  If supplied, must be numpy array of weights of \
+                                each component in the mixture. If mix_weights 
+                                doesn't sum to one, it'll be normalized.
+
+        """
+
+        self.prior = prior
+
+        if components:
+
+            self.components = components[:]
+            self.ncomp      = len(self.components)
+
+            if mix_weights is None:
+                raise TypeError("Mixture weights cannot be NoneType if components are supplied")
+            else:
+                self.mix_weights = mix_weights / np.sum(mix_weights)
+
+            self.set_log_det_prod()
+
+        else:
+            self.components  = []
+            self.mix_weights = None
+            self.ncomp       = 0
+
+
+
+    def set_log_det_prod(self):
+        """
+
+        Save the log of the determinants of the product of prior 
+        covariance and the full hessian for each component, 
+        :math:`\\log|R^{-1} (R + H_{misfit}[i])| = \\log | I + R^{-1}
+        H_{misfit}[i] |` 
+
+        """
+
+        #c.d       := eigenvalues of R^{-1} H_misfit
+        #c.d + 1.0 := eigenvalues of I + R^{-1} H_misfit
+        self.log_det_prod = np.fromiter(((np.sum(np.log(c.d + 1.0))) \
+                                        for c in self.components), \
+                                        dtype = np.float64)
+
+
+    def getISRatio(self, m):
+
+        """
+        Returns the importance sampling weight :math:`\\frac{prior(m)}{mixture(m)}`
+
+        Inputs: 
+
+        1. :code:`m`: :code:`dolfin.Vector` at which IS weight needs to be computed
+
+        Outputs:
+
+        1. :math:`\\frac{prior(m)}{mixture(m)}`
+        """
+
+        norm_prior = self.prior.R.inner(m - self.prior.mean, \
+                                        m - self.prior.mean)
+
+        norm_post  = np.fromiter((c.Hlr.inner(m - c.mean, m - c.mean) \
+                                 for c in self.components), \
+                                 dtype = np.float64)
+
+        return 1.0 / np.sum(np.exp(0.5 * (norm_prior - norm_post \
+                                          + self.log_det_prod) \
+                                   + np.log(self.mix_weights)))
+
+    def init_vector(self, x, dim):
+        """
+        Initialize a vector :code:`x` to be compatible with the range/domain of
+        the covariance of each component or random white noise.
         
+        Inputs:
+
+        1. :code:`x`   : :code:`dolfin.Vector` to be initialized
+
+        2. :code:`dim` : :code:`0` - range, :code:`1` - domain, :code:`"noise"` - white noise
+
+        """
+
+        self.components[0].init_vector(x, dim)
+
+    def sample(self, idx, *args):
+        """
+        Sample from the :code:`idx` th component
+        
+        Possible calls:
+        
+        1) :code:`sample(idx, s_prior, s_mix)`
+
+           Given a *zero mean* prior sample, obtain a mixture sample.
+
+           Inputs:
+
+           - :code:`idx`     : Index of the mixture component to sample from 
+
+           - :code:`s_prior` : :code:`dolfin.Vector` that holds prior sample
+
+           - :code:`s_mix`   : :code:`dolfin.Vector` that will hold mixture sample
+
+        2) :code:`sample(noise, s_prior, s_mix)`
+
+           Given a :code:`noise` vector, sample :code:`s_prior` from the prior
+           and :code:`s_mix` from the mixture.
+
+           Inputs:
+           
+           - :code:`idx`     : Index of the mixture component to sample from 
+
+           - :code:`noise`   : :code:`dolfin.Vector` containing white noise, :math:`\\sim N(0, I)`
+
+           - :code:`s_prior` : :code:`dolfin.Vector` that will hold prior sample
+
+           - :code:`s_mix`   : :code:`dolfin.Vector` that will hold mixture sample
+        
+        Output:
+            None
+        """
+
+       
+        #To actually sample, use the underlying GaussianLRPosterior object's
+        #sampler
+        if len(args) == 2:
+            self.components[idx].sample(args[0], args[1])
+        elif len(args) == 3:
+            self.components[idx].sample(args[0], args[1], args[2])
+        else:
+            raise NameError('Invalid number of parameters in GaussianLRPosteriorMixture::sample')
+       
+    def append(self, posterior, new_mix_weights):
+        """
+
+        Add a new component to the Gaussian mixture
+
+        Inputs:
+
+        - :code:`posterior`       : A new :code:`GaussianLRPosterior` object to add to the mixture
+
+        - :code:`new_mix_weights` : :code:`numpy` array of new mixture weights
+
+        Outputs:
+            None
+        """
+
+        self.components.append(posterior)
+        self.ncomp += 1
+        self.mix_weights = new_mix_weights / np.sum(new_mix_weights)
+        self.set_log_det_prod()

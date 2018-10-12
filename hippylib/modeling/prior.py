@@ -126,7 +126,7 @@ class _Prior:
             raise NameError("Unknown method")
         
         return pw_var
-    
+        
     def cost(self,m):
         d = self.mean.copy()
         d.axpy(-1., m)

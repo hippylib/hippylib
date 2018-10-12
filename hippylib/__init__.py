@@ -41,3 +41,13 @@ from .algorithms import *
 
 #MCMC:
 from .mcmc import *
+
+#Forward UQ:
+from .forward_uq import QOI, qoiVerify, ReducedQOI, ReducedHessianQOI, reducedQOIVerify, \
+                        TaylorApproximationQOI, plotEigenvalues, \
+                        varianceReductionMC, \
+                        Target, BayesianImpSamplerLowRank, \
+                        MCSampler, NotConvergedException, BIMCOptProblem, \
+                        LinearApproximator, ParamOptimizer, \
+                        getTruncStats
+

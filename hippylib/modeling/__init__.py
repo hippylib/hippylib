@@ -22,9 +22,9 @@ from .timeDependentVector import TimeDependentVector
 
 from .PDEProblem import PDEProblem, PDEVariationalProblem
 from .prior import _Prior, LaplacianPrior, BiLaplacianPrior, MollifiedBiLaplacianPrior
-from .misfit import Misfit, ContinuousStateObservation, PointwiseStateObservation, MultiStateMisfit
+from .misfit import Misfit, ContinuousStateObservation, PointwiseStateObservation, MultiStateMisfit, QOIMisfit
 from .model import Model
 from .modelVerify import modelVerify
 from .reducedHessian import ReducedHessian, FDHessian
 
-from .posterior import GaussianLRPosterior, LowRankHessian
+from .posterior import GaussianLRPosterior, GaussianLRPosteriorMixture, LowRankHessian

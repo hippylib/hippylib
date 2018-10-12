@@ -10,6 +10,7 @@ Subpackages
     hippylib.algorithms
     hippylib.mcmc
     hippylib.utils
+    hippylib.forward_uq
 
 Module contents
 ---------------

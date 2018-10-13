@@ -47,8 +47,8 @@ If you are new to Git, see the [GitHub learning
 resources](https://help.github.com/articles/git-and-github-learning-resources/).
 To learn more about inverse problems, see our [tutorial page](http://hippylib.github.io/tutorial).
 
-*By submitting a pull request, you are affirming the [Developer's Certificate of
-Origin](#developers-certificate-of-origin-11) at the end of this file.*
+*By submitting a pull request, you are affirming the* [Developer's Certificate of
+Origin](#developers-certificate-of-origin-11) *at the end of this file.*
 
 
 ## Quick Summary

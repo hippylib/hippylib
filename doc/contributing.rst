@@ -1,4 +1,1 @@
-Contributing
-============
-
 .. mdinclude:: ../CONTRIBUTING.md

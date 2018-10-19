@@ -18,9 +18,9 @@ script:
     - sed -i 's/chain.parameters["number_of_samples"] = 100/chain.parameters["number_of_samples"] = 30/' applications/mcmc/model_subsurf.py
     - echo Test 2017.2
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2017.2.0 "dolfin-version"
-    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2017.2.0 "export MPLBACKEND=Agg; mpirun -n 4 python3 model_continuous_obs.py"
-    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2017.2.0 "export MPLBACKEND=Agg; mpirun -n 4 python3 model_subsurf.py"
-    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2017.2.0 "export MPLBACKEND=Agg; mpirun -n 4 python3 model_ad_diff.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2017.2.0 "export MPLBACKEND=Agg; mpirun -n 1 python3 model_continuous_obs.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2017.2.0 "export MPLBACKEND=Agg; mpirun -n 1 python3 model_subsurf.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2017.2.0 "export MPLBACKEND=Agg; mpirun -n 1 python3 model_ad_diff.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/mcmc    quay.io/fenicsproject/stable:2017.2.0 "export MPLBACKEND=Agg; mpirun -n 1 python3 model_subsurf.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 1_FEniCS101.ipynb"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 2_PoissonDeterministic.ipynb"
@@ -29,7 +29,7 @@ script:
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 5_HessianSpectrum.ipynb"
     - echo Test 2016.2
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib quay.io/fenicsproject/stable:2016.2.0 "dolfin-version"
-    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.2.0 "mpirun -n 4 python model_continuous_obs.py"
-    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.2.0 "mpirun -n 4 python model_subsurf.py"
-    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2016.2.0 "mpirun -n 4 python model_ad_diff.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.2.0 "mpirun -n 1 python model_continuous_obs.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.2.0 "mpirun -n 1 python model_subsurf.py"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2016.2.0 "mpirun -n 1 python model_ad_diff.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/hippylib quay.io/fenicsproject/stable:2016.2.0 "python3 -m unittest discover -v"

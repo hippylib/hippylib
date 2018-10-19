@@ -18,7 +18,7 @@ import numpy as np
 import scipy.stats as scistat
 
 import sys
-sys.path.append('../../')
+sys.path.append('../')
 from hippylib import *
 
 def get_prior_sample(pr):

@@ -10,6 +10,7 @@
 # hIPPYlib is free software; you can redistribute it and/or modify it under the
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
+
 from __future__ import absolute_import, division, print_function
 
 import unittest 
@@ -18,7 +19,7 @@ import numpy as np
 import scipy.stats as scistat
 
 import sys
-sys.path.append('../')
+sys.path.append('../../')
 from hippylib import *
 
 def get_prior_sample(pr):

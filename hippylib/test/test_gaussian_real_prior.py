@@ -51,7 +51,9 @@ class TestGaussianRealPrior(unittest.TestCase):
 
         self.precision = np.linalg.inv(self.cov)
 
-        mesh = dl.UnitSquareMesh(3, 3)
+        mesh = dl.RectangleMesh(dl.mpi_comm_world(), 
+                                dl.Point(0.0, 0.0),
+                                dl.Point(3,2), 6, 4)
 
         if self.dim > 1:
             self.Rn = dl.VectorFunctionSpace(mesh, "R", 0, dim=self.dim)
@@ -60,6 +62,7 @@ class TestGaussianRealPrior(unittest.TestCase):
 
         self.test_prior = GaussianRealPrior(self.Rn, self.cov)
         
+
         m = dl.Function(self.Rn)
         m.vector().zero()
         m.vector().set_local(self.means)
@@ -147,7 +150,8 @@ class TestGaussianRealPrior(unittest.TestCase):
     
     def test_trace(self):
         #Ensure covariance trace is correct
-        expected_trace = np.sum(np.diag(self.cov))        
+        expected_trace = np.sum(np.diag(self.test_prior.covariance))        
+
         tol = 1e-2
 
         actual_trace = self.test_prior.trace(tol=tol)
@@ -175,6 +179,7 @@ class TestGaussianRealPrior(unittest.TestCase):
     def test_Rinv_sqrt(self):
         #Ensures that the assembled sqrtRinv matrix is the cholesky factor of
         #the covariance matrix
+
 
         self.assertTrue(
                 np.allclose(
@@ -209,19 +214,6 @@ class TestGaussianRealPrior(unittest.TestCase):
                     self.test_prior.RSolverOp.array(),
                     self.test_prior.covariance))
     
-    def test_logpdf(self):
-
-        sample = get_prior_sample(self.test_prior)
-
-        actual_logp = self.test_prior.logpdf(sample)
-        expected_logp = scistat.multivariate_normal.logpdf(sample.get_local(),
-                                                           mean=self.means,
-                                                           cov=self.cov)
-        self.assertAlmostEqual(
-                expected_logp,
-                actual_logp,
-                delta=1e-10)
-
 
 if __name__ == '__main__':
     unittest.main()

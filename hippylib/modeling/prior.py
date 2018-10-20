@@ -641,9 +641,6 @@ class GaussianRealPrior(_Prior):
         #np.linalg.cholesky automatically provides error checking, so use those
         self.chol = np.linalg.cholesky(self.covariance)
 
-        #log of the determinant of the covariance
-        self.log_det_cov = 2. * np.sum(np.log(np.diag(self.chol)))
-
         self.chol_inv = scila.solve_triangular(
                                         self.chol,
                                         np.identity(Vh.dim()),
@@ -727,14 +724,4 @@ class GaussianRealPrior(_Prior):
 
         if add_mean:
             s.axpy(1.0, self.mean)
-
-    def logpdf(self, s):
-        """
-        Return log of the probability density function at :code:`s`
-        """
-
-        logp = - 0.5 * (self.Vh.dim() * np.log(2. * np.pi) + self.log_det_cov) \
-               - self.cost(s)
-
-        return logp
 

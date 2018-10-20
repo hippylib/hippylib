@@ -670,10 +670,10 @@ class GaussianRealPrior(_Prior):
             test  = dl.as_matrix([[test]])
 
         #Create form matrices 
-        covariance_form = dl.as_matrix(map(list, self.covariance))
-        precision_form  = dl.as_matrix(map(list, self.precision))
-        chol_form       = dl.as_matrix(map(list, self.chol))
-        chol_inv_form   = dl.as_matrix(map(list, self.chol_inv))
+        covariance_form = dl.as_matrix(list(map(list, self.covariance)))
+        precision_form  = dl.as_matrix(list(map(list, self.precision)))
+        chol_form       = dl.as_matrix(list(map(list, self.chol)))
+        chol_inv_form   = dl.as_matrix(list(map(list, self.chol_inv)))
 
         #variational for the regularization operator, or the precision matrix
         var_form_R = domain_measure_inv \

@@ -654,8 +654,9 @@ class GaussianRealPrior(_Prior):
         trial = dl.TrialFunction(Vh)
         test  = dl.TestFunction(Vh)
         
+        domain_measure_inv = 1.0 / dl.assemble(dl.Constant(1.) * dl.dx(Vh.mesh()))
         #mass matrix
-        self.M = dl.assemble(dl.inner(trial, test) * dl.dx)
+        self.M = dl.assemble(domain_measure_inv * dl.inner(trial, test) * dl.dx)
         self.Msolver = Operator2Solver(self.M)
 
         if mean:
@@ -668,41 +669,45 @@ class GaussianRealPrior(_Prior):
 
         if Vh.dim() == 1:
 
-            trial = [trial]
-            test = [test]
+            trial = dl.as_matrix([[trial]])
+            test  = dl.as_matrix([[test]])
+
+        #Create form matrices 
+        covariance_form = dl.as_matrix(map(list, self.covariance))
+        precision_form  = dl.as_matrix(map(list, self.precision))
+        chol_form       = dl.as_matrix(map(list, self.chol))
+        chol_inv_form   = dl.as_matrix(map(list, self.chol_inv))
 
         #variational for the regularization operator, or the precision matrix
-        var_form_R = sum([self.precision[i,j] * trial[i] * test[j]
-                          for i in range(Vh.dim()) for j in range(Vh.dim())])
+        var_form_R = domain_measure_inv \
+                     * dl.inner(test, dl.dot(precision_form, trial))
 
         #variational for the inverse regularization operator, or the covariance
         #matrix
-        var_form_Rinv = sum([self.covariance[i,j] * trial[i] * test[j]
-                             for i in range(Vh.dim()) for j in range(Vh.dim())])
+        var_form_Rinv = domain_measure_inv \
+                        * dl.inner(test, dl.dot(covariance_form, trial))
 
         #variational form for the square root of the regularization operator
-        var_form_R_sqrt = sum([self.chol_inv.T[i,j] * trial[j] * test[i]
-                               for i in range(Vh.dim()) for j in range(Vh.dim())])
+        var_form_R_sqrt = domain_measure_inv \
+                          * dl.inner(test, dl.dot(chol_inv_form.T, trial))
 
         #variational form for the square root of the regularization operator
-        var_form_Rinv_sqrt = sum([self.chol[i,j] * trial[j] * test[i]
-                                  for i in range(Vh.dim()) for j in range(Vh.dim())])
+        var_form_Rinv_sqrt = domain_measure_inv \
+                             * dl.inner(test, dl.dot(chol_form, trial))
 
-        self.R = dl.assemble(var_form_R * dl.dx)
-
+        self.R         = dl.assemble(var_form_R * dl.dx)
         self.RSolverOp = dl.assemble(var_form_Rinv * dl.dx)
         self.Rsolver   = Operator2Solver(self.RSolverOp)
-
-        self.sqrtR    = dl.assemble(var_form_R_sqrt * dl.dx)
-        self.sqrtRinv = dl.assemble(var_form_Rinv_sqrt * dl.dx)
+        self.sqrtR     = dl.assemble(var_form_R_sqrt * dl.dx)
+        self.sqrtRinv  = dl.assemble(var_form_Rinv_sqrt * dl.dx)
         
-                 
     def init_vector(self, x, dim):
         """
-        Inizialize a vector :code:`x` to be compatible with the range/domain of :math:`R`.
+        Inizialize a vector :code:`x` to be compatible with the 
+        range/domain of :math:`R`.
 
-        If :code:`dim == "noise"` inizialize :code:`x` to be compatible with the size of
-        white noise used for sampling.
+        If :code:`dim == "noise"` inizialize :code:`x` to be compatible 
+        with the size of white noise used for sampling.
         """
 
         if dim == "noise":
@@ -712,7 +717,8 @@ class GaussianRealPrior(_Prior):
 
     def sample(self, noise, s, add_mean=True):
         """
-        Given :code:`noise` :math:`\\sim \\mathcal{N}(0, I)` compute a sample :code:`s` from the prior.
+        Given :code:`noise` :math:`\\sim \\mathcal{N}(0, I)` compute a 
+        sample :code:`s` from the prior.
 
         If :code:`add_mean == True` add the prior mean value to :code:`s`.
         """

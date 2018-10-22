@@ -636,7 +636,7 @@ class GaussianRealPrior(_Prior):
         if Vh.dim() != covariance.shape[0] or Vh.dim() != covariance.shape[1]:
             raise ValueError("Covariance incompatible with Finite Element space")
 
-        self.covariance = covariance
+        self.covariance = covariance.astype(np.float64)
         
         #np.linalg.cholesky automatically provides error checking, so use those
         self.chol = np.linalg.cholesky(self.covariance)
@@ -665,7 +665,6 @@ class GaussianRealPrior(_Prior):
             self.mean = tmp
 
         if Vh.dim() == 1:
-
             trial = dl.as_matrix([[trial]])
             test  = dl.as_matrix([[test]])
 

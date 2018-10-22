@@ -652,7 +652,8 @@ class GaussianRealPrior(_Prior):
         test  = dl.TestFunction(Vh)
         
         domain_measure_inv = 1.0 / dl.assemble(dl.Constant(1.) * dl.dx(Vh.mesh()))
-        #mass matrix
+
+        #Identity mass matrix
         self.M = dl.assemble(domain_measure_inv * dl.inner(trial, test) * dl.dx)
         self.Msolver = Operator2Solver(self.M)
 
@@ -687,7 +688,8 @@ class GaussianRealPrior(_Prior):
         var_form_R_sqrt = domain_measure_inv \
                           * dl.inner(test, dl.dot(chol_inv_form.T, trial))
 
-        #variational form for the square root of the regularization operator
+        #variational form for the square root of the inverse regularization 
+        #operator
         var_form_Rinv_sqrt = domain_measure_inv \
                              * dl.inner(test, dl.dot(chol_form, trial))
 

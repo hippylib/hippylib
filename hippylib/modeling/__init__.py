@@ -21,6 +21,8 @@ from .pointwiseObservation import assemblePointwiseObservation, exportPointwiseO
 from .timeDependentVector import TimeDependentVector
 
 from .PDEProblem import PDEProblem, PDEVariationalProblem
+from .timeDependentPDEProblem import TimeDependentPDEVariationalProblem
+from .timeDependentMisfit import PointwiseStateObservationTD
 from .prior import _Prior, LaplacianPrior, BiLaplacianPrior, MollifiedBiLaplacianPrior
 from .misfit import Misfit, ContinuousStateObservation, PointwiseStateObservation, MultiStateMisfit
 from .model import Model

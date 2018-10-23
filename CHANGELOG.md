@@ -15,6 +15,12 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
 
+Version 2.1.1, released on Oct 23, 2018
+----------------------------------------
+- Update `README.md` and `paper` according to JOSS reviewers's comments
+- Add contributing guidelines
+- Fix some typos in notebooks (thanks to **Christian Boehm**)
+
 Version 2.1.0, released on July 18, 2018
 ----------------------------------------
 - Alleviate boundary artifacts (inflation of marginal variance) in Bilaplacian-like priors

@@ -18,15 +18,16 @@ from ..utils.random import parRandom
 import os
 import numpy as np
 
-def amg_method():
+def amg_method(amg_type="ml_amg"):
     """
     Determine which AMG preconditioner to use.
-    If avaialable use ML, which is faster than the PETSc one.
+    If available use the preconditioner suggested by the user (ML is default).
+    If not available use  petsc_amg.
     """
     S = PETScKrylovSolver()
     for pp in S.preconditioners():
-        if pp[0] == 'ml_amg':
-            return 'ml_amg'
+        if pp[0] == amg_type:
+            return amg_type
         
     return 'petsc_amg'
 

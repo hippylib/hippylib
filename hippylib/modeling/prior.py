@@ -636,9 +636,13 @@ class GaussianRealPrior(_Prior):
         if Vh.dim() != covariance.shape[0] or Vh.dim() != covariance.shape[1]:
             raise ValueError("Covariance incompatible with Finite Element space")
 
-        self.covariance = covariance.astype(np.float64)
+        if not np.issubdtype(covariance.dtype, np.floating):
+            raise TypeError("Covariance matrix must be a float array")
+
+        self.covariance = covariance
         
-        #np.linalg.cholesky automatically provides error checking, so use those
+        #np.linalg.cholesky automatically provides more error checking, 
+        #so use those
         self.chol = np.linalg.cholesky(self.covariance)
 
         self.chol_inv = scila.solve_triangular(
@@ -651,7 +655,8 @@ class GaussianRealPrior(_Prior):
         trial = dl.TrialFunction(Vh)
         test  = dl.TestFunction(Vh)
         
-        domain_measure_inv = 1.0 / dl.assemble(dl.Constant(1.) * dl.dx(Vh.mesh()))
+        domain_measure_inv = dl.Constant(1.0 \
+                                / dl.assemble(dl.Constant(1.) * dl.dx(Vh.mesh())))
 
         #Identity mass matrix
         self.M = dl.assemble(domain_measure_inv * dl.inner(trial, test) * dl.dx)
@@ -670,34 +675,34 @@ class GaussianRealPrior(_Prior):
             test  = dl.as_matrix([[test]])
 
         #Create form matrices 
-        covariance_form = dl.as_matrix(list(map(list, self.covariance)))
-        precision_form  = dl.as_matrix(list(map(list, self.precision)))
-        chol_form       = dl.as_matrix(list(map(list, self.chol)))
-        chol_inv_form   = dl.as_matrix(list(map(list, self.chol_inv)))
+        covariance_op = dl.as_matrix(list(map(list, self.covariance)))
+        precision_op  = dl.as_matrix(list(map(list, self.precision)))
+        chol_op       = dl.as_matrix(list(map(list, self.chol)))
+        chol_inv_op   = dl.as_matrix(list(map(list, self.chol_inv)))
 
         #variational for the regularization operator, or the precision matrix
         var_form_R = domain_measure_inv \
-                     * dl.inner(test, dl.dot(precision_form, trial))
+                     * dl.inner(test, dl.dot(precision_op, trial)) * dl.dx
 
         #variational for the inverse regularization operator, or the covariance
         #matrix
         var_form_Rinv = domain_measure_inv \
-                        * dl.inner(test, dl.dot(covariance_form, trial))
+                        * dl.inner(test, dl.dot(covariance_op, trial)) * dl.dx
 
         #variational form for the square root of the regularization operator
         var_form_R_sqrt = domain_measure_inv \
-                          * dl.inner(test, dl.dot(chol_inv_form.T, trial))
+                          * dl.inner(test, dl.dot(chol_inv_op.T, trial)) * dl.dx
 
         #variational form for the square root of the inverse regularization 
         #operator
         var_form_Rinv_sqrt = domain_measure_inv \
-                             * dl.inner(test, dl.dot(chol_form, trial))
+                             * dl.inner(test, dl.dot(chol_op, trial)) * dl.dx
 
-        self.R         = dl.assemble(var_form_R * dl.dx)
-        self.RSolverOp = dl.assemble(var_form_Rinv * dl.dx)
+        self.R         = dl.assemble(var_form_R)
+        self.RSolverOp = dl.assemble(var_form_Rinv)
         self.Rsolver   = Operator2Solver(self.RSolverOp)
-        self.sqrtR     = dl.assemble(var_form_R_sqrt * dl.dx)
-        self.sqrtRinv  = dl.assemble(var_form_Rinv_sqrt * dl.dx)
+        self.sqrtR     = dl.assemble(var_form_R_sqrt)
+        self.sqrtRinv  = dl.assemble(var_form_Rinv_sqrt)
         
     def init_vector(self, x, dim):
         """

@@ -41,11 +41,14 @@ class TestGaussianRealPrior(unittest.TestCase):
 
     def setUp(self):
 
-        self.dim = np.random.randint(1, high=5)
+        #self.dim = np.random.randint(1, high=5)
+        self.dim = 1
 
         self.means = np.random.uniform(-10, high=10., size=self.dim)
 
-        self.chol = np.tril(np.random.randint(1, high=10, size=(self.dim,self.dim)))
+        chol = np.tril(np.random.randint(1, high=10, size=(self.dim,self.dim)))
+
+        self.chol = chol.astype(np.float64)
 
         self.cov = np.dot(self.chol, self.chol.T)
 
@@ -81,6 +84,16 @@ class TestGaussianRealPrior(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             temp = GaussianRealPrior(self.Rn, incompatible_cov)
+
+    def test_int_cov(self):
+        #Test whether using an integer covariance matrix results in
+        #TypeError
+
+        int_cov = np.identity(self.dim).astype(np.int64)
+
+        with self.assertRaises(TypeError):
+            temp = GaussianRealPrior(self.Rn, int_cov)
+
 
     def test_cost_at_mean(self):
         #Test whether cost at mean is 0 or not

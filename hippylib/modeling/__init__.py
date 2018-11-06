@@ -21,7 +21,7 @@ from .pointwiseObservation import assemblePointwiseObservation, exportPointwiseO
 from .timeDependentVector import TimeDependentVector
 
 from .PDEProblem import PDEProblem, PDEVariationalProblem
-from .prior import _Prior, LaplacianPrior, BiLaplacianPrior, MollifiedBiLaplacianPrior
+from .prior import _Prior, LaplacianPrior, BiLaplacianPrior, MollifiedBiLaplacianPrior, GaussianRealPrior
 from .misfit import Misfit, ContinuousStateObservation, PointwiseStateObservation, MultiStateMisfit
 from .model import Model
 from .modelVerify import modelVerify

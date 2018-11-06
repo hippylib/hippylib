@@ -15,6 +15,7 @@ from __future__ import absolute_import, division, print_function
 
 import dolfin as dl
 import numpy as np
+import scipy.linalg as scila
 import math
 
 from ..algorithms.linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2, Solver2Operator, Operator2Solver
@@ -605,3 +606,128 @@ class MollifiedBiLaplacianPrior(_Prior):
         
         if add_mean:
             s.axpy(1., self.mean)
+
+
+class GaussianRealPrior(_Prior):
+    """
+    This class implements a finite-dimensional Gaussian prior,
+    :math:`\\mathcal{N}(\\boldsymbol{m}, \\boldsymbol{C})`, where
+    :math:`\\boldsymbol{m}` is the mean of the Gaussian distribution, and
+    :math:`\\boldsymbol{C}` is its covariance. The underlying finite element
+    space is assumed to be the "R" space.
+    """
+
+    def __init__(self, Vh, covariance, mean=None):
+        """
+        Constructor
+
+        Inputs:
+        - :code:`Vh`:             Finite element space on which the prior is
+                                  defined. Must be the Real space with one global 
+                                  degree of freedom
+        - :code:`covariance`:     The covariance of the prior. Must be a
+                                  :code:`numpy.ndarray` of appropriate size
+        - :code:`mean`(optional): Mean of the prior distribution. Must be of
+                                  type `dolfin.Vector()`
+        """
+
+        self.Vh = Vh
+
+        if Vh.dim() != covariance.shape[0] or Vh.dim() != covariance.shape[1]:
+            raise ValueError("Covariance incompatible with Finite Element space")
+
+        if not np.issubdtype(covariance.dtype, np.floating):
+            raise TypeError("Covariance matrix must be a float array")
+
+        self.covariance = covariance
+        
+        #np.linalg.cholesky automatically provides more error checking, 
+        #so use those
+        self.chol = np.linalg.cholesky(self.covariance)
+
+        self.chol_inv = scila.solve_triangular(
+                                        self.chol,
+                                        np.identity(Vh.dim()),
+                                        lower=True)
+
+        self.precision = np.dot(self.chol_inv.T, self.chol_inv)
+
+        trial = dl.TrialFunction(Vh)
+        test  = dl.TestFunction(Vh)
+        
+        domain_measure_inv = dl.Constant(1.0 \
+                                / dl.assemble(dl.Constant(1.) * dl.dx(Vh.mesh())))
+
+        #Identity mass matrix
+        self.M = dl.assemble(domain_measure_inv * dl.inner(trial, test) * dl.dx)
+        self.Msolver = Operator2Solver(self.M)
+
+        if mean:
+            self.mean = mean
+        else:
+            tmp = dl.Vector()
+            self.M.init_vector(tmp, 0)
+            tmp.zero()
+            self.mean = tmp
+
+        if Vh.dim() == 1:
+            trial = dl.as_matrix([[trial]])
+            test  = dl.as_matrix([[test]])
+
+        #Create form matrices 
+        covariance_op = dl.as_matrix(list(map(list, self.covariance)))
+        precision_op  = dl.as_matrix(list(map(list, self.precision)))
+        chol_op       = dl.as_matrix(list(map(list, self.chol)))
+        chol_inv_op   = dl.as_matrix(list(map(list, self.chol_inv)))
+
+        #variational for the regularization operator, or the precision matrix
+        var_form_R = domain_measure_inv \
+                     * dl.inner(test, dl.dot(precision_op, trial)) * dl.dx
+
+        #variational for the inverse regularization operator, or the covariance
+        #matrix
+        var_form_Rinv = domain_measure_inv \
+                        * dl.inner(test, dl.dot(covariance_op, trial)) * dl.dx
+
+        #variational form for the square root of the regularization operator
+        var_form_R_sqrt = domain_measure_inv \
+                          * dl.inner(test, dl.dot(chol_inv_op.T, trial)) * dl.dx
+
+        #variational form for the square root of the inverse regularization 
+        #operator
+        var_form_Rinv_sqrt = domain_measure_inv \
+                             * dl.inner(test, dl.dot(chol_op, trial)) * dl.dx
+
+        self.R         = dl.assemble(var_form_R)
+        self.RSolverOp = dl.assemble(var_form_Rinv)
+        self.Rsolver   = Operator2Solver(self.RSolverOp)
+        self.sqrtR     = dl.assemble(var_form_R_sqrt)
+        self.sqrtRinv  = dl.assemble(var_form_Rinv_sqrt)
+        
+    def init_vector(self, x, dim):
+        """
+        Inizialize a vector :code:`x` to be compatible with the 
+        range/domain of :math:`R`.
+
+        If :code:`dim == "noise"` inizialize :code:`x` to be compatible 
+        with the size of white noise used for sampling.
+        """
+
+        if dim == "noise":
+            self.sqrtRinv.init_vector(x, 1)
+        else:
+            self.sqrtRinv.init_vector(x, dim)
+
+    def sample(self, noise, s, add_mean=True):
+        """
+        Given :code:`noise` :math:`\\sim \\mathcal{N}(0, I)` compute a 
+        sample :code:`s` from the prior.
+
+        If :code:`add_mean == True` add the prior mean value to :code:`s`.
+        """
+       
+        self.sqrtRinv.mult(noise, s)
+
+        if add_mean:
+            s.axpy(1.0, self.mean)
+

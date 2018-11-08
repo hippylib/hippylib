@@ -49,7 +49,9 @@ We first create a new Docker container to run the `jupyter-notebook`
 command and to expose port `8888`.  From a command line shell, go to
 the `hippylib` folder and type:
 ```
-docker run --name hippylib-nb -w /home/fenics/hippylib -v $(pwd):/home/fenics/hippylib -d -p 127.0.0.1:8888:8888 quay.io/fenicsproject/stable:2017.2.0 'jupyter-notebook --ip=0.0.0.0'
+docker run --name hippylib-nb -w /home/fenics/hippylib -v $(pwd):/home/fenics/hippylib \
+           -d -p 127.0.0.1:8888:8888 quay.io/fenicsproject/stable:2017.2.0 \
+           'jupyter-notebook --ip=0.0.0.0'
 docker logs hippylib-nb
 ```
 The notebook will be available at
@@ -69,7 +71,9 @@ on the workflow presented above.
 We first create a new `Docker` container to run the `jupyter-notebook` command and to expose port `8888` on the virtual machine.
 From a command line shell, go to the `hippylib` folder and type:
 ```
-docker run --name hippylib-nb -w /home/fenics/hippylib -v $(pwd):/home/fenics/hippylib -d -p $(docker-machine ip $(docker-machine active)):8888:8888 quay.io/fenicsproject/stable:2017.2.0 'jupyter-notebook --ip=0.0.0.0'
+docker run --name hippylib-nb -w /home/fenics/hippylib -v $(pwd):/home/fenics/hippylib \
+           -d -p $(docker-machine ip $(docker-machine active)):8888:8888 \
+           quay.io/fenicsproject/stable:2017.2.0 'jupyter-notebook --ip=0.0.0.0'
 docker logs hippylib-nb
 ```
 To find out the IP of the virtual machine we type:
@@ -100,14 +104,9 @@ To use the prebuilt Anaconda Python packages (Linux and Mac only),
 first install [Anaconda3](https://docs.continuum.io/anaconda/install),
 then run following commands in your terminal:
 
-```    
-conda create -n fenicsproject -c conda-forge fenics==2017.2.0
-source activate fenicsproject
-conda install mpi4py
-conda install matplotlib
-conda install scipy
-conda install sympy==1.1.1
-conda install jupyter
+```
+conda create -n fenicsproject -c conda-forge fenics==2017.2.0 \
+                   mpi4py matplotlib scipy sympy==1.1.1 jupyter
 ```
 > **Note**: FEniCS Anaconda recipes are maintained by the FEniCS community and distributed binary packages do not have a full feature set yet, especially regarding sparse direct solvers and input/output facilities.
 

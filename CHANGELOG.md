@@ -15,6 +15,10 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
 
+Version 2.2.0.dev
+----------------------------------------
+- Add new class `GaussianRealPrior` that implements a finite-dimensional Gaussian prior
+
 Version 2.1.1, released on Oct 23, 2018
 ----------------------------------------
 - Update `README.md` and `paper` according to JOSS reviewers's comments

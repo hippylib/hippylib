@@ -46,8 +46,7 @@ we suggest using the `Jupyter notebook`[one](http://fenics.readthedocs.io/projec
 ### Docker for Mac, Docker for Windows and Linux users (Setup and first use instructions)
 
 We first create a new Docker container to run the `jupyter-notebook`
-command and to expose port `8888`.  From a command line shell, go to
-the `hippylib` folder and type:
+command and to expose port `8888`.  In a command line shell type:
 ```
 docker run --name hippylib-nb -w /home/fenics/hippylib -v $(pwd):/home/fenics/hippylib \
            -d -p 127.0.0.1:8888:8888 quay.io/fenicsproject/stable:2017.2.0 \
@@ -69,7 +68,7 @@ system and run docker from the virtual machine.  This has implications
 on the workflow presented above.
 
 We first create a new `Docker` container to run the `jupyter-notebook` command and to expose port `8888` on the virtual machine.
-From a command line shell, go to the `hippylib` folder and type:
+In a command line shell type:
 ```
 docker run --name hippylib-nb -w /home/fenics/hippylib -v $(pwd):/home/fenics/hippylib \
            -d -p $(docker-machine ip $(docker-machine active)):8888:8888 \
@@ -129,6 +128,15 @@ page](https://fenicsproject.org/download/).  Note that this
 instructions always refer to the latest version of `FEniCS` which may or
 may not be yet supported by `hIPPYlib`. Always check the `hIPPYlib`
 website for supported `FEniCS` versions.
+
+## Install hIPPYlib using pip
+
+With the supported version of `FEniCS` and its dependencies installed on your 
+machine, `hIPPYlib` can be installed via `pip` as follows
+```
+pip install hippylib --user
+```
+
 
 ## Build the hIPPYlib documentation using Sphinx
 

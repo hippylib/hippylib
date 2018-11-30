@@ -15,33 +15,60 @@
 from setuptools import setup, find_packages
 from os import path
 from io import open
+import re
 
 
 try:
     from dolfin import __version__ as dolfin_version
+    from dolfin import has_linear_algebra_backend, has_slepc
 except ImportError:
     raise
 else:
-    if (int(dolfin_version[0:4]) < 2016):
+    fenics_version_major = int(dolfin_version[0:4])
+    if (fenics_version_major < 2016 or fenics_version_major >= 2018):
         raise Exception(
-            "hippylib requires FEniCS installation not older than 2016.1.0")
+            'hIPPYlib requires FEniCS versions 2016.x.x or 2017.x.x')
+    if not has_linear_algebra_backend("PETSc"):
+        raise Exception(
+            'hIPPYlib requires FEniCS to be installed with PETSc support')
+    if not has_slepc():
+        raise Exception(
+            'hIPPYlib requires FEniCS to be installed with SLEPc support')
+    
 
 here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+with open(path.join(here, 'hippylib/__init__.py'), "rt", encoding='utf-8') as f:
+    init = f.read()
+    version_re = r"^version_info\s*\=\s*[\(](\d*)\,\s*(\d*)\,\s*(\d*)\,\s*\'(\w*)\'[\)]"
+    match = re.search(version_re, init, re.M)
+    if match:
+        VERSION = ".".join(match.group(i) for i in range(1,5))
+    else:
+        raise RuntimeError('Unable to find version string in __init__.py' )
+
 REQUIREMENTS = [
-    "mpi4py",
-    "numpy",
-    "matplotlib",
-    "scipy",
-    "sympy==1.1.1",
-    "jupyter"
+    'mpi4py',
+    'numpy',
+    'matplotlib',
+    'scipy'
 ]
+
+EXTRAS = {
+    'hIPPYlib with Jupyter notebooks':  ['jupyter'],
+}
+
+KEYWORDS = """
+    Infinite-dimensional inverse problems, 
+    adjoint-based methods, numerical optimization, 
+    low-rank approximation, Bayesian inference, 
+    uncertainty quantification, sampling"""
 
 setup(
     name='hippylib',
-    version='1.7.0.dev',
+    version=VERSION,
     description='Baeysian inversion toolbox',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -59,10 +86,11 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    keywords='optimization HPC Bayesian inverse',
+    keywords=KEYWORDS,
     packages=find_packages(exclude=['applications', 'doc', 'test']),
     install_requires=REQUIREMENTS,
-    python_requires='>=2.6, >=3.6, <4',
+    extras_require=EXTRAS,
+    python_requires=">=2.6,!=3.0,!=3.1,!=3.2,!=3.3,!=3.4,!=3.5,<4",
     include_package_data=True,
     package_data={
         'hippylib': [

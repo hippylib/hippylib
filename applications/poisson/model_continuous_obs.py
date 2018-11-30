@@ -17,9 +17,6 @@ import dolfin as dl
 import numpy as np
 import matplotlib.pyplot as plt
 
-import sys
-import os
-sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
 from hippylib import *
 
 

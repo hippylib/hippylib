@@ -28,15 +28,12 @@ project = u'hIPPYlib'
 copyright = u'2018, Umberto Villa, Noemi Petra, Omar Ghattas'
 author = u'Umberto Villa, Noemi Petra, Omar Ghattas'
 
-here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, 'hippylib/__init__.py'), "rt", encoding='utf-8') as f:
-    init = f.read()
-    version_re = r"^version_info\s*\=\s*[\(]\s*(\d*)\,\s*(\d*)\,\s*(\d*)(?:\,\s*\'(\w*)\')?\s*[\)]"
-    match = re.search(version_re, init, re.M)
-    if match:
-        VERSION = ".".join(el for el in match.groups() if el is not None)
-    else:
-        raise RuntimeError('Unable to find version string in __init__.py' )
+version = {}
+root_directory = (os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
+with open(os.path.join(root_directory, 'hippylib/version.py')) as f:
+    exec(f.read(), version)
+
+VERSION = version['__version__']
 
 # The short X.Y version
 version = u''

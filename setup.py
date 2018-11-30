@@ -40,16 +40,11 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-with open(path.join(here, 'hippylib/__init__.py'), "rt", encoding='utf-8') as f:
-    init = f.read()
-    version_re = r"^version_info\s*\=\s*[\(]\s*(\d*)\,\s*(\d*)\,\s*(\d*)(?:\,\s*\'(\w*)\')?\s*[\)]"
-    match = re.search(version_re, init, re.M)
-    if match:
-        VERSION = ".".join(el for el in match.groups() if el is not None)
-    else:
-        raise RuntimeError('Unable to find version string in __init__.py' )
+version = {}
+with open(path.join(here, 'hippylib/version.py')) as f:
+    exec(f.read(), version)
 
-print (VERSION)
+VERSION = version['__version__']
 
 REQUIREMENTS = [
     'mpi4py',

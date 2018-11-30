@@ -42,12 +42,14 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 with open(path.join(here, 'hippylib/__init__.py'), "rt", encoding='utf-8') as f:
     init = f.read()
-    version_re = r"^version_info\s*\=\s*[\(](\d*)\,\s*(\d*)\,\s*(\d*)\,\s*\'(\w*)\'[\)]"
+    version_re = r"^version_info\s*\=\s*[\(]\s*(\d*)\,\s*(\d*)\,\s*(\d*)(?:\,\s*\'(\w*)\')?\s*[\)]"
     match = re.search(version_re, init, re.M)
     if match:
-        VERSION = ".".join(match.group(i) for i in range(1,5))
+        VERSION = ".".join(el for el in match.groups() if el is not None)
     else:
         raise RuntimeError('Unable to find version string in __init__.py' )
+
+print (VERSION)
 
 REQUIREMENTS = [
     'mpi4py',
@@ -57,7 +59,7 @@ REQUIREMENTS = [
 ]
 
 EXTRAS = {
-    'hIPPYlib with Jupyter notebooks':  ['jupyter'],
+    'Jupyter':  ["jupyter"],
 }
 
 KEYWORDS = """
@@ -74,7 +76,7 @@ setup(
     long_description_content_type='text/markdown',
     url='https://hippylib.github.io/',
     author='Umberto Villa, Noemi Petra, Omar Ghattas',
-    author_email='hippylib-dev@googlegroups.com',
+    author_email='uvilla@wustl.edu',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',

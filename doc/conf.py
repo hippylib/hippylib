@@ -31,10 +31,10 @@ author = u'Umberto Villa, Noemi Petra, Omar Ghattas'
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'hippylib/__init__.py'), "rt", encoding='utf-8') as f:
     init = f.read()
-    version_re = r"^version_info = [\(](\d*)\,\s*(\d*)\,\s*(\d*)\,\s*(\w*)[\)]"
+    version_re = r"^version_info\s*\=\s*[\(]\s*(\d*)\,\s*(\d*)\,\s*(\d*)(?:\,\s*\'(\w*)\')?\s*[\)]"
     match = re.search(version_re, init, re.M)
     if match:
-        VERSION = ".".join(match.group(i) for i in range(1,5))
+        VERSION = ".".join(el for el in match.groups() if el is not None)
     else:
         raise RuntimeError('Unable to find version string in __init__.py' )
 

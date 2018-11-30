@@ -137,6 +137,12 @@ machine, `hIPPYlib` can be installed via `pip` as follows
 pip install hippylib --user
 ```
 
+In order for `pip` to install extra requirements (e.g. `Jupyter`) the following
+command should be used
+```
+pip install hippylib[jupyter] --user
+```
+
 
 ## Build the hIPPYlib documentation using Sphinx
 

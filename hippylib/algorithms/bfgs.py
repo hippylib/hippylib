@@ -34,8 +34,6 @@ def BFGS_ParameterList():
     parameters["inner_rel_tolerance"]   = [1e-9, "relative tolerance used for the solution of the forward, adjoint, and incremental (fwd,adj) problems"]
     parameters["globalization"]         = ["LS", "Globalization technique: line search (LS)  or trust region (TR)"]
     parameters["print_level"]           = [0, "Control verbosity of printing screen"]
-    parameters["GN_iter"]               = [5, "Number of Gauss Newton iterations before switching to Newton"]
-    parameters["cg_coarse_tolerance"]   = [.5, "Coarsest tolerance for the CG method (Eisenstat-Walker)"]
     ls_list = LS_ParameterList()
     ls_list["max_backtracking_iter"] = 25
     parameters["LS"]                    = [ls_list, "Sublist containing LS globalization parameters"]

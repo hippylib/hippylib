@@ -32,7 +32,7 @@ from __future__ import absolute_import, division, print_function
 
 
 # version
-from version import version_info, __version__
+from .version import version_info, __version__
 
 # utils
 from .utils import *

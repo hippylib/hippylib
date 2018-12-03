@@ -134,11 +134,8 @@ class TestGaussianRealPrior(unittest.TestCase):
 
         rel_err = np.linalg.norm(sample_mean - self.means) \
                   / np.linalg.norm(self.means)
-        
-        print('Actual:', sample_mean)
-        print('Expected:', self.means)
-        
-        np.asert_allclose(
+                
+        np.assert_allclose(
                     self.means,
                     sample_mean, 
                     rtol=0.1)

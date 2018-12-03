@@ -40,15 +40,13 @@ class TestGaussianRealPrior(unittest.TestCase):
     """
 
     def setUp(self):
-
+        np.random.seed(1)
         #self.dim = np.random.randint(1, high=5)
         self.dim = 1
 
         self.means = np.random.uniform(-10, high=10., size=self.dim)
 
-        chol = np.tril(np.random.randint(1, high=10, size=(self.dim,self.dim)))
-
-        self.chol = chol.astype(np.float64)
+        self.chol = np.tril(np.random.uniform(1, high=10, size=(self.dim,self.dim)))
 
         self.cov = np.dot(self.chol, self.chol.T)
 
@@ -135,6 +133,9 @@ class TestGaussianRealPrior(unittest.TestCase):
         rel_err = np.linalg.norm(sample_mean - self.means) \
                   / np.linalg.norm(self.means)
         
+        print('Actual:', sample_mean)
+        print('Expected:', self.means)
+        
         self.assertTrue(
                 np.allclose(
                     self.means,
@@ -154,6 +155,9 @@ class TestGaussianRealPrior(unittest.TestCase):
 
         rel_err = np.linalg.norm(sample_cov - self.test_prior.covariance) \
                   / np.linalg.norm(self.test_prior.covariance)
+        
+        print('Actual:', sample_cov)
+        print('Expected:', self.test_prior.covariance)
 
         self.assertAlmostEqual(
                 rel_err,

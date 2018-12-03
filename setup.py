@@ -66,7 +66,7 @@ KEYWORDS = """
 setup(
     name='hippylib',
     version=VERSION,
-    description='Baeysian inversion toolbox',
+    description='an Extensible Software Framework for Large-scale Deterministic and Bayesian Inverse Problems',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://hippylib.github.io/',

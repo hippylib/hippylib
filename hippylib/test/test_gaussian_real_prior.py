@@ -46,7 +46,7 @@ class TestGaussianRealPrior(unittest.TestCase):
 
         self.means = np.random.uniform(-10, high=10., size=self.dim)
 
-        chol = np.tril(np.random.uniform(1, high=10, size=(self.dim,self.dim)))
+        self.chol = np.tril(np.random.uniform(1, high=10, size=(self.dim,self.dim)))
 
         self.cov = np.dot(self.chol, self.chol.T)
 

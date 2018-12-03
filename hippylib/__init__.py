@@ -29,16 +29,10 @@ the building blocks for experimenting new ideas and developing scalable
 algorithms for PDE-based deterministic and Bayesian inverse problems.
 """
 from __future__ import absolute_import, division, print_function
-from os import path
-from io import open
 
-version = {}
-here = path.abspath(path.dirname(__file__))
-with open(path.join(here, 'version.py')) as f:
-    exec(f.read(), version)
 
-version_info = version['version_info']
-__version__ = version['__version__']
+# version
+from .version import version_info, __version__
 
 # utils
 from .utils import *

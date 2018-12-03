@@ -18,6 +18,8 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 Version 2.2.0.dev
 ----------------------------------------
 - Add new class `GaussianRealPrior` that implements a finite-dimensional Gaussian prior
+- Add a `callback` user-defined function that can be called at the end of each inexact Newton CG iteration
+- Add a `__version__` and `version_info` attribute to `hIPPYlib`
 
 Version 2.1.1, released on Oct 23, 2018
 ----------------------------------------

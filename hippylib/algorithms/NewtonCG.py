@@ -108,11 +108,18 @@ class ReducedSpaceNewtonCG:
                            "Norm of (g, dm) less than tolerance"       #3
                            ]
     
-    def __init__(self, model, parameters=ReducedSpaceNewtonCG_ParameterList()):
+    def __init__(self, model, parameters=ReducedSpaceNewtonCG_ParameterList(), callback = None):
         """
         Initialize the ReducedSpaceNewtonCG.
         Type :code:`ReducedSpaceNewtonCG_ParameterList().showMe()` for list of default parameters
         and their descriptions.
+        
+        Parameters:
+        :code:`model` The model object that describes the inverse problem
+        :code:`parameters`: (type :code:`ParameterList`, optional) set parameters for inexact Newton CG
+        :code:`callback`: (type function handler with signature :code:`callback(it: int, x: list of dl.Vector): --> None`
+               optional callback function to be called at the end of each iteration. Takes as input the iteration number, and
+               the list of vectors for the state, parameter, adjoint.
         """
         self.model = model
         self.parameters = parameters
@@ -123,6 +130,8 @@ class ReducedSpaceNewtonCG:
         self.ncalls = 0
         self.reason = 0
         self.final_grad_norm = 0
+        
+        self.callback = callback
         
     def solve(self, x):
         """
@@ -245,6 +254,10 @@ class ReducedSpaceNewtonCG:
                 print( "{0:3d} {1:3d} {2:15e} {3:15e} {4:15e} {5:15e} {6:14e} {7:14e} {8:14e}".format(
                         self.it, HessApply.ncalls, cost_new, misfit_new, reg_new, mg_mhat, gradnorm, alpha, tolcg) )
                 
+            if self.callback:
+                self.callback(self.it, x)
+                
+                
             if n_backtrack == max_backtracking_iter:
                 self.converged = False
                 self.reason = 2
@@ -363,6 +376,9 @@ class ReducedSpaceNewtonCG:
                 accept_step = True
             else:
                 accept_step = False
+                
+            if self.callback:
+                self.callback(self.it, x)
                 
                             
             if(print_level >= 0) and (self.it == 1):

@@ -4,12 +4,9 @@
 tutorial/.ipynb_checkpoints/*
 .project
 .pydevproject
-applications/ad_diff/hmisfit
-applications/ad_diff/results
-applications/ad_diff/samples
-applications/poisson/hmisfit
-applications/poisson/results
-applications/poisson/samples
+applications/*/hmisfit
+applications/*/results
+applications/*/samples
 applications/mcmc/gpCN
 applications/mcmc/inf-MALA
 applications/mcmc/IS

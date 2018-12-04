@@ -54,7 +54,7 @@ REQUIREMENTS = [
 ]
 
 EXTRAS = {
-    'Jupyter':  ["jupyter"],
+    'Notebook':  ["jupyter"],
 }
 
 KEYWORDS = """

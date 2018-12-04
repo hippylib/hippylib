@@ -140,7 +140,7 @@ pip install hippylib --user
 In order for `pip` to install extra requirements (e.g. `Jupyter`) the following
 command should be used
 ```
-pip install hippylib[jupyter] --user
+pip install hippylib[notebook] --user
 ```
 
 

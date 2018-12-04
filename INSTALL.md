@@ -19,7 +19,7 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 2016.1, 2016.2, 2017.1, 2017.2.  
 The suggested version of `FEniCS` to use with `hIPPYlib` is
 2017.2.
-**Note**: `FEniCS 2018.1` is not
+> **Note**: `FEniCS 2018.1` is not
 supported by `hIPPYlib`.
 
 `FEniCS` needs to be built with the following dependecies enabled:
@@ -30,6 +30,41 @@ supported by `hIPPYlib`.
  - PETSc dependencies: `parmetis`, `scotch`, `suitesparse`, `superlu_dist`, `ml`, `hypre`
  - (optional): `mshr`, `jupyter`
  
+ ## Install hIPPYlib using pip
+
+With the supported version of `FEniCS` and its dependencies installed on your 
+machine, `hIPPYlib` can be installed via `pip` as follows
+```
+pip install hippylib --user
+```
+
+In order for `pip` to install extra requirements (e.g. `Jupyter`) the following
+command should be used
+```
+pip install hippylib[jupyter] --user
+```
+
+> **NOTE:** `hIPPYlib` applications and tutorials can also be executed directly from
+the source folder without `pip` installation.
+
+## Build the hIPPYlib documentation using Sphinx
+
+To build the documentation you need to have `sphinx` (tested on v.1.7.5),
+`m2r` and `sphinx_rtd_theme` - all of these can be installed via `pip`.
+
+To build simply run `make html` from `doc` folder.
+
+## Install FEniCS from Conda (Linux or MacOS)
+
+To use the prebuilt Anaconda Python packages (Linux and Mac only),
+first install [Anaconda3](https://docs.continuum.io/anaconda/install),
+then run following commands in your terminal:
+
+```
+conda create -n fenicsproject -c conda-forge fenics==2017.2.0 \
+                   mpi4py matplotlib scipy sympy==1.1.1 jupyter
+```
+> **Note**: FEniCS Anaconda recipes are maintained by the FEniCS community and distributed binary packages do not have a full feature set yet, especially regarding sparse direct solvers and input/output facilities.
 
 ## Run FEniCS from Docker (Linux, MacOS, Windows)
 
@@ -97,18 +132,6 @@ If you would like to see the log output from the Jupyter notebook server (e.g. i
 docker logs hippylib-nb
 ```
 
-## Install FEniCS from Conda (Linux or MacOS)
-
-To use the prebuilt Anaconda Python packages (Linux and Mac only),
-first install [Anaconda3](https://docs.continuum.io/anaconda/install),
-then run following commands in your terminal:
-
-```
-conda create -n fenicsproject -c conda-forge fenics==2017.2.0 \
-                   mpi4py matplotlib scipy sympy==1.1.1 jupyter
-```
-> **Note**: FEniCS Anaconda recipes are maintained by the FEniCS community and distributed binary packages do not have a full feature set yet, especially regarding sparse direct solvers and input/output facilities.
-
 ## Build FEniCS from source using hashdist (Linux and MacOS 10.12 or below)
 
 To build `FEniCS` from source we suggest using the scripts and profile
@@ -150,6 +173,3 @@ To build the documentation you need to have `sphinx` (tested on v.1.7.5),
 `m2r` and `sphinx_rtd_theme` - all of these can be installed via `pip`.
 
 To build simply run `make html` from `doc` folder.
-
-
-

@@ -14,12 +14,15 @@
 from __future__ import absolute_import, division, print_function
 
 from functools import wraps
-import sys
 import warnings
+import os
 
-#if -W warning flag not set, by default warn only once per python session.
-if not sys.warnoptions:
-    warnings.simplefilter("once")
+    
+class hIPPYlibDeprecationWarning(DeprecationWarning):
+    pass
+
+warnings.filterwarnings(os.environ.get("hIPPYlibDeprecationWarning", "once"), category=hIPPYlibDeprecationWarning)
+
 
 def deprecated(name=None, version=None, msg=""):
     """
@@ -44,7 +47,7 @@ def deprecated(name=None, version=None, msg=""):
         @wraps(f)
         def wrapped(*args, **kwargs):
             warnings.warn("WARNING: %s DEPRECATED since v%s. %s" % (name, version, msg),
-                      category=DeprecationWarning,
+                      category=hIPPYlibDeprecationWarning,
                       stacklevel=2)
             return f(*args, **kwargs)
         return wrapped

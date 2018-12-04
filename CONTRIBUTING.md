@@ -217,6 +217,7 @@ Before a PR can be merged, it should satisfy the following:
    - [ ] Add new examples/applications/tutorials to highlight the new capability.
    - [ ] For new classes, functions, or modules, edit the corresponding `.rst` file in the `doc` folder.
    - [ ] If this is a major new feature, consider mentioning in the short summary inside `README` *(rare)*.
+   - [ ] If this is a `C++` extension, the `package_data` dictionary in `setup.py` should include new files.
 
 
 ## Automated Testing

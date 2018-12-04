@@ -31,16 +31,8 @@ def blu1(a):
 
 class TestDeprecationWarnings(unittest.TestCase):
     """
-    Test suite for prior.GaussianRealPrior
+    Test suite for deprecation warnings
     """
-
-    def setUp(self):
-        pass
-
-    
-    def tearDown(self):
-        pass
-
     def test_deprecated_no_name(self):
         with warnings.catch_warnings(record=True) as w:
             blabla(1)

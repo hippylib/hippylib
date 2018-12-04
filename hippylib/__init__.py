@@ -30,9 +30,9 @@ algorithms for PDE-based deterministic and Bayesian inverse problems.
 """
 from __future__ import absolute_import, division, print_function
 
-version_info = (2, 2, 0, 'dev')
 
-__version__ = '.'.join([str(x) for x in version_info])
+# version
+from .version import version_info, __version__
 
 # utils
 from .utils import *

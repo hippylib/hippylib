@@ -12,7 +12,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import re
 import os
+import io
 import sys
 sys.path.insert(0, os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'hippylib'))
 sys.path.insert(0, os.path.abspath('..'))
@@ -26,10 +28,17 @@ project = u'hIPPYlib'
 copyright = u'2018, Umberto Villa, Noemi Petra, Omar Ghattas'
 author = u'Umberto Villa, Noemi Petra, Omar Ghattas'
 
+version = {}
+root_directory = (os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
+with open(os.path.join(root_directory, 'hippylib/version.py')) as f:
+    exec(f.read(), version)
+
+VERSION = version['__version__']
+
 # The short X.Y version
 version = u''
 # The full version, including alpha/beta/rc tags
-release = u'2.2.0.dev'
+release = VERSION
 
 
 # -- General configuration ---------------------------------------------------

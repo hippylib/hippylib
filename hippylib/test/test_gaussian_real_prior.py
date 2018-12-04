@@ -18,6 +18,8 @@ import dolfin as dl
 import numpy as np
 import scipy.stats as scistat
 
+from numpy.testing import assert_allclose
+
 import sys
 sys.path.append('../../')
 from hippylib import *
@@ -132,15 +134,11 @@ class TestGaussianRealPrior(unittest.TestCase):
 
         rel_err = np.linalg.norm(sample_mean - self.means) \
                   / np.linalg.norm(self.means)
-        
-        print('Actual:', sample_mean)
-        print('Expected:', self.means)
-        
-        self.assertTrue(
-                np.allclose(
+                
+        assert_allclose(
                     self.means,
                     sample_mean, 
-                    rtol=0.1))
+                    rtol=0.1)
 
     def test_sample_cov(self):
         #Ensure sample cov converges to true cov

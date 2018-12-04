@@ -36,13 +36,6 @@ def deprecated(name=None, version=None, msg=""):
       msg (str): message to the user, typically providing alternative function calls 
                  and/or notice of version for removal of deprecated function (optional)
     """
-    if type(version) is not str:
-        raise ValueError ("'version' must be a string corresponding to the version number.")
-    if name is not None:
-        if type(name) is not str:
-            raise ValueError ("'name' must be a string corresponding to the function call that is deprecated.")
-    else:
-        name = f.__name__    
     def deprecated_function(f):
         nonlocal name
         if name is None:

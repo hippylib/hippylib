@@ -37,11 +37,10 @@ def deprecated(name=None, version=None, msg=""):
                  and/or notice of version for removal of deprecated function (optional)
     """
     def deprecated_function(f):
-        nonlocal name
-        if name is None:
-            name = f.__name__
         @wraps(f)
         def wrapped(*args, **kwargs):
+            if name is None:
+                name = f.__name__
             warnings.warn("WARNING: {0} DEPRECATED since v{1}. {2}".format(name, version, msg),
                       category=hIPPYlibDeprecationWarning,
                       stacklevel=2)

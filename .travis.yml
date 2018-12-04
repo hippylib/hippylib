@@ -23,6 +23,7 @@ script:
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2017.2.0 "export MPLBACKEND=Agg; mpirun -n 1 python3 model_ad_diff.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/mcmc    quay.io/fenicsproject/stable:2017.2.0 "export MPLBACKEND=Agg; mpirun -n 1 python3 model_subsurf.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/hippylib/test        quay.io/fenicsproject/stable:2017.2.0 "python3 test_gaussian_real_prior.py -v"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/hippylib/test        quay.io/fenicsproject/stable:2017.2.0 "python3 test_deprecation_warnings.py -v"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 1_FEniCS101.ipynb"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 2_PoissonDeterministic.ipynb"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/tutorial quay.io/fenicsproject/stable:2017.2.0 "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 3_SubsurfaceBayesian.ipynb"
@@ -34,3 +35,4 @@ script:
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/poisson quay.io/fenicsproject/stable:2016.2.0 "mpirun -n 1 python model_subsurf.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/applications/ad_diff quay.io/fenicsproject/stable:2016.2.0 "mpirun -n 1 python model_ad_diff.py"
     - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/hippylib/test        quay.io/fenicsproject/stable:2016.2.0 "python test_gaussian_real_prior.py -v"
+    - docker run --rm -v $(pwd):/home/fenics/hippylib -w /home/fenics/hippylib/hippylib/test        quay.io/fenicsproject/stable:2016.2.0 "python test_deprecation_warnings.py -v"

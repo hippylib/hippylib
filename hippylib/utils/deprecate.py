@@ -17,12 +17,9 @@ from functools import wraps
 import warnings
 import os
 
-    
-class hIPPYlibDeprecationWarning(DeprecationWarning):
-    pass
+from .warnings import hIPPYlibDeprecationWarning
 
 warnings.filterwarnings(os.environ.get("hIPPYlibDeprecationWarning", "once"), category=hIPPYlibDeprecationWarning)
-
 
 def deprecated(name=None, version=None, msg=""):
     """
@@ -36,13 +33,11 @@ def deprecated(name=None, version=None, msg=""):
       msg (str): message to the user, typically providing alternative function calls 
                  and/or notice of version for removal of deprecated function (optional)
     """
+    _name = name
     def deprecated_function(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            try:
-                name
-            except NameError:
-                name = f.__name__
+            name = f.__name__ if _name is None else _name
             warnings.warn("WARNING: {0} DEPRECATED since v{1}. {2}".format(name, version, msg),
                       category=hIPPYlibDeprecationWarning,
                       stacklevel=2)

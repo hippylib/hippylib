@@ -39,7 +39,9 @@ def deprecated(name=None, version=None, msg=""):
     def deprecated_function(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            if name is None:
+            try:
+                name
+            except NameError:
                 name = f.__name__
             warnings.warn("WARNING: {0} DEPRECATED since v{1}. {2}".format(name, version, msg),
                       category=hIPPYlibDeprecationWarning,

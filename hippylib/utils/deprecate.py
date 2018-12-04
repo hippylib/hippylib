@@ -44,6 +44,9 @@ def deprecated(name=None, version=None, msg=""):
     else:
         name = f.__name__    
     def deprecated_function(f):
+        nonlocal name
+        if name is None:
+            name = f.__name__
         @wraps(f)
         def wrapped(*args, **kwargs):
             warnings.warn("WARNING: %s DEPRECATED since v%s. %s" % (name, version, msg),

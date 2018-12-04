@@ -15,7 +15,7 @@ from __future__ import absolute_import, division, print_function
 
 from dolfin import Vector, mpi_comm_world
 import numpy as np
-+from ..utils.deprecate import deprecated
+from ..utils.deprecate import deprecated
 
 class TimeDependentVector(object):
     """

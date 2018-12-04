@@ -42,7 +42,7 @@ def deprecated(name=None, version=None, msg=""):
             name = f.__name__
         @wraps(f)
         def wrapped(*args, **kwargs):
-            warnings.warn("WARNING: %s DEPRECATED since v%s. %s" % (name, version, msg),
+            warnings.warn("WARNING: {0} DEPRECATED since v{1}. {2}".format(name, version, msg),
                       category=hIPPYlibDeprecationWarning,
                       stacklevel=2)
             return f(*args, **kwargs)

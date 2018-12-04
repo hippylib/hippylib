@@ -15,6 +15,7 @@
 from __future__ import absolute_import, division, print_function
 
 from .checkDolfinVersion import dlversion, checkdlversion
+from .deprecate import deprecated
 from .vector2function import vector2Function
 from .random import Random, parRandom
 from .parameterList import ParameterList

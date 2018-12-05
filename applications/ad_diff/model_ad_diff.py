@@ -443,7 +443,8 @@ if __name__ == "__main__":
     problem.solveFwd(x[STATE], x, 1e-9)
     MAX = utrue.norm("linf", "linf")
     noise_std_dev = rel_noise * MAX
-    problem.ud.copy(utrue)
+    problem.ud.zero()
+    problem.ud.axpy(1., utrue)
     parRandom.normal_perturb(noise_std_dev,problem.ud)
     problem.noise_variance = noise_std_dev*noise_std_dev
     

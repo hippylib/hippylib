@@ -11,13 +11,8 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
-
 from __future__ import absolute_import, division, print_function
+    
+class hIPPYlibDeprecationWarning(DeprecationWarning):
+    pass
 
-from .checkDolfinVersion import dlversion, checkdlversion
-from .deprecate import deprecated
-from .vector2function import vector2Function
-from .random import Random, parRandom
-from .parameterList import ParameterList
-from .warnings import hIPPYlibDeprecationWarning
-from . import nb

@@ -15,6 +15,7 @@ from __future__ import absolute_import, division, print_function
 
 from dolfin import Vector, mpi_comm_world
 import numpy as np
+from ..utils.deprecate import deprecated
 
 class TimeDependentVector(object):
     """
@@ -45,10 +46,12 @@ class TimeDependentVector(object):
             d *= other
         return self
     
-    def copy(self, other):
+    @deprecated(name="self.copy(other)", version="2.2.0", msg="It will be removed in hIPPYlib 3.x\n Use self.zero(), self.axpy(1., other) instead.")
+    def _deprecated_copy(self, other):
         """
-        Copy all the time frames and snapshot from other to self.
+        Copy all the time frames and snapshot from other to self (legacy version).
         """
+                
         self.nsteps = other.nsteps
         self.times = other.times
         self.tol = other.tol
@@ -56,6 +59,21 @@ class TimeDependentVector(object):
         
         for v in other.data:
             self.data.append( v.copy() )
+
+    def copy(self, other=None):
+        """
+        Return a copy of all the time frames and snapshots
+        """
+        if other is not None:
+            return self._deprecated_copy(other)
+        
+        res = TimeDependentVector(self.times, tol=self.tol, mpi_comm=self.mpi_comm)
+        res.data = []
+
+        for v in self.data:
+            res.data.append(v.copy())
+
+        return res
         
     def initialize(self,M,dim):
         """

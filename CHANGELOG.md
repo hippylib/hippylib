@@ -22,6 +22,7 @@ Version 2.2.0.dev
 - Add a `__version__` and `version_info` attribute to `hIPPYlib`
 - Add `setup.py` to (optionally) install `hIPPYlib` via `pip`
 - Add deprecation mechanism
+- Deprecate `TimeDependentVector.copy(other)` in favor of `TimeDependentVector.copy()` for consistency with  `dolfin.Vector.copy`
 
 
 Version 2.1.1, released on Oct 23, 2018

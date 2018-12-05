@@ -12,9 +12,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import re
 import os
-import io
 import sys
 sys.path.insert(0, os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'hippylib'))
 sys.path.insert(0, os.path.abspath('..'))

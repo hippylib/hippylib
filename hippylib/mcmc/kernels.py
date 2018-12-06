@@ -174,8 +174,8 @@ class gpCNKernel:
         
     def delta(self,sample):
         dm_nu = sample.m - self.nu.mean
-        dm_pr = sample.m - self.prior.mean
-        return sample.cost + .5*self.prior.R.inner(dm_pr, dm_pr) - .5*self.nu.Hlr.inner(dm_nu, dm_nu)
+
+        return sample.cost + self.prior.R.cost(sample.m) - .5*self.nu.Hlr.inner(dm_nu, dm_nu)
         
 
     def proposal(self, current):
@@ -233,8 +233,7 @@ class ISKernel:
         
     def delta(self,sample):
         dm_nu = sample.m - self.nu.mean
-        dm_pr = sample.m - self.prior.mean
-        return sample.cost + .5*self.prior.R.inner(dm_pr, dm_pr) - .5*self.nu.Hlr.inner(dm_nu, dm_nu)
+        return sample.cost + self.prior.cost(sample.m) - .5*self.nu.Hlr.inner(dm_nu, dm_nu)
         
 
     def proposal(self, current):

@@ -174,7 +174,6 @@ class gpCNKernel:
         
     def delta(self,sample):
         dm_nu = sample.m - self.nu.mean
-
         return sample.cost + self.prior.R.cost(sample.m) - .5*self.nu.Hlr.inner(dm_nu, dm_nu)
         
 
@@ -250,3 +249,4 @@ class ISKernel:
     def consume_random(self):
         parRandom.normal(1., self.noise)
         np.random.rand() 
+

@@ -25,6 +25,7 @@ from ..algorithms.randomizedEigensolver import singlePass, doublePass, singlePas
 
 from ..utils.checkDolfinVersion import dlversion
 from ..utils.random import parRandom
+from ..utils.deprecate import deprecated
 
 from .expression import code_Mollifier
 
@@ -295,7 +296,10 @@ class _BilaplacianR:
         
     def mpi_comm(self):
         return self.A.mpi_comm()
-        
+
+    @deprecated(name="self.inner(x, y)",
+                version="2.2.0",
+                msg="It will be removed in hIPPYlib 3.x\n Use self.mult(x, Rx); Rx.inner(y) instead")
     def inner(self,x,y):
         Rx = dl.Vector(self.A.mpi_comm())
         self.init_vector(Rx,0)

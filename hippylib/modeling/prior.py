@@ -297,9 +297,9 @@ class _BilaplacianR:
     def mpi_comm(self):
         return self.A.mpi_comm()
 
-    @deprecated(name="self.inner(x, y)",
+    @deprecated(name="_BilaplacianR.inner(x, y)",
                 version="2.2.0",
-                msg="It will be removed in hIPPYlib 3.x\n Use self.mult(x, Rx); Rx.inner(y) instead")
+                msg="It will be removed in hIPPYlib 3.x\n Use _BilaplacianR.mult(x, Rx); Rx.inner(y) instead")
     def inner(self,x,y):
         Rx = dl.Vector(self.A.mpi_comm())
         self.init_vector(Rx,0)

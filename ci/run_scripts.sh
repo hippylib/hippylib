@@ -27,7 +27,7 @@ else
     PYTHON_PREPOC="export MPLBACKEND=Agg;"
 fi
 
-DOCKER="docker run --rm $(pwd):/home/fenics/hippylib -w"
+DOCKER="docker run --rm -v $(pwd):/home/fenics/hippylib -w"
 
 ${DOCKER} /home/fenics/hippylib $QUAY "dolfin-version"
 ${DOCKER} /home/fenics/hippylib/applications/poisson $QUAY "$PYTHON_PREPOC mpirun -n 1 $PYTHON model_continuous_obs.py"

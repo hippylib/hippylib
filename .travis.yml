@@ -15,5 +15,5 @@ jobs:
     include:
         - stage: test
           #script: ./ci/run_scripts.sh
-          script: ./ci/run_unittests.sh
+          script: ./ci/run_unittest.sh
 

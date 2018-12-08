@@ -12,9 +12,5 @@ env:
     - FENICS_VERSION=2017.2
 
 script: ./ci/run_unittest.sh
-#jobs:
-#    include:
-#        - stage: test
-#          #script: ./ci/run_scripts.sh
-#          script: ./ci/run_unittest.sh
+script: ./ci/run_scripts.sh
 

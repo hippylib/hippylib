@@ -19,13 +19,14 @@ if [ "$FENICS_VERSION" == "2016.2" ]; then
     PYTHON=python
     QUAY=quay.io/fenicsproject/stable:2016.2.0 
     PYTHON_PREPROC=""
+
 else
+
     PYTHON=python3
     QUAY=quay.io/fenicsproject/stable:2017.2.0 
     PYTHON_PREPOC="export MPLBACKEND=Agg;"
 fi
 
-#TODO
 DOCKER="docker run --rm $(pwd):/home/fenics/hippylib -w"
 
 ${DOCKER} /home/fenics/hippylib $QUAY "dolfin-version"
@@ -33,10 +34,8 @@ ${DOCKER} /home/fenics/hippylib/applications/poisson $QUAY "$PYTHON_PREPOC mpiru
 ${DOCKER} /home/fenics/hippylib/applications/poisson $QUAY "$PYTHON_PREPOC mpirun -n 1 $PYTHON model_subsurf.py"
 ${DOCKER} /home/fenics/hippylib/applications/ad_diff $QUAY "$PYTHON_PREPOC mpirun -n 1 $PYTHON model_ad_diff.py"
 ${DOCKER} /home/fenics/hippylib/applications/mcmc    $QUAY "$PYTHON_PREPOC mpirun -n 1 $PYTHON model_subsurf.py"
-${DOCKER} /home/fenics/hippylib/hippylib/test        $QUAY "$PYTHON test_gaussian_real_prior.py -v"
-${DOCKER} /home/fenics/hippylib/hippylib/test        $QUAY "$PYTHON test_deprecation_warnings.py -v"
 
-if [ "$FENICS_VERSION" == "2016.2" ]; then
+if [ "$FENICS_VERSION" == "2017.2" ]; then
 
     ${DOCKER} /home/fenics/hippylib/tutorial $QUAY "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 1_FEniCS101.ipynb"
     ${DOCKER} /home/fenics/hippylib/tutorial $QUAY "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 2_PoissonDeterministic.ipynb"

@@ -3,13 +3,11 @@ sudo: required
 services:
     - docker
 
-before_install:
-    - docker pull quay.io/fenicsproject/stable:2016.2.0
-    - docker pull quay.io/fenicsproject/stable:2017.2.0  
-
 env: 
     - FENICS_VERSION=2016.2
     - FENICS_VERSION=2017.2
+
+before_install: ./ci/run_before_install.sh
 
 script: ./ci/run_unittest.sh
 

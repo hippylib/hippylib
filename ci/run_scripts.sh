@@ -24,7 +24,7 @@ else
 
     PYTHON=python3
     QUAY=quay.io/fenicsproject/stable:2017.2.0 
-    PYTHON_PREPOC="export MPLBACKEND=Agg;"
+    PYTHON_PREPOC="export MPLBACKEND=Agg; export hIPPYlibDeprecationWarning=error;"
 fi
 
 DOCKER="docker run --rm -v $(pwd):/home/fenics/hippylib -w"

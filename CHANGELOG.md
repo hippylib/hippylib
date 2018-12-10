@@ -23,6 +23,7 @@ Version 2.2.0.dev
 - Add `setup.py` to (optionally) install `hIPPYlib` via `pip`
 - Add deprecation mechanism
 - Deprecate `TimeDependentVector.copy(other)` in favor of `TimeDependentVector.copy()` for consistency with  `dolfin.Vector.copy`
+- Deprecate `_BilaplacianR.inner(x,y)` for consistency with `dolfin.Matrix`.
 
 
 Version 2.1.1, released on Oct 23, 2018

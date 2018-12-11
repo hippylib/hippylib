@@ -18,7 +18,6 @@ fi
 
 DOCKER="docker run --rm -v $(pwd):/home/fenics/hippylib -w"
 
-${DOCKER} /home/fenics/hippylib/hippylib/test $QUAY "$PYTHON test_gaussian_real_prior.py -v"
-${DOCKER} /home/fenics/hippylib/hippylib/test $QUAY "$PYTHON test_deprecation_warnings.py -v"
+${DOCKER} /home/fenics/hippylib/hippylib/test $QUAY "$PYTHON -m unittest discover -v"
 
 

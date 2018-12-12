@@ -451,7 +451,7 @@ if __name__ == "__main__":
     if rank == 0:
         print( sep, "Test the gradient and the Hessian of the model", sep )
     m0 = true_initial_condition.copy()
-    modelVerify(problem, m0, 1e-12, is_quadratic = True)
+    modelVerify(problem, m0, 1e-12, is_quadratic = True, verbose = (rank == 0))
     
     if rank == 0:
         print( sep, "Compute the reduced gradient and hessian", sep)

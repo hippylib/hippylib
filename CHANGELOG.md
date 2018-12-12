@@ -15,7 +15,7 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
 
-Version 2.2.0.dev
+Version 2.2.0, released on Dec 12, 2018
 ----------------------------------------
 - Add new class `GaussianRealPrior` that implements a finite-dimensional Gaussian prior
 - Add a `callback` user-defined function that can be called at the end of each inexact Newton CG iteration
@@ -23,8 +23,8 @@ Version 2.2.0.dev
 - Add `setup.py` to (optionally) install `hIPPYlib` via `pip`
 - Add deprecation mechanism
 - Deprecate `TimeDependentVector.copy(other)` in favor of `TimeDependentVector.copy()` for consistency with  `dolfin.Vector.copy`
-- Deprecate `_BilaplacianR.inner(x,y)` for consistency with `dolfin.Matrix`.
-
+- Deprecate `_BilaplacianR.inner(x,y)` for consistency with `dolfin.Matrix`
+- CI enhancement via build matrix
 
 Version 2.1.1, released on Oct 23, 2018
 ----------------------------------------

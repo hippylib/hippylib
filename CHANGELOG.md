@@ -14,6 +14,11 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
                                                                     
 
                           https://hippylib.github.io
+                          
+Version 2.2.1, released on March 28, 2019
+----------------------------------------                      
+- Bug fix missing `mpi_comm` in `TimeDependentVector`
+- Bug fix in the initialization of the global variable `parRandom`
 
 Version 2.2.0, released on Dec 12, 2018
 ----------------------------------------

@@ -33,13 +33,14 @@ class TimeDependentVector(object):
         - :code:`tol`  : tolerance to identify the frame of the snapshot.
         """
         self.nsteps = len(times)
-        self.data = [];
+        self.data = []
         
         for i in range(self.nsteps):
             self.data.append( Vector(mpi_comm) )
              
         self.times = times
         self.tol = tol
+        self.mpi_comm = mpi_comm
 
     def __imul__(self, other):
         for d in self.data:

@@ -20,7 +20,7 @@ from ..algorithms.linalg import Transpose
 
 class Misfit(object):
     """
-    Abstract class to model the misfit componenet of the cost functional.
+    Abstract class to model the misfit component of the cost functional.
     In the following :code:`x` will denote the variable :code:`[u, m, p]`, denoting respectively 
     the state :code:`u`, the parameter :code:`m`, and the adjoint variable :code:`p`.
     

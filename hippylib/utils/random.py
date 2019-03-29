@@ -114,7 +114,7 @@ class Random(cpp_module.Random):
             super(Random, self).rademacher(out)
             
 _world_rank = dl.MPI.rank(dl.mpi_comm_world())
-_world_size = dl.MPI.rank(dl.mpi_comm_world())
+_world_size = dl.MPI.size(dl.mpi_comm_world())
 
 parRandom = Random(_world_rank, _world_size)
             

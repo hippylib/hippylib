@@ -27,7 +27,7 @@ from ..utils.checkDolfinVersion import dlversion
 from ..utils.random import parRandom
 from ..utils.deprecate import deprecated
 
-from .expression import code_Mollifier
+from .expression import ExpressionModule
 
 class _RinvM:
     """
@@ -181,20 +181,20 @@ class LaplacianPrior(_Prior):
         self.M = dl.assemble(varfM)
         self.R = dl.assemble(gamma*varfL + delta*varfM)
         
-        if dlversion() <= (1,6,0):
-            self.Rsolver = dl.PETScKrylovSolver("cg", amg_method())
-        else:
+        try:
             self.Rsolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+        except:
+            self.Rsolver = dl.PETScKrylovSolver("cg", amg_method())
         self.Rsolver.set_operator(self.R)
         self.Rsolver.parameters["maximum_iterations"] = max_iter
         self.Rsolver.parameters["relative_tolerance"] = rel_tol
         self.Rsolver.parameters["error_on_nonconvergence"] = True
         self.Rsolver.parameters["nonzero_initial_guess"] = False
         
-        if dlversion() <= (1,6,0):
-            self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
-        else:
+        try:
             self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
+        except:
+            self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
         self.Msolver.set_operator(self.M)
         self.Msolver.parameters["maximum_iterations"] = max_iter
         self.Msolver.parameters["relative_tolerance"] = rel_tol
@@ -376,10 +376,11 @@ class BiLaplacianPrior(_Prior):
             robin_coeff = 0.
         
         self.M = dl.assemble(varfM)
-        if dlversion() <= (1,6,0):
-            self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
-        else:
+        try:
             self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
+        except:
+            self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
+            
         self.Msolver.set_operator(self.M)
         self.Msolver.parameters["maximum_iterations"] = max_iter
         self.Msolver.parameters["relative_tolerance"] = rel_tol
@@ -387,10 +388,11 @@ class BiLaplacianPrior(_Prior):
         self.Msolver.parameters["nonzero_initial_guess"] = False
         
         self.A = dl.assemble(gamma*varfL + delta*varfM + robin_coeff*varf_robin)        
-        if dlversion() <= (1,6,0):
-            self.Asolver = dl.PETScKrylovSolver("cg", amg_method())
-        else:
+          
+        try:
             self.Asolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+        except:
+            self.Asolver = dl.PETScKrylovSolver("cg", amg_method())  
         self.Asolver.set_operator(self.A)
         self.Asolver.parameters["maximum_iterations"] = max_iter
         self.Asolver.parameters["relative_tolerance"] = rel_tol
@@ -509,10 +511,11 @@ class MollifiedBiLaplacianPrior(_Prior):
         varfM = dl.inner(trial,test)*dl.dx
         
         self.M = dl.assemble(varfM)
-        if dlversion() <= (1,6,0):
-            self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
-        else:
+   
+        try:
             self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
+        except:
+            self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
         self.Msolver.set_operator(self.M)
         self.Msolver.parameters["maximum_iterations"] = max_iter
         self.Msolver.parameters["relative_tolerance"] = rel_tol
@@ -520,24 +523,20 @@ class MollifiedBiLaplacianPrior(_Prior):
         self.Msolver.parameters["nonzero_initial_guess"] = False
         
         #mfun = Mollifier(gamma/delta, dl.inv(Theta), order, locations)
-        mfun = dl.Expression(code_Mollifier, degree = Vh.ufl_element().degree()+2)
-        mfun.l = gamma/delta
-        mfun.o = order
-        mfun.theta0 = 1./Theta.theta0
-        mfun.theta1 = 1./Theta.theta1
-        mfun.alpha = Theta.alpha
+        mfun = dl.CompiledExpression(ExpressionModule.Mollifier(), degree = Vh.ufl_element().degree()+2)
+        mfun.set(Theta._cpp_object, gamma/delta, order)
         for ii in range(locations.shape[0]):
             mfun.addLocation(locations[ii,0], locations[ii,1])
-            
+                    
         varfmo = mfun*dl.inner(trial,test)*dl.dx
         MO = dl.assemble(pen*varfmo)
                 
         self.A = dl.assemble(gamma*varfL+delta*varfM + pen*varfmo)
-     
-        if dlversion() <= (1,6,0):
-            self.Asolver = dl.PETScKrylovSolver("cg", amg_method())
-        else:
+      
+        try:
             self.Asolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+        except:
+            self.Asolver = dl.PETScKrylovSolver("cg", amg_method())
         self.Asolver.set_operator(self.A)
         self.Asolver.parameters["maximum_iterations"] = max_iter
         self.Asolver.parameters["relative_tolerance"] = rel_tol

@@ -14,16 +14,16 @@ sed -i 's/chain.parameters["number_of_samples"] = 100/chain.parameters["number_o
 
 echo $FENICS_VERSION
 
-if [ "$FENICS_VERSION" == "2016.2" ]; then
+if [ "$FENICS_VERSION" == "2018.1" ]; then
 
     PYTHON=python
-    QUAY=quay.io/fenicsproject/stable:2016.2.0 
+    QUAY=quay.io/fenicsproject/stable:2018.1.0 
     PYTHON_PREPROC=""
 
 else
 
     PYTHON=python3
-    QUAY=quay.io/fenicsproject/stable:2017.2.0 
+    QUAY=quay.io/fenicsproject/stable:2019.1.0 
     PYTHON_PREPOC="export MPLBACKEND=Agg; export hIPPYlibDeprecationWarning=error;"
 fi
 
@@ -35,7 +35,7 @@ ${DOCKER} /home/fenics/hippylib/applications/poisson $QUAY "$PYTHON_PREPOC mpiru
 ${DOCKER} /home/fenics/hippylib/applications/ad_diff $QUAY "$PYTHON_PREPOC mpirun -n 2 $PYTHON model_ad_diff.py"
 ${DOCKER} /home/fenics/hippylib/applications/mcmc    $QUAY "$PYTHON_PREPOC mpirun -n 1 $PYTHON model_subsurf.py"
 
-if [ "$FENICS_VERSION" == "2017.2" ]; then
+if [ "$FENICS_VERSION" == "2019.1" ]; then
 
     ${DOCKER} /home/fenics/hippylib/tutorial $QUAY "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 1_FEniCS101.ipynb"
     ${DOCKER} /home/fenics/hippylib/tutorial $QUAY "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 2_PoissonDeterministic.ipynb"

@@ -38,7 +38,7 @@ class Poisson:
         self.Vh = Vh
         
         # Initialize Expressions
-        self.mtrue = dl.Expression('log(2 + 7*(pow(pow(x[0] - 0.5,2) + pow(x[1] - 0.5,2),0.5) > 0.2))',
+        self.mtrue = dl.Expression('std::log(2 + 7*(std::pow(std::pow(x[0] - 0.5,2) + std::pow(x[1] - 0.5,2),0.5) > 0.2))',
                                 element=Vh[PARAMETER].ufl_element())
         self.f = dl.Constant(1.0)
         self.u_o = dl.Vector()
@@ -200,7 +200,7 @@ class Poisson:
         
         Note: p is not needed to compute the cost functional
         """        
-        assert x[STATE] != None
+        assert x[STATE] is not None
                 
         diff = x[STATE] - self.u_o
         Wuudiff = self.Wuu*diff
@@ -221,10 +221,11 @@ class Poisson:
         """
         A, b = self.assembleA(x, assemble_rhs = True)
         A.init_vector(out, 1)
-        if dlversion() <= (1,6,0):
-            solver = dl.PETScKrylovSolver("cg", amg_method())
-        else:
+        try:
             solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
+        except:
+            solver = dl.PETScKrylovSolver("cg", amg_method())
+                        
         solver.parameters["relative_tolerance"] = tol
         solver.set_operator(A)
         solver.solve(out,b)
@@ -238,11 +239,11 @@ class Poisson:
         """
         At, badj = self.assembleA(x, assemble_adjoint = True,assemble_rhs = True)
         At.init_vector(out, 1)
-        
-        if dlversion() <= (1,6,0):
-            solver = dl.PETScKrylovSolver("cg", amg_method())
-        else:
+                    
+        try:
             solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
+        except:
+            solver = dl.PETScKrylovSolver("cg", amg_method())
         solver.parameters["relative_tolerance"] = tol
         solver.set_operator(At)
         solver.solve(out,badj)
@@ -298,11 +299,11 @@ class Poisson:
     def solveFwdIncremental(self, sol, rhs, tol):
         """
         Solve the incremental forward problem for a given rhs
-        """
-        if dlversion() <= (1,6,0):
-            solver = dl.PETScKrylovSolver("cg", amg_method())
-        else:
+        """    
+        try:
             solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
+        except:
+            solver = dl.PETScKrylovSolver("cg", amg_method())
         solver.set_operator(self.A)
         solver.parameters["relative_tolerance"] = tol
         self.A.init_vector(sol,1)
@@ -312,11 +313,11 @@ class Poisson:
     def solveAdjIncremental(self, sol, rhs, tol):
         """
         Solve the incremental adjoint problem for a given rhs
-        """
-        if dlversion() <= (1,6,0):
-            solver = dl.PETScKrylovSolver("cg", amg_method())
-        else:
+        """            
+        try:
             solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
+        except:
+            solver = dl.PETScKrylovSolver("cg", amg_method())
         solver.set_operator(self.At)
         solver.parameters["relative_tolerance"] = tol
         self.At.init_vector(sol,1)

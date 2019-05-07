@@ -12,10 +12,15 @@
  * Software Foundation) version 2.0 dated June 1991.
 */
 
-#include "multivector.h"
+#include "multivector.hpp"
 #include <dolfin/la/PETScVector.h>
 
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+
 #include <cassert>
+
+namespace py = pybind11;
 
 namespace dolfin
 {
@@ -65,14 +70,14 @@ std::shared_ptr<GenericVector> MultiVector::operator[](int i)
 }
 
 
-void MultiVector::dot(const GenericVector & v, Array<double> & m)
+void MultiVector::dot(const GenericVector & v, Array<double> & m) const
 {
 	double* im = m.data();
 	for(auto&& vj : mv)
 		*(im++) = vj->inner(v);
 }
 
-void MultiVector::dot(const MultiVector & other, Array<double> & m)
+void MultiVector::dot(const MultiVector & other, Array<double> & m) const
 {
 	if(other.mv.begin() == mv.begin())
 		dot_self(m);
@@ -85,7 +90,7 @@ void MultiVector::dot(const MultiVector & other, Array<double> & m)
 	}
 }
 
-void MultiVector::dot_self(Array<double> & m)
+void MultiVector::dot_self(Array<double> & m) const
 {
 	int s = mv.size();
 	for(int i = 0; i < s; ++i)
@@ -97,7 +102,7 @@ void MultiVector::dot_self(Array<double> & m)
 	}
 }
 
-void MultiVector::reduce(GenericVector & v, const Array<double> & alpha)
+void MultiVector::reduce(GenericVector & v, const Array<double> & alpha) const
 {
 	const double * data = alpha.data();
 	for(auto&& vi : mv)
@@ -155,6 +160,48 @@ MultiVector::~MultiVector()
 
 }
 
+}
 
-
+PYBIND11_MODULE(SIGNATURE, m) {
+    py::class_<dolfin::MultiVector>(m, "MultiVector")
+    	.def(py::init<>())
+		.def(py::init<const dolfin::GenericVector &, int>())
+		.def(py::init<const dolfin::MultiVector &>())
+		.def("nvec", &dolfin::MultiVector::nvec)
+		.def("__len__", &dolfin::MultiVector::nvec)
+		.def("__getitem__", (std::shared_ptr<const dolfin::GenericVector> (dolfin::MultiVector::*)(int) const) &dolfin::MultiVector::operator[] )
+		.def("__setitem__", (std::shared_ptr<dolfin::GenericVector> (dolfin::MultiVector::*)(int)) &dolfin::MultiVector::operator[] )
+		.def("setSizeFromVector", &dolfin::MultiVector::setSizeFromVector)
+		.def("dot", [](const dolfin::MultiVector & self, const dolfin::GenericVector & other)
+				{
+    				int size = self.nvec();
+    				py::array_t<double> ma(size);
+    				dolfin::Array<double> m_dolfin(size, ma.mutable_data());
+    				self.dot(other, m_dolfin);
+    				return ma;
+				}
+    	     )
+		.def("dot", [](const dolfin::MultiVector& self, const dolfin::MultiVector & other)
+				{
+    				int size1 = self.nvec();
+    				int size2 = other.nvec();
+    				py::array_t<double> ma(size1*size2);
+    				dolfin::Array<double> m_dolfin(size1*size2, ma.mutable_data());
+    				self.dot(other, m_dolfin);
+    				return ma;
+				}
+			)
+        .def("reduce", [](const dolfin::MultiVector& self, dolfin::GenericVector & v, py::array_t<double> & alpha)
+        		{
+    				dolfin::Array<double> alpha_dolfin(self.nvec(), alpha.mutable_data());
+    				self.reduce(v, alpha_dolfin);
+        		}
+        )
+		.def("axpy", (void (dolfin::MultiVector::*)(double, const dolfin::GenericVector &)) &dolfin::MultiVector::axpy)
+		.def("axpy", (void (dolfin::MultiVector::*)(const dolfin::Array<double>&, const dolfin::MultiVector &)) &dolfin::MultiVector::axpy)
+		.def("scale", (void (dolfin::MultiVector::*)(int, double)) &dolfin::MultiVector::scale)
+		.def("scale", (void (dolfin::MultiVector::*)(const dolfin::Array<double>&)) &dolfin::MultiVector::scale)
+		.def("zero",  &dolfin::MultiVector::zero)
+		.def("norm_all", &dolfin::MultiVector::norm_all)
+		.def("swap", &dolfin::MultiVector::swap);
 }

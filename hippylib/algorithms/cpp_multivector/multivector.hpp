@@ -33,24 +33,14 @@ public:
 	std::shared_ptr<const GenericVector> operator[](int i) const;
 	std::shared_ptr<GenericVector> operator[](int i);
 
-	std::shared_ptr<const GenericVector> __getitem__(int i) const
-	{
-		return mv[i];
-	}
-
-	std::shared_ptr<GenericVector> __setitem__(int i)
-	{
-		return mv[i];
-	}
-
 	// m[i] = this[i] \cdot v
-	void dot(const GenericVector & v, Array<double> & m);
+	void dot(const GenericVector & v, Array<double> & m) const;
 
 	// m[i,j] = this[i] \cdot other[j]
-	void dot(const MultiVector & other, Array<double> & m);
+	void dot(const MultiVector & other, Array<double> & m) const;
 
 	// v += sum_i alpha[i]*this[i]
-	void reduce(GenericVector & v, const Array<double> & alpha);
+	void reduce(GenericVector & v, const Array<double> & alpha) const;
 
 	void axpy(double a, const GenericVector & y);
 	void axpy(const Array<double> & a, const MultiVector & y);
@@ -70,7 +60,7 @@ public:
 	~MultiVector();
 
 private:
-	void dot_self(Array<double> & m);
+	void dot_self(Array<double> & m) const;
 
 	std::vector<std::shared_ptr<GenericVector> > mv;
 };

@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2018, The University of Texas at Austin 
-# & University of California, Merced.
+# Copyright (c) 2016-2018, The University of Texas at Austin & University of
+# California, Merced.
 #
 # All Rights reserved.
 # See file COPYRIGHT for details.
@@ -13,13 +13,13 @@
 
 from __future__ import absolute_import, division, print_function
 
+import dolfin as dl
+
 '''
 This file contains C++ Expression to implement
-
 - A symmetric tensor in 2D of the form:
   [  sin(alpha)  cos(alpha) ] [theta0    0   ] [ sin(alpha)  -cos(alpha) ]
   [ -cos(alpha)  sin(alpha) ] [   0   theta1 ] [ cos(alpha)   sin(alpha) ]
-
 - A mollifier function f of the form:
   f(x) = \sum_{i} exp( -|| x - x_i ||^o_B/l^o ),
   where:
@@ -29,21 +29,26 @@ This file contains C++ Expression to implement
   - B                 is a s.p.d. tensor in 2D as above.
 '''
 
-code_AnisTensor2D = '''
-class AnisTensor2D : public Expression
+cpp_code = '''
+#include <pybind11/pybind11.h>
+#include <pybind11/eigen.h>
+namespace py = pybind11;
+#include <vector>
+#include <dolfin/function/Expression.h>
+#include <dolfin/function/Constant.h>
+class AnisTensor2D : public dolfin::Expression
 {
 public:
-
   AnisTensor2D() :
-  Expression(2,2),
-  theta0(1.),
-  theta1(1.),
-  alpha(0)
-  {
-
-  }
-
-void eval(Array<double>& values, const Array<double>& x) const
+      Expression(2,2),
+      theta0(1.),
+      theta1(1.),
+      alpha(0)
+      {
+      }
+      
+    friend class Mollifier;
+void eval(Eigen::Ref<Eigen::VectorXd> values, Eigen::Ref<const Eigen::VectorXd> x) const
   {
      double sa = sin(alpha);
      double ca = cos(alpha);
@@ -57,19 +62,22 @@ void eval(Array<double>& values, const Array<double>& x) const
      values[3] = c11;
   }
   
+  void set(double _theta0, double _theta1, double _alpha)
+  {
+  theta0 = _theta0;
+  theta1 = _theta1;
+  alpha  = _alpha;
+  }
+  
+private:
   double theta0;
   double theta1;
   double alpha;
   
 };
-'''
-
-code_Mollifier = '''
-class Mollifier : public Expression
+class Mollifier : public dolfin::Expression
 {
-
 public:
-
   Mollifier() :
   Expression(),
   nlocations(0),
@@ -81,8 +89,7 @@ public:
   alpha(0)
   {
   }
-
-void eval(Array<double>& values, const Array<double>& x) const
+void eval(Eigen::Ref<Eigen::VectorXd> values, Eigen::Ref<const Eigen::VectorXd> x) const
   {
         double sa = sin(alpha);
         double ca = cos(alpha);
@@ -91,7 +98,7 @@ void eval(Array<double>& values, const Array<double>& x) const
         double c11 = theta0*ca*ca + theta1*sa*sa;
         
         int ndim(2);
-        Array<double> dx(ndim);
+        Eigen::VectorXd dx(ndim);
         double e(0), val(0);
         for(int ip = 0; ip < nlocations; ++ip)
         {
@@ -106,16 +113,42 @@ void eval(Array<double>& values, const Array<double>& x) const
   
   void addLocation(double x, double y) { locations.push_back(x); locations.push_back(y); ++nlocations;}
   
-  double l;
-  double o;
-  
-  double theta0;
-  double theta1;
-  double alpha;
-  
+  void set(const AnisTensor2D & A, double _l, double _o)
+  {
+    theta0 = 1./A.theta0;
+    theta1 = 1./A.theta1;
+    alpha = A.alpha;
+    
+    l = _l;
+    o = _o;
+  }
+    
   private:
+    double l;
+    double o;
+  
+    double theta0;
+    double theta1;
+    double alpha;
+    
     int nlocations;
     std::vector<double> locations;
   
 };
+PYBIND11_MODULE(SIGNATURE, m)
+    {
+    py::class_<AnisTensor2D, std::shared_ptr<AnisTensor2D>, dolfin::Expression>
+    (m, "AnisTensor2D")
+    .def(py::init<>())
+    .def("set", &AnisTensor2D::set);
+    
+        py::class_<Mollifier, std::shared_ptr<Mollifier>, dolfin::Expression>
+    (m, "Mollifier")
+    .def(py::init<>())
+    .def("set", &Mollifier::set)
+    .def("addLocation", &Mollifier::addLocation);
+    
+    }
 '''
+
+ExpressionModule = dl.compile_cpp_code(cpp_code)

@@ -12,6 +12,8 @@
  * Software Foundation) version 2.0 dated June 1991.
 */
 
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 #include <dolfin/common/version.h>
 #include <dolfin/fem/GenericDofMap.h>
 #include <dolfin/geometry/BoundingBoxTree.h>
@@ -21,7 +23,10 @@
 
 #include "AssemblePointwiseObservation.h"
 
-using namespace dolfin;
+
+namespace py = pybind11;
+
+namespace dolfin{
 
 PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 		                               std::shared_ptr<BoundingBoxTree> bbt,
@@ -186,3 +191,17 @@ std::shared_ptr<Matrix> PointwiseObservation::GetMatrix()
 {
 	return std::shared_ptr<Matrix>( new Matrix( PETScMatrix(mat) ) );
 }
+
+}
+
+PYBIND11_MODULE(SIGNATURE, m) {
+    py::class_<dolfin::PointwiseObservation>(m, "PointwiseObservation")
+		.def(py::init([](const dolfin::FunctionSpace & Vh, py::array_t<double> & targets)
+		          {
+    				dolfin::Array<double> targets_dolfin(targets.size(), targets.mutable_data());
+    				return std::unique_ptr<dolfin::PointwiseObservation>(new dolfin::PointwiseObservation(Vh,targets_dolfin));
+		          })
+		)
+		.def("GetMatrix", &dolfin::PointwiseObservation::GetMatrix);
+}
+

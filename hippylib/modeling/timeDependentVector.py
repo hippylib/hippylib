@@ -13,8 +13,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-from dolfin import Vector, mpi_comm_world
-import numpy as np
+import dolfin as dl
 from ..utils.deprecate import deprecated
 
 class TimeDependentVector(object):
@@ -25,7 +24,7 @@ class TimeDependentVector(object):
     specified in the constructor.
     """
     
-    def __init__(self, times, tol=1e-10, mpi_comm = mpi_comm_world()):
+    def __init__(self, times, tol=1e-10, mpi_comm = dl.MPI.comm_world):
         """
         Constructor:
 
@@ -36,7 +35,7 @@ class TimeDependentVector(object):
         self.data = []
         
         for i in range(self.nsteps):
-            self.data.append( Vector(mpi_comm) )
+            self.data.append( dl.Vector(mpi_comm) )
              
         self.times = times
         self.tol = tol

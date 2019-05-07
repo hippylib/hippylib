@@ -72,14 +72,14 @@ if __name__ == "__main__":
         return dl.exp(m)*dl.inner(dl.nabla_grad(u), dl.nabla_grad(p))*dl.dx - f*p*dl.dx
     
     pde = PDEVariationalProblem(Vh, pde_varf, bc, bc0, is_fwd_linear=True)
-    if dlversion() <= (1,6,0):
-        pde.solver = dl.PETScKrylovSolver("cg", amg_method())
-        pde.solver_fwd_inc = dl.PETScKrylovSolver("cg", amg_method())
-        pde.solver_adj_inc = dl.PETScKrylovSolver("cg", amg_method())
-    else:
+    try:
         pde.solver = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
         pde.solver_fwd_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
         pde.solver_adj_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+    except:
+        pde.solver = dl.PETScKrylovSolver("cg", amg_method())
+        pde.solver_fwd_inc = dl.PETScKrylovSolver("cg", amg_method())
+        pde.solver_adj_inc = dl.PETScKrylovSolver("cg", amg_method())        
     pde.solver.parameters["relative_tolerance"] = 1e-15
     pde.solver.parameters["absolute_tolerance"] = 1e-20
     pde.solver_fwd_inc.parameters = pde.solver.parameters
@@ -95,10 +95,14 @@ if __name__ == "__main__":
     gamma = .1
     delta = .5
     
-    anis_diff = dl.Expression(code_AnisTensor2D, degree = 1)
-    anis_diff.theta0 = 2.
-    anis_diff.theta1 = .5
-    anis_diff.alpha = math.pi/4
+    theta0 = 2.
+    theta1 = .5
+    alpha  = math.pi/4
+    
+    anis_diff = dl.CompiledExpression(ExpressionModule.AnisTensor2D(), degree = 1)
+    anis_diff.set(theta0, theta1, alpha)
+    
+
     mtrue = true_model(Vh[PARAMETER], gamma, delta,anis_diff)
         
     locations = np.array([[0.1, 0.1], [0.1, 0.9], [.5,.5], [.9, .1], [.9, .9]])

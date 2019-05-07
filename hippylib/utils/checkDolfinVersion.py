@@ -21,7 +21,7 @@ def dlversion():
     
     return (vv[0], vv[1], vv[2])
 
-supported_versions = [(2019,1,0)]
+supported_versions = [(2018,1,0), (2019,1,0)]
 
 def checkdlversion():
     """

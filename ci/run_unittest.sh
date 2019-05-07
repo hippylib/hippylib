@@ -4,15 +4,15 @@ set -ev
 
 echo $FENICS_VERSION
 
-if [ "$FENICS_VERSION" == "2016.2" ]; then
+if [ "$FENICS_VERSION" == "2018.1" ]; then
 
     PYTHON=python
-    QUAY=quay.io/fenicsproject/stable:2016.2.0 
+    QUAY=quay.io/fenicsproject/stable:2018.1.0 
 
-elif [ "$FENICS_VERSION" == "2017.2" ]; then
+elif [ "$FENICS_VERSION" == "2019.1" ]; then
 
     PYTHON=python3
-    QUAY=quay.io/fenicsproject/stable:2017.2.0 
+    QUAY=quay.io/fenicsproject/stable:2019.1.0 
 
 fi
 

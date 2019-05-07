@@ -6,7 +6,7 @@ echo $FENICS_VERSION
 
 if [ "$FENICS_VERSION" == "2018.1" ]; then
 
-    PYTHON=python
+    PYTHON=python3
     QUAY=quay.io/fenicsproject/stable:2018.1.0 
 
 elif [ "$FENICS_VERSION" == "2019.1" ]; then

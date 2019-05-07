@@ -16,14 +16,14 @@ echo $FENICS_VERSION
 
 if [ "$FENICS_VERSION" == "2018.1" ]; then
 
-    PYTHON=python
+    PYTHON=python3
     QUAY=quay.io/fenicsproject/stable:2018.1.0 
-    PYTHON_PREPROC=""
+    PYTHON_PREPROC="export MPLBACKEND=Agg; export hIPPYlibDeprecationWarning=error;"
 
 else
 
     PYTHON=python3
-    QUAY=quay.io/fenicsproject/stable:2019.1.0 
+    QUAY=quay.io/fenicsproject/stable:current
     PYTHON_PREPOC="export MPLBACKEND=Agg; export hIPPYlibDeprecationWarning=error;"
 fi
 

@@ -13,7 +13,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-from dolfin import Vector, mpi_comm_world
+from dolfin import Vector
 from ..utils.random import parRandom
 import math
 from .linalg import Solver2Operator
@@ -42,7 +42,7 @@ class TraceEstimator:
     Reference: Haim Avron and Sivan Toledo, Randomized algorithms for estimating the trace of an implicit symmetric positive semi-definite matrix,
     Journal of the ACM (JACM), 58 (2011), p. 17.
     """
-    def __init__(self, A, solve_mode=False, accurancy = 1e-1, init_vector=None, random_engine=rademacher_engine, mpi_comm=mpi_comm_world()):
+    def __init__(self, A, solve_mode=False, accurancy = 1e-1, init_vector=None, random_engine=rademacher_engine, mpi_comm=MPI.comm_world):
         """
         Constructor:
 

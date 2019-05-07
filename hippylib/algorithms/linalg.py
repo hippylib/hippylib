@@ -13,7 +13,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-from dolfin import compile_extension_module, Vector, PETScKrylovSolver, MPI, la_index_dtype, mpi_comm_world
+from dolfin import compile_extension_module, Vector, PETScKrylovSolver, MPI, la_index_dtype
 from ..utils.random import parRandom
 import os
 import numpy as np
@@ -84,7 +84,7 @@ def GetFromOwnedGid(v, gid):
     return s.GetFromOwnedGid(v, gid)
     
 
-def to_dense(A, mpi_comm = mpi_comm_world() ):
+def to_dense(A, mpi_comm = MPI.comm_world ):
     """
     Convert a sparse matrix A to dense.
     For debugging only.
@@ -126,7 +126,7 @@ def to_dense(A, mpi_comm = mpi_comm_world() ):
         return B
 
 
-def trace(A, mpi_comm = mpi_comm_world() ):
+def trace(A, mpi_comm = MPI.comm_world ):
     """
     Compute the trace of a sparse matrix :math:`A`.
     """
@@ -220,7 +220,7 @@ class DiagonalOperator:
         return x.inner(tmp)
     
 class Solver2Operator:
-    def __init__(self,S,mpi_comm=mpi_comm_world(), init_vector = None):
+    def __init__(self,S,mpi_comm=MPI.comm_world, init_vector = None):
         self.S = S
         self.tmp = Vector(mpi_comm)
         self.my_init_vector = init_vector
@@ -248,7 +248,7 @@ class Solver2Operator:
         return self.tmp.inner(x)
     
 class Operator2Solver:
-    def __init__(self,op, mpi_comm=mpi_comm_world()):
+    def __init__(self,op, mpi_comm=MPI.comm_world):
         self.op = op
         self.tmp = Vector(mpi_comm)
         

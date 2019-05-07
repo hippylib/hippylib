@@ -13,7 +13,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-from dolfin import Vector, mpi_comm_world
+from dolfin import Vector
 from ..utils.parameterList import ParameterList
 import math
 
@@ -69,7 +69,7 @@ class CGSolverSteihaug:
               "Reached a negative direction",
               "Reached trust region boundary"
               ]
-    def __init__(self, parameters=CGSolverSteihaug_ParameterList(),comm = mpi_comm_world()):
+    def __init__(self, parameters=CGSolverSteihaug_ParameterList(),comm = MPI.comm_world):
         
         self.parameters = parameters
         

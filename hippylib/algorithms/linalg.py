@@ -13,10 +13,13 @@
 
 from __future__ import absolute_import, division, print_function
 
-from dolfin import compile_extension_module, Vector, PETScKrylovSolver, MPI, la_index_dtype
+from dolfin import Vector, PETScKrylovSolver, MPI, la_index_dtype
 from ..utils.random import parRandom
 import os
 import numpy as np
+
+import cppimport
+cpp_module = cppimport.imp("hippylib.algorithms.cpp_linalg.cpp_linalg")
 
 def amg_method(amg_type="ml_amg"):
     """
@@ -31,21 +34,6 @@ def amg_method(amg_type="ml_amg"):
         
     return 'petsc_amg'
 
-abspath = os.path.dirname( os.path.abspath(__file__) )
-source_directory = os.path.join(abspath,"cpp_linalg")
-header_file = open(os.path.join(source_directory,"linalg.h"), "r")
-code = header_file.read()
-header_file.close()
-cpp_sources = ["linalg.cpp"]  
-
-include_dirs = [".", source_directory]
-for ss in ['PROFILE_INSTALL_DIR', 'PETSC_DIR', 'SLEPC_DIR']:
-    if ss in os.environ.keys():
-        include_dirs.append(os.environ[ss]+'/include')
-        
-cpp_module = compile_extension_module(
-                code=code, source_directory=source_directory,
-                sources=cpp_sources, include_dirs=include_dirs)
 
 def MatMatMult(A,B):
     """

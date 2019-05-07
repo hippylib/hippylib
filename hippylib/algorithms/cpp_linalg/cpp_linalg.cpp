@@ -1,3 +1,15 @@
+/*cppimport
+<%                                                                               
+from dolfin.jit.jit import dolfin_pc
+flags = ["-D{}".format(i[0]) for i in dolfin_pc["define_macros"]]
+cfg['libraries'] = dolfin_pc['libraries']                        
+cfg['include_dirs'] = dolfin_pc['include_dirs']
+cfg['library_dirs'] = dolfin_pc['library_dirs']
+cfg['compiler_args'] += flags
+setup_pybind11(cfg)          
+%>                 
+/*cppimport
+ *
 /* Copyright (c) 2016-2018, The University of Texas at Austin
  * & University of California, Merced.
  *
@@ -12,12 +24,16 @@
  * Software Foundation) version 2.0 dated June 1991.
 */
 
-#include "linalg.h"
+#include "cpp_linalg.h"
 #include <dolfin/la/PETScVector.h>
 #include <dolfin/la/GenericLinearSolver.h>
 #include <dolfin/common/Timer.h>
 
 #include <cassert>
+
+#include "pybind11/pybind11.h"
+
+namespace py = pybind11;
 
 namespace dolfin
 {
@@ -109,6 +125,14 @@ double cpp_linalg::GetFromOwnedGid(const GenericVector & v, std::size_t gid)
 	v.get(&val, 1, &index);
 
 	return val;
+}
+
+PYBIND11_MODULE(cpp_linalg, m)
+{
+	py::class_<cpp_linalg, std::shared_ptr<cpp_linalg>>(m, "cpp_linalg")
+        .def(py::init<>())
+	;
+
 }
 
 }

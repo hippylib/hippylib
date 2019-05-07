@@ -1,3 +1,15 @@
+/*cppimport
+<%                                                                               
+from dolfin.jit.jit import dolfin_pc
+flags = ["-D{}".format(i[0]) for i in dolfin_pc["define_macros"]]
+cfg['libraries'] = dolfin_pc['libraries']                        
+cfg['include_dirs'] = dolfin_pc['include_dirs']
+cfg['library_dirs'] = dolfin_pc['library_dirs']
+cfg['compiler_args'] += flags
+setup_pybind11(cfg)          
+%>                 
+/*cppimport
+ *
 /* Copyright (c) 2016-2018, The University of Texas at Austin
  * & University of California, Merced.
  *
@@ -19,9 +31,11 @@
 #include <set>
 #include <cassert>
 
-#include "AssemblePointwiseObservation.h"
+#include "PointwiseObservation.h"
+#include "pybind11/pybind11.h"
 
 using namespace dolfin;
+namespace py = pybind11;
 
 PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 		                               std::shared_ptr<BoundingBoxTree> bbt,
@@ -185,4 +199,12 @@ PointwiseObservation::~PointwiseObservation()
 std::shared_ptr<Matrix> PointwiseObservation::GetMatrix()
 {
 	return std::shared_ptr<Matrix>( new Matrix( PETScMatrix(mat) ) );
+}
+
+PYBIND11_MODULE(PointwiseObservation, m)
+{
+	py::class_<PointwiseObservation, std::shared_ptr<PointwiseObservation>>(m, "PointwiseObservation")
+        .def(py::init<const FunctionSpace &, const Array<double> &>())
+	;
+
 }

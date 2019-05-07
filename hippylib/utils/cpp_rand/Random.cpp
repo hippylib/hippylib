@@ -1,4 +1,4 @@
- /*cppimport
+/*cppimport
 <%                                                                               
 from dolfin.jit.jit import dolfin_pc
 flags = ["-D{}".format(i[0]) for i in dolfin_pc["define_macros"]]
@@ -29,6 +29,7 @@ setup_pybind11(cfg)
 #include "pybind11/pybind11.h"
 
 using namespace dolfin;
+namespace py = pybind11;
 
 Random::Random(int seed):
 		eng(seed),
@@ -124,7 +125,6 @@ void Random::rademacher(GenericVector & v)
 	VecRestoreArray(vv, &data);
 }
 
-namespace py = pybind11;
 
 PYBIND11_MODULE(Random, m)
 {

@@ -16,9 +16,12 @@ from __future__ import absolute_import, division, print_function
 import dolfin as dl
 
 def dlversion():
-    return (dl.DOLFIN_VERSION_MAJOR, dl.DOLFIN_VERSION_MINOR, dl.DOLFIN_VERSION_MICRO)
+    version_str = dl.__version__
+    vv = [int(ss) for ss in version_str.split(".")]
+    
+    return (vv[0], vv[1], vv[2])
 
-supported_versions = [(1,6,0), (2016,1,0), (2016,2,0), (2017,1,0), (2017,2,0)]
+supported_versions = [(2019,1,0)]
 
 def checkdlversion():
     """

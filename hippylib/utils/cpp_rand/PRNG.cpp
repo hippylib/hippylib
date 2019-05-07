@@ -12,11 +12,13 @@
  * Software Foundation) version 2.0 dated June 1991.
 */
 
+#include <pybind11/pybind11.h>
 #include <dolfin/la/PETScVector.h>
 #include "PRNG.h"
 
-using namespace dolfin;
+namespace py = pybind11;
 
+namespace dolfin{
 Random::Random(int seed):
 		eng(seed),
 		d_normal(0.,1.),
@@ -110,4 +112,16 @@ void Random::rademacher(GenericVector & v)
 
 	VecRestoreArray(vv, &data);
 }
+}
 
+PYBIND11_MODULE(SIGNATURE, m) {
+    py::class_<dolfin::Random>(m, "Random")
+    	.def(py::init<int>())
+        .def("split", &dolfin::Random::split)
+		.def("uniform", (double (dolfin::Random::*)(double, double)) &dolfin::Random::uniform)
+		.def("uniform", (void (dolfin::Random::*)(dolfin::GenericVector &, double, double)) &dolfin::Random::uniform)
+		.def("normal", (double (dolfin::Random::*)(double, double)) &dolfin::Random::normal)
+		.def("normal", (void (dolfin::Random::*)(dolfin::GenericVector &, double, bool)) &dolfin::Random::normal)
+		.def("rademacher", (double (dolfin::Random::*)(void)) &dolfin::Random::rademacher)
+		.def("rademacher", (void (dolfin::Random::*)(dolfin::GenericVector &)) &dolfin::Random::rademacher);
+}

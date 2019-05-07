@@ -4,8 +4,8 @@ services:
     - docker
 
 env: 
-    - FENICS_VERSION=2016.2
-    - FENICS_VERSION=2017.2
+    - FENICS_VERSION=2018.1
+    - FENICS_VERSION=2019.1
 
 before_install: ./ci/run_before_install.sh
 
@@ -15,8 +15,8 @@ jobs:
     include:
         - stage: test
           script: ./ci/run_scripts.sh
-          env: FENICS_VERSION=2016.2
+          env: FENICS_VERSION=2018.1
         - stage: test
           script: ./ci/run_scripts.sh
-          env: FENICS_VERSION=2017.2
+          env: FENICS_VERSION=2019.1
 

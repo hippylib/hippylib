@@ -67,7 +67,10 @@ def true_model(Vh, gamma, delta, anis_diff):
     return mtrue
             
 if __name__ == "__main__":
-    dl.set_log_active(False)
+    try:
+        dl.set_log_active(False)
+    except:
+        pass
     sep = "\n"+"#"*80+"\n"
     ndim = 2
     nx = 64  

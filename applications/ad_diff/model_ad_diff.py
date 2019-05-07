@@ -388,7 +388,10 @@ def computeVelocityField(mesh):
 
         
 if __name__ == "__main__":
-    dl.set_log_active(False)
+    try:
+        dl.set_log_active(False)
+    except:
+        pass
     np.random.seed(1)
     sep = "\n"+"#"*80+"\n"
     mesh = dl.refine( dl.Mesh("ad_20.xml") )

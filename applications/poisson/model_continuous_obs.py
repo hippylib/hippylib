@@ -359,7 +359,10 @@ class Poisson:
             self.Wmm.mult(dm, out)
             
 if __name__ == "__main__":
-    dl.set_log_active(False)
+    try:
+        dl.set_log_active(False)
+    except:
+        pass
     nx = 64
     ny = 64
     mesh = dl.UnitSquareMesh(nx, ny)

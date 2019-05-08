@@ -14,26 +14,22 @@ sed -i 's/chain.parameters["number_of_samples"] = 100/chain.parameters["number_o
 
 echo $FENICS_VERSION
 
-if [ "$FENICS_VERSION" == "2018.1" ]; then
+PYTHON=python3
+PYTHON_PREPROC="export MPLBACKEND=agg; export hIPPYlibDeprecationWarning=error; "
 
-    PYTHON=python3
+if [ "$FENICS_VERSION" == "2018.1" ]; then    
     QUAY=quay.io/fenicsproject/stable:2018.1.0 
-    PYTHON_PREPROC="export MPLBACKEND=agg; export hIPPYlibDeprecationWarning=error; "
-
 else
-
-    PYTHON=python3
     QUAY=quay.io/fenicsproject/stable:current
-    PYTHON_PREPOC="export MPLBACKEND=agg; export hIPPYlibDeprecationWarning=error;"
 fi
 
 DOCKER="docker run --rm -v $(pwd):/home/fenics/hippylib -w"
 
 ${DOCKER} /home/fenics/hippylib $QUAY "dolfin-version"
-${DOCKER} /home/fenics/hippylib/applications/poisson $QUAY "$PYTHON_PREPOC mpirun -n 2 $PYTHON model_continuous_obs.py"
-${DOCKER} /home/fenics/hippylib/applications/poisson $QUAY "$PYTHON_PREPOC mpirun -n 2 $PYTHON model_subsurf.py"
-${DOCKER} /home/fenics/hippylib/applications/ad_diff $QUAY "$PYTHON_PREPOC mpirun -n 2 $PYTHON model_ad_diff.py"
-${DOCKER} /home/fenics/hippylib/applications/mcmc    $QUAY "$PYTHON_PREPOC mpirun -n 1 $PYTHON model_subsurf.py"
+${DOCKER} /home/fenics/hippylib/applications/poisson $QUAY "$PYTHON_PREPROC mpirun -n 2 $PYTHON model_continuous_obs.py"
+${DOCKER} /home/fenics/hippylib/applications/poisson $QUAY "$PYTHON_PREPROC mpirun -n 2 $PYTHON model_subsurf.py"
+${DOCKER} /home/fenics/hippylib/applications/ad_diff $QUAY "$PYTHON_PREPROC mpirun -n 2 $PYTHON model_ad_diff.py"
+${DOCKER} /home/fenics/hippylib/applications/mcmc    $QUAY "$PYTHON_PREPROC mpirun -n 1 $PYTHON model_subsurf.py"
 
 if [ "$FENICS_VERSION" == "2019.1" ]; then
 

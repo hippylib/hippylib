@@ -18,7 +18,7 @@ if [ "$FENICS_VERSION" == "2018.1" ]; then
 
     PYTHON=python3
     QUAY=quay.io/fenicsproject/stable:2018.1.0 
-    PYTHON_PREPROC="export MPLBACKEND=Agg; export hIPPYlibDeprecationWarning=error;"
+    PYTHON_PREPROC="export DOLFIN_NOPLOT=1, export MPLBACKEND=Agg; export hIPPYlibDeprecationWarning=error;"
 
 else
 

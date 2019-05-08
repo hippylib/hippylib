@@ -18,13 +18,13 @@ if [ "$FENICS_VERSION" == "2018.1" ]; then
 
     PYTHON=python3
     QUAY=quay.io/fenicsproject/stable:2018.1.0 
-    PYTHON_PREPROC="export DOLFIN_NOPLOT=1; export MPLBACKEND=Agg; export hIPPYlibDeprecationWarning=error; echo 'backend: agg' > .config/matplotlib/matplotlibrc"
+    PYTHON_PREPROC="export MPLBACKEND=agg; export hIPPYlibDeprecationWarning=error; "
 
 else
 
     PYTHON=python3
     QUAY=quay.io/fenicsproject/stable:current
-    PYTHON_PREPOC="export MPLBACKEND=Agg; export hIPPYlibDeprecationWarning=error;"
+    PYTHON_PREPOC="export MPLBACKEND=agg; export hIPPYlibDeprecationWarning=error;"
 fi
 
 DOCKER="docker run --rm -v $(pwd):/home/fenics/hippylib -w"

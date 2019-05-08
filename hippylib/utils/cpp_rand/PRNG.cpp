@@ -117,11 +117,24 @@ void Random::rademacher(GenericVector & v)
 PYBIND11_MODULE(SIGNATURE, m) {
     py::class_<dolfin::Random>(m, "Random")
     	.def(py::init<int>())
-        .def("split", &dolfin::Random::split)
-		.def("uniform", (double (dolfin::Random::*)(double, double)) &dolfin::Random::uniform)
-		.def("uniform", (void (dolfin::Random::*)(dolfin::GenericVector &, double, double)) &dolfin::Random::uniform)
-		.def("normal", (double (dolfin::Random::*)(double, double)) &dolfin::Random::normal)
-		.def("normal", (void (dolfin::Random::*)(dolfin::GenericVector &, double, bool)) &dolfin::Random::normal)
-		.def("rademacher", (double (dolfin::Random::*)(void)) &dolfin::Random::rademacher)
-		.def("rademacher", (void (dolfin::Random::*)(dolfin::GenericVector &)) &dolfin::Random::rademacher);
+        .def("split", &dolfin::Random::split,
+        	 "Split the random number generator in independent streams",
+			 py::arg("rank"), py::arg("nproc"), py::arg("block_size"))
+		.def("uniform", (double (dolfin::Random::*)(double, double)) &dolfin::Random::uniform,
+			"Generate a sample from U(a,b)",
+			py::arg("a")=0., py::arg("b")=1.)
+		.def("uniform", (void (dolfin::Random::*)(dolfin::GenericVector &, double, double)) &dolfin::Random::uniform,
+			"Generate a random vector from U(a,b)",
+			py::arg("out"), py::arg("a")=0., py::arg("b")=1.)
+		.def("normal", (double (dolfin::Random::*)(double, double)) &dolfin::Random::normal,
+			"Generate a sample from N(mu, sigma2)",
+			py::arg("mu")=0., py::arg("sigma")=1.)
+		.def("normal", (void (dolfin::Random::*)(dolfin::GenericVector &, double, bool)) &dolfin::Random::normal,
+			"Generate a random vector from N(0, sigma2)",
+			py::arg("out"), py::arg("sigma")=1., py::arg("zero_out")=true)
+		.def("rademacher", (double (dolfin::Random::*)(void)) &dolfin::Random::rademacher,
+			"Generate a sample from Rademacher distribution")
+		.def("rademacher", (void (dolfin::Random::*)(dolfin::GenericVector &)) &dolfin::Random::rademacher,
+			 "Generate a random vector from Rademacher distribution",
+			 py::arg("out"));
 }

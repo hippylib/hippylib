@@ -143,7 +143,7 @@ void MultiVector::zero()
 		vi->zero();
 }
 
-void MultiVector::norm_all(const std::string norm_type, Array<double> & norms)
+void MultiVector::norm_all(const std::string norm_type, Array<double> & norms) const
 {
 	double * data = norms.data();
 	for(auto && vi : mv)
@@ -167,19 +167,25 @@ PYBIND11_MODULE(SIGNATURE, m) {
     	.def(py::init<>())
 		.def(py::init<const dolfin::GenericVector &, int>())
 		.def(py::init<const dolfin::MultiVector &>())
-		.def("nvec", &dolfin::MultiVector::nvec)
-		.def("__len__", &dolfin::MultiVector::nvec)
+		.def("nvec", &dolfin::MultiVector::nvec,
+			 "Number of vectors in the multivector")
+		.def("__len__", &dolfin::MultiVector::nvec,
+			 "The length of a multivector is the number of vector it contains")
 		.def("__getitem__", (std::shared_ptr<const dolfin::GenericVector> (dolfin::MultiVector::*)(int) const) &dolfin::MultiVector::operator[] )
 		.def("__setitem__", (std::shared_ptr<dolfin::GenericVector> (dolfin::MultiVector::*)(int)) &dolfin::MultiVector::operator[] )
-		.def("setSizeFromVector", &dolfin::MultiVector::setSizeFromVector)
-		.def("dot", [](const dolfin::MultiVector & self, const dolfin::GenericVector & other)
+		.def("setSizeFromVector", &dolfin::MultiVector::setSizeFromVector,
+			 "Initialize a multivector by providing a vector v as template and the number of vectors nvec",
+			 py::arg("v"), py::arg("nvec"))
+		.def("dot", [](const dolfin::MultiVector & self, const dolfin::GenericVector & v)
 				{
     				int size = self.nvec();
     				py::array_t<double> ma(size);
     				dolfin::Array<double> m_dolfin(size, ma.mutable_data());
-    				self.dot(other, m_dolfin);
+    				self.dot(v, m_dolfin);
     				return ma;
-				}
+				},
+				"Perform the inner product with a vector v",
+				py::arg("v")
     	     )
 		.def("dot", [](const dolfin::MultiVector& self, const dolfin::MultiVector & other)
 				{
@@ -189,19 +195,54 @@ PYBIND11_MODULE(SIGNATURE, m) {
     				dolfin::Array<double> m_dolfin(size1*size2, ma.mutable_data());
     				self.dot(other, m_dolfin);
     				return ma;
-				}
+				},
+    			"Perform the inner product with a another multivector",
+				py::arg("other")
 			)
         .def("reduce", [](const dolfin::MultiVector& self, dolfin::GenericVector & v, py::array_t<double> & alpha)
         		{
     				dolfin::Array<double> alpha_dolfin(self.nvec(), alpha.mutable_data());
     				self.reduce(v, alpha_dolfin);
-        		}
+        		},
+    		"Computes v += sum_i alpha[i]*self[i]",
+			py::arg("v"), py::arg("alpha")
         )
-		.def("axpy", (void (dolfin::MultiVector::*)(double, const dolfin::GenericVector &)) &dolfin::MultiVector::axpy)
-		.def("axpy", (void (dolfin::MultiVector::*)(const dolfin::Array<double>&, const dolfin::MultiVector &)) &dolfin::MultiVector::axpy)
-		.def("scale", (void (dolfin::MultiVector::*)(int, double)) &dolfin::MultiVector::scale)
-		.def("scale", (void (dolfin::MultiVector::*)(const dolfin::Array<double>&)) &dolfin::MultiVector::scale)
-		.def("zero",  &dolfin::MultiVector::zero)
-		.def("norm_all", &dolfin::MultiVector::norm_all)
-		.def("swap", &dolfin::MultiVector::swap);
+		.def("axpy", (void (dolfin::MultiVector::*)(double, const dolfin::GenericVector &)) &dolfin::MultiVector::axpy,
+			 "Assign self[k] += a*y for k in range(self.nvec())",
+			 py::arg("a"), py::arg("y"))
+		.def("axpy", [](dolfin::MultiVector& self, py::array_t<double> & a, const dolfin::MultiVector& y)
+				{
+    				dolfin::Array<double> a_dolfin(self.nvec(), a.mutable_data());
+    				self.axpy(a_dolfin, y);
+				},
+				"Assign self[k] += a[k]*y[k] for k in range(self.nvec())",
+				py::arg("a"), py::arg("y")
+				)
+		.def("scale", (void (dolfin::MultiVector::*)(int, double)) &dolfin::MultiVector::scale,
+			 "Assign self[k] *= a",
+			 py::arg("k"), py::arg("a"))
+		.def("scale", [](dolfin::MultiVector& self, py::array_t<double> & a)
+				{
+					dolfin::Array<double> a_dolfin(self.nvec(), a.mutable_data());
+					self.scale(a_dolfin);
+				},
+				"Assign self[k] *=a[k] for k in range(self.nvec()",
+				py::arg("a")
+				)
+		.def("zero",  &dolfin::MultiVector::zero,
+			 "Zero out all entries of the multivector"
+			)
+		.def("norm",[](const dolfin::MultiVector& self, const std::string norm_type)
+				{
+					int size = self.nvec();
+					py::array_t<double> ma(size);
+					dolfin::Array<double> m_dolfin(size, ma.mutable_data());
+					self.norm_all(norm_type, m_dolfin);
+					return ma;
+				},
+			 "Compute the norm of each vector in the multivector separately",
+			 py::arg("norm_type")
+			)
+		.def("swap", &dolfin::MultiVector::swap,
+			 "Swap this with other");
 }

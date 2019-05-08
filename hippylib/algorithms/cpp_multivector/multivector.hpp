@@ -53,7 +53,7 @@ public:
 
 	void zero();
 
-	void norm_all(const std::string norm_type, Array<double> & norms);
+	void norm_all(const std::string norm_type, Array<double> & norms) const;
 
 	void swap(MultiVector & other);
 

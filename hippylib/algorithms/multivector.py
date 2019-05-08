@@ -36,13 +36,7 @@ class MultiVector(cpp_module.MultiVector):
         shape = (self.nvec(),mv.nvec())
         m = self.dot(mv)
         return m.reshape(shape, order='C')
-    
-    def norm(self, norm_type):
-        shape = self.nvec()
-        m = np.array(shape)
-        self.norm_all(norm_type, m)
-        return np.zeros(shape) + m.array()
-    
+        
     def Borthogonalize(self,B):
         """ 
         Returns :math:`QR` decomposition of self. :math:`Q` and :math:`R` satisfy the following relations in exact arithmetic

@@ -12,7 +12,7 @@ if [ "$FENICS_VERSION" == "2018.1" ]; then
 elif [ "$FENICS_VERSION" == "2019.1" ]; then
 
     PYTHON=python3
-    QUAY=quay.io/fenicsproject/stable:2019.1.0 
+    QUAY=quay.io/fenicsproject/stable:current 
 
 fi
 

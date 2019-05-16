@@ -32,16 +32,19 @@ setup_pybind11(cfg)
 #include <cassert>
 
 #include "PointwiseObservation.h"
-#include "pybind11/pybind11.h"
+
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
 
 using namespace dolfin;
 namespace py = pybind11;
 
 PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 		                               std::shared_ptr<BoundingBoxTree> bbt,
-									   const std::size_t gdim,
-									   const Array<double> & targets,
-									   std::vector<Point> & points,
+						const std::size_t gdim,
+						py::array_t<double> targets,
+						std::vector<Point> & points,
 		                               std::vector<PetscInt> & LG)
 {
 	 int nprocs, rank;
@@ -94,7 +97,7 @@ PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 	 return global_rows;
 }
 
-PointwiseObservation::PointwiseObservation(const FunctionSpace & Vh, const Array<double> & targets)
+PointwiseObservation::PointwiseObservation(const FunctionSpace& Vh, py::array_t<double> targets)
 {
 	 const Mesh& mesh = *( Vh.mesh() );
 	 const int num_cells = mesh.num_cells();
@@ -204,7 +207,7 @@ std::shared_ptr<Matrix> PointwiseObservation::GetMatrix()
 PYBIND11_MODULE(PointwiseObservation, m)
 {
 	py::class_<PointwiseObservation, std::shared_ptr<PointwiseObservation>>(m, "PointwiseObservation")
-        .def(py::init<const FunctionSpace &, const Array<double> &>())
+	.def(py::init<const dolfin::FunctionSpace&, py::array_t<double>>())
+	.def("GetMatrix", &PointwiseObservation::GetMatrix)
 	;
-
 }

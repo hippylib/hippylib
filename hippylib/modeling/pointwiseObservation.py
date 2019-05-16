@@ -33,7 +33,7 @@ def assemblePointwiseObservation(Vh, targets):
     #Ensure that PetscInitialize is called
     dummy = dl.assemble( dl.inner(dl.TrialFunction(Vh), dl.TestFunction(Vh))*dl.dx )
     #Call the cpp module to compute the pointwise observation matrix
-    tmp = cpp_module.PointwiseObservation(Vh,targets.flatten())
+    tmp = cpp_module.PointwiseObservation(Vh._cpp_object,targets.flatten())
     #return the matrix
     return tmp.GetMatrix()
 

@@ -16,20 +16,26 @@
 #include <dolfin/la/PETScMatrix.h>
 #include <dolfin/la/Matrix.h>
 
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+
+namespace py = pybind11;
+
 namespace dolfin
 {
 
 class PointwiseObservation
 {
 public:
-	PointwiseObservation(const FunctionSpace & Vh, const Array<double> & targets);
+	PointwiseObservation(const FunctionSpace& Vh, py::array_t<double> targets);
 	std::shared_ptr<Matrix> GetMatrix();
 	~PointwiseObservation();
 
 private:
 	PetscInt computeLGtargets(MPI_Comm comm, std::shared_ptr<BoundingBoxTree> bbt,
 					 const std::size_t gdim,
-					 const Array<double> & targets,
+					 py::array_t<double> targets,
 					 std::vector<Point> & points,
 			         std::vector<PetscInt> & LG);
 	Mat mat;

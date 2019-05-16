@@ -30,7 +30,15 @@ This file contains C++ Expression to implement
 '''
 
 code_AnisTensor2D = '''
-class AnisTensor2D : public Expression
+#include <cmath>
+
+#include <pybind11/pybind11.h>
+namespace py = pybind11;
+
+#include <dolfin/function/Expression.h>
+#include <dolfin/common/Array.h>
+
+class AnisTensor2D : public dolfin::Expression
 {
 public:
 
@@ -43,10 +51,10 @@ public:
 
   }
 
-void eval(Array<double>& values, const Array<double>& x) const
+void eval(dolfin::Array<double>& values, const dolfin::Array<double>& x) const
   {
-     double sa = sin(alpha);
-     double ca = cos(alpha);
+     double sa = std::sin(alpha);
+     double ca = std::cos(alpha);
      double c00 = theta0*sa*sa + theta1*ca*ca;
      double c01 = (theta0 - theta1)*sa*ca;
      double c11 = theta0*ca*ca + theta1*sa*sa;
@@ -62,6 +70,13 @@ void eval(Array<double>& values, const Array<double>& x) const
   double alpha;
   
 };
+
+PYBIND11_MODULE(SIGNATURE, m)
+{
+  py::class_<AnisTensor2D, std::shared_ptr<AnisTensor2D>, dolfin::Expression>
+    (m, "AnisTensor2D")
+    .def(py::init<>());
+}
 '''
 
 code_Mollifier = '''

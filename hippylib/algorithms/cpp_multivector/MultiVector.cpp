@@ -1,3 +1,15 @@
+/*cppimport
+<%                                                                               
+from dolfin.jit.jit import dolfin_pc
+flags = ["-D{}".format(i[0]) for i in dolfin_pc["define_macros"]]
+cfg['libraries'] = dolfin_pc['libraries']                        
+cfg['include_dirs'] = dolfin_pc['include_dirs']
+cfg['library_dirs'] = dolfin_pc['library_dirs']
+cfg['compiler_args'] += flags
+setup_pybind11(cfg)          
+%>                 
+/*cppimport
+
 /* Copyright (c) 2016-2018, The University of Texas at Austin
  * & University of California, Merced.
  *
@@ -16,6 +28,10 @@
 #include <dolfin/la/PETScVector.h>
 
 #include <cassert>
+
+#include "pybind11/pybind11.h"
+
+namespace py = pybind11;
 
 namespace dolfin
 {
@@ -156,5 +172,11 @@ MultiVector::~MultiVector()
 }
 
 
+PYBIND11_MODULE(MultiVector, m)
+{
+	py::class_<MultiVector, std::shared_ptr<MultiVector>>(m, "MultiVector")
+        .def(py::init<>())
+	;
 
+}
 }

@@ -11,44 +11,29 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
-from __future__ import absolute_import, division, print_function
-
-from dolfin import compile_extension_module, DoubleArray, File
+from dolfin import * 
 from ..utils.vector2function import vector2Function
 import numpy as np
 import os
 
-abspath = os.path.dirname( os.path.abspath(__file__) )
-source_directory = os.path.join(abspath,"cpp_multivector")
-header_file = open(os.path.join(source_directory,"multivector.h"), "r")
-code = header_file.read()
-header_file.close()
-cpp_sources = ["multivector.cpp"]  
-
-include_dirs = [".", source_directory]
-for ss in ['PROFILE_INSTALL_DIR', 'PETSC_DIR', 'SLEPC_DIR']:
-    if ss in os.environ.keys():
-        include_dirs.append(os.environ[ss]+'/include')
-        
-cpp_module = compile_extension_module(
-                code=code, source_directory=source_directory,
-                sources=cpp_sources, include_dirs=include_dirs)
+import cppimport
+cpp_module = cppimport.imp("hippylib.algorithms.cpp_multivector.MultiVector")
 
 class MultiVector(cpp_module.MultiVector):
     def dot_v(self, v):
-        m = DoubleArray(self.nvec())
+        m = Array(self.nvec())
         self.dot(v, m)
         return np.zeros(self.nvec()) + m.array()
     
     def dot_mv(self,mv):
         shape = (self.nvec(),mv.nvec())
-        m = DoubleArray(shape[0]*shape[1])
+        m = Array(shape[0]*shape[1])
         self.dot(mv, m)
         return np.zeros(shape) + m.array().reshape(shape, order='C')
     
     def norm(self, norm_type):
         shape = self.nvec()
-        m = DoubleArray(shape)
+        m = Array(shape)
         self.norm_all(norm_type, m)
         return np.zeros(shape) + m.array()
     

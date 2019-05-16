@@ -13,7 +13,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-from dolfin import Vector
+from dolfin import Vector, MPI
 from ..utils.parameterList import ParameterList
 import math
 

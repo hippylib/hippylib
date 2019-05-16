@@ -13,7 +13,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-from dolfin import Vector
+from dolfin import Vector, MPI
 from ..utils.random import parRandom
 import math
 from .linalg import Solver2Operator

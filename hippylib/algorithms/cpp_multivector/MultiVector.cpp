@@ -24,7 +24,7 @@ setup_pybind11(cfg)
  * Software Foundation) version 2.0 dated June 1991.
 */
 
-#include "multivector.h"
+#include "MultiVector.h"
 #include <dolfin/la/PETScVector.h>
 
 #include <cassert>

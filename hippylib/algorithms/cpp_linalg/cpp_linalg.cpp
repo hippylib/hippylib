@@ -131,6 +131,7 @@ PYBIND11_MODULE(cpp_linalg, m)
 {
 	py::class_<cpp_linalg, std::shared_ptr<cpp_linalg>>(m, "cpp_linalg")
         .def(py::init<>())
+	.def("MatMatMult", &cpp_linalg::MatMatMult)
 	;
 
 }

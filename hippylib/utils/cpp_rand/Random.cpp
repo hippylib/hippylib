@@ -130,7 +130,8 @@ PYBIND11_MODULE(Random, m)
 {
 	py::class_<Random, std::shared_ptr<Random>>(m, "Random")
         .def(py::init<int &>())
-	.def("split", &Random::split);
+	.def("split", &Random::split)
+	.def("normal", (void (Random::*)(GenericVector&, double, bool)) &Random::normal)
 	;
 
 }

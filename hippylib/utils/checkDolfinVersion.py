@@ -29,10 +29,9 @@ def checkdlversion():
         print( "The version of FEniCS (FEniCS {0}.{1}.{2}) you are using is not supported.".format(*dlversion()) )
         exit()
         
-if  dlversion() >= (2017,2,0):
-    import matplotlib.pyplot as plt
-    dl.interactive = plt.show
-    
-    import warnings
-    from ffc.quadrature.deprecation import QuadratureRepresentationDeprecationWarning
-    warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)
+import matplotlib.pyplot as plt
+dl.interactive = plt.show
+
+import warnings
+from ffc.quadrature.deprecation import QuadratureRepresentationDeprecationWarning
+warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)

@@ -27,12 +27,13 @@ def amg_method(amg_type="ml_amg"):
     If available use the preconditioner suggested by the user (ML is default).
     If not available use  petsc_amg.
     """
-    S = PETScKrylovSolver()
-    for pp in S.preconditioners():
-        if pp[0] == amg_type:
-            return amg_type
-        
-    return 'petsc_amg'
+    # TODO: pybind is missing yet, fenics 2019 should bring it back
+    #S = PETScKrylovSolver()
+    #for pp in S.preconditioners():
+    #    if pp[0] == amg_type:
+    #        return amg_type
+    #    
+    return "petsc_amg"
 
 
 def MatMatMult(A,B):

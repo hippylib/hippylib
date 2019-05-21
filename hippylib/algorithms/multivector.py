@@ -21,9 +21,9 @@ cpp_module = cppimport.imp("hippylib.algorithms.cpp_multivector.MultiVector")
 
 class MultiVector(cpp_module.MultiVector):
     def dot_v(self, v):
-        m = Array(self.nvec())
+        m = np.empty(self.nvec())
         self.dot(v, m)
-        return np.zeros(self.nvec()) + m.array()
+        return np.zeros(self.nvec()) + m
     
     def dot_mv(self,mv):
         shape = (self.nvec(),mv.nvec())

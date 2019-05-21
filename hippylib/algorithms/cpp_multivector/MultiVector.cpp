@@ -187,6 +187,7 @@ PYBIND11_MODULE(MultiVector, m)
 	.def("scale", (void (MultiVector::*)(int, double)) &MultiVector::scale)
 	.def("dot", (void (MultiVector::*)(const GenericVector&, py::array_t<double>)) &MultiVector::dot)
 	.def("dot", (void (MultiVector::*)(const MultiVector&, py::array_t<double>)) &MultiVector::dot)
+	.def("reduce", &MultiVector::reduce)
 	.def("__getitem__", [](MultiVector s, size_t i) {
             return s[i];
 	})

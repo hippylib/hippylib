@@ -181,10 +181,10 @@ class LaplacianPrior(_Prior):
         self.M = dl.assemble(varfM)
         self.R = dl.assemble(gamma*varfL + delta*varfM)
         
-        if dlversion() <= (1,6,0):
-            self.Rsolver = dl.PETScKrylovSolver("cg", amg_method())
-        else:
-            self.Rsolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+        #if dlversion() <= (1,6,0):
+        #    self.Rsolver = dl.PETScKrylovSolver("cg", amg_method())
+        #else:
+        self.Rsolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
         self.Rsolver.set_operator(self.R)
         self.Rsolver.parameters["maximum_iterations"] = max_iter
         self.Rsolver.parameters["relative_tolerance"] = rel_tol
@@ -376,10 +376,10 @@ class BiLaplacianPrior(_Prior):
             robin_coeff = 0.
         
         self.M = dl.assemble(varfM)
-        if dlversion() <= (1,6,0):
-            self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
-        else:
-            self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
+        #if dlversion() <= (1,6,0):
+        #    self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
+        #else:
+        self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
         self.Msolver.set_operator(self.M)
         self.Msolver.parameters["maximum_iterations"] = max_iter
         self.Msolver.parameters["relative_tolerance"] = rel_tol
@@ -387,10 +387,10 @@ class BiLaplacianPrior(_Prior):
         self.Msolver.parameters["nonzero_initial_guess"] = False
         
         self.A = dl.assemble(gamma*varfL + delta*varfM + robin_coeff*varf_robin)        
-        if dlversion() <= (1,6,0):
-            self.Asolver = dl.PETScKrylovSolver("cg", amg_method())
-        else:
-            self.Asolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+        #if dlversion() <= (1,6,0):
+        #    self.Asolver = dl.PETScKrylovSolver("cg", amg_method())
+        #else:
+        self.Asolver = dl.PETScKrylovSolver("cg", amg_method())
         self.Asolver.set_operator(self.A)
         self.Asolver.parameters["maximum_iterations"] = max_iter
         self.Asolver.parameters["relative_tolerance"] = rel_tol
@@ -402,15 +402,15 @@ class BiLaplacianPrior(_Prior):
         qdegree = 2*Vh._ufl_element.degree()
         metadata = {"quadrature_degree" : qdegree}
 
-        if dlversion() >= (2017,1,0):
-            representation_old = dl.parameters["form_compiler"]["representation"]
-            dl.parameters["form_compiler"]["representation"] = "quadrature"
+        #if dlversion() >= (2017,1,0):
+        representation_old = dl.parameters["form_compiler"]["representation"]
+        dl.parameters["form_compiler"]["representation"] = "quadrature"
             
-        if dlversion() <= (1,6,0):
-            Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', qdegree)
-        else:
-            element = dl.FiniteElement("Quadrature", Vh.mesh().ufl_cell(), qdegree, quad_scheme="default")
-            Qh = dl.FunctionSpace(Vh.mesh(), element)
+        #if dlversion() <= (1,6,0):
+        #    Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', qdegree)
+        #else:
+        element = dl.FiniteElement("Quadrature", Vh.mesh().ufl_cell(), qdegree, quad_scheme="default")
+        Qh = dl.FunctionSpace(Vh.mesh(), element)
             
         ph = dl.TrialFunction(Qh)
         qh = dl.TestFunction(Qh)
@@ -425,8 +425,8 @@ class BiLaplacianPrior(_Prior):
 
         dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
         
-        if dlversion() >= (2017,1,0):
-            dl.parameters["form_compiler"]["representation"] = representation_old
+        #if dlversion() >= (2017,1,0):
+        dl.parameters["form_compiler"]["representation"] = representation_old
                              
         self.R = _BilaplacianR(self.A, self.Msolver)      
         self.Rsolver = _BilaplacianRsolver(self.Asolver, self.M)
@@ -509,10 +509,10 @@ class MollifiedBiLaplacianPrior(_Prior):
         varfM = dl.inner(trial,test)*dl.dx
         
         self.M = dl.assemble(varfM)
-        if dlversion() <= (1,6,0):
-            self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
-        else:
-            self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
+        #if dlversion() <= (1,6,0):
+        #    self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
+        #else:
+        self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
         self.Msolver.set_operator(self.M)
         self.Msolver.parameters["maximum_iterations"] = max_iter
         self.Msolver.parameters["relative_tolerance"] = rel_tol
@@ -520,7 +520,8 @@ class MollifiedBiLaplacianPrior(_Prior):
         self.Msolver.parameters["nonzero_initial_guess"] = False
         
         #mfun = Mollifier(gamma/delta, dl.inv(Theta), order, locations)
-        mfun = dl.Expression(code_Mollifier, degree = Vh.ufl_element().degree()+2)
+        mfun = dl.CompiledExpression(dl.compile_cpp_code(code_Mollifier).Mollifier(), degree=Vh.ufl_element().degree()+2)
+
         mfun.l = gamma/delta
         mfun.o = order
         mfun.theta0 = 1./Theta.theta0
@@ -534,10 +535,10 @@ class MollifiedBiLaplacianPrior(_Prior):
                 
         self.A = dl.assemble(gamma*varfL+delta*varfM + pen*varfmo)
      
-        if dlversion() <= (1,6,0):
-            self.Asolver = dl.PETScKrylovSolver("cg", amg_method())
-        else:
-            self.Asolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+        #if dlversion() <= (1,6,0):
+        #    self.Asolver = dl.PETScKrylovSolver("cg", amg_method())
+        #else:
+        self.Asolver = dl.PETScKrylovSolver("cg", amg_method())
         self.Asolver.set_operator(self.A)
         self.Asolver.parameters["maximum_iterations"] = max_iter
         self.Asolver.parameters["relative_tolerance"] = rel_tol
@@ -549,15 +550,15 @@ class MollifiedBiLaplacianPrior(_Prior):
         qdegree = 2*Vh._ufl_element.degree()
         metadata = {"quadrature_degree" : qdegree}
         
-        if dlversion() >= (2017,1,0):
-            representation_old = dl.parameters["form_compiler"]["representation"]
-            dl.parameters["form_compiler"]["representation"] = "quadrature"
+        #if dlversion() >= (2017,1,0):
+        representation_old = dl.parameters["form_compiler"]["representation"]
+        dl.parameters["form_compiler"]["representation"] = "quadrature"
         
-        if dlversion() <= (1,6,0):
-            Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', qdegree)
-        else:
-            element = dl.FiniteElement("Quadrature", Vh.mesh().ufl_cell(), qdegree, quad_scheme="default")
-            Qh = dl.FunctionSpace(Vh.mesh(), element)
+        #if dlversion() <= (1,6,0):
+        #    Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', qdegree)
+        #else:
+        element = dl.FiniteElement("Quadrature", Vh.mesh().ufl_cell(), qdegree, quad_scheme="default")
+        Qh = dl.FunctionSpace(Vh.mesh(), element)
             
         ph = dl.TrialFunction(Qh)
         qh = dl.TestFunction(Qh)
@@ -572,8 +573,8 @@ class MollifiedBiLaplacianPrior(_Prior):
         
         dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
         
-        if dlversion() >= (2017,1,0):
-            dl.parameters["form_compiler"]["representation"] = representation_old
+        #if dlversion() >= (2017,1,0):
+        dl.parameters["form_compiler"]["representation"] = representation_old
              
         self.R = _BilaplacianR(self.A, self.Msolver)      
         self.Rsolver = _BilaplacianRsolver(self.Asolver, self.M)

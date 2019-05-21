@@ -27,9 +27,9 @@ class MultiVector(cpp_module.MultiVector):
     
     def dot_mv(self,mv):
         shape = (self.nvec(),mv.nvec())
-        m = Array(shape[0]*shape[1])
+        m = np.empty(shape[0]*shape[1])
         self.dot(mv, m)
-        return np.zeros(shape) + m.array().reshape(shape, order='C')
+        return np.zeros(shape) + m.reshape(shape, order='C')
     
     def norm(self, norm_type):
         shape = self.nvec()

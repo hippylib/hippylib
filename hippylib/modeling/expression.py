@@ -75,12 +75,24 @@ PYBIND11_MODULE(SIGNATURE, m)
 {
   py::class_<AnisTensor2D, std::shared_ptr<AnisTensor2D>, dolfin::Expression>
     (m, "AnisTensor2D")
-    .def(py::init<>());
+    .def(py::init<>())
+    .def_readwrite("theta0", &AnisTensor2D::theta0)
+    .def_readwrite("theta1", &AnisTensor2D::theta1)
+    .def_readwrite("alpha", &AnisTensor2D::alpha);
+    ;
 }
 '''
 
 code_Mollifier = '''
-class Mollifier : public Expression
+#include <cmath>
+
+#include <pybind11/pybind11.h>
+namespace py = pybind11;
+
+#include <dolfin/function/Expression.h>
+#include <dolfin/common/Array.h>
+
+class Mollifier : public dolfin::Expression
 {
 
 public:
@@ -97,16 +109,16 @@ public:
   {
   }
 
-void eval(Array<double>& values, const Array<double>& x) const
+void eval(dolfin::Array<double>& values, const dolfin::Array<double>& x) const
   {
-        double sa = sin(alpha);
-        double ca = cos(alpha);
+        double sa = std::sin(alpha);
+        double ca = std::cos(alpha);
         double c00 = theta0*sa*sa + theta1*ca*ca;
         double c01 = (theta0 - theta1)*sa*ca;
         double c11 = theta0*ca*ca + theta1*sa*sa;
         
         int ndim(2);
-        Array<double> dx(ndim);
+        dolfin::Array<double> dx(ndim);
         double e(0), val(0);
         for(int ip = 0; ip < nlocations; ++ip)
         {
@@ -133,4 +145,13 @@ void eval(Array<double>& values, const Array<double>& x) const
     std::vector<double> locations;
   
 };
+
+PYBIND11_MODULE(SIGNATURE, m)
+{
+  py::class_<Mollifier, std::shared_ptr<Mollifier>, dolfin::Expression>
+    (m, "Mollifier")
+    .def(py::init<>())
+    .def("addLocation", &Mollifier::addLocation)
+    ;
+}
 '''

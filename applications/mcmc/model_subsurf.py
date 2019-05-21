@@ -67,7 +67,7 @@ def true_model(Vh, gamma, delta, anis_diff):
     return mtrue
             
 if __name__ == "__main__":
-    dl.set_log_active(False)
+    #dl.set_log_active(False)
     sep = "\n"+"#"*80+"\n"
     ndim = 2
     nx = 64  
@@ -98,14 +98,9 @@ if __name__ == "__main__":
         return dl.exp(m)*dl.inner(dl.nabla_grad(u), dl.nabla_grad(p))*dl.dx - f*p*dl.dx
     
     pde = PDEVariationalProblem(Vh, pde_varf, bc, bc0, is_fwd_linear=True)
-    if dlversion() <= (1,6,0):
-        pde.solver = dl.PETScKrylovSolver("cg", amg_method())
-        pde.solver_fwd_inc = dl.PETScKrylovSolver("cg", amg_method())
-        pde.solver_adj_inc = dl.PETScKrylovSolver("cg", amg_method())
-    else:
-        pde.solver = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
-        pde.solver_fwd_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
-        pde.solver_adj_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+    pde.solver = dl.PETScKrylovSolver("cg", amg_method())
+    pde.solver_fwd_inc = dl.PETScKrylovSolver("cg", amg_method())
+    pde.solver_adj_inc = dl.PETScKrylovSolver("cg", amg_method())
     pde.solver.parameters["relative_tolerance"] = 1e-15
     pde.solver.parameters["absolute_tolerance"] = 1e-20
     pde.solver_fwd_inc.parameters = pde.solver.parameters
@@ -121,8 +116,7 @@ if __name__ == "__main__":
     
     gamma = .1
     delta = .5
-    
-    anis_diff = dl.Expression(code_AnisTensor2D, degree=1)
+    anis_diff = dl.CompiledExpression(dl.compile_cpp_code(code_AnisTensor2D).AnisTensor2D(), degree=1)
     anis_diff.theta0 = 2.
     anis_diff.theta1 = .5
     anis_diff.alpha = math.pi/4
@@ -193,7 +187,7 @@ if __name__ == "__main__":
 
     ## Define the QOI
     GC = GammaBottom()
-    marker = dl.FacetFunction("size_t", mesh)
+    marker = dl.MeshFunction("size_t", mesh, mesh.topology().dim()-1)
     marker.set_all(0)
     GC.mark(marker, 1)
     dss = dl.Measure("ds", subdomain_data=marker)

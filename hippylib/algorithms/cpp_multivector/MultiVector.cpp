@@ -30,6 +30,8 @@ setup_pybind11(cfg)
 #include <cassert>
 
 #include "pybind11/pybind11.h"
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
 
 namespace py = pybind11;
 
@@ -81,39 +83,40 @@ std::shared_ptr<GenericVector> MultiVector::operator[](int i)
 }
 
 
-void MultiVector::dot(const GenericVector & v, Array<double> & m)
+void MultiVector::dot(const GenericVector & v, py::array_t<double> m)
 {
-	double* im = m.data();
+	double* im = m.mutable_data();
 	for(auto&& vj : mv)
 		*(im++) = vj->inner(v);
 }
 
-void MultiVector::dot(const MultiVector & other, Array<double> & m)
+void MultiVector::dot(const MultiVector & other, py::array_t<double> m)
 {
 	if(other.mv.begin() == mv.begin())
 		dot_self(m);
 	else
 	{
-		double* data = m.data();
+		double* data = m.mutable_data();
 		for(auto&& vi : mv)
 			for(auto&& vj : other.mv)
 				*(data++) = vi->inner(*vj);
 	}
 }
 
-void MultiVector::dot_self(Array<double> & m)
+void MultiVector::dot_self(py::array_t<double> m)
 {
 	int s = mv.size();
+	double* data = m.mutable_data();
 	for(int i = 0; i < s; ++i)
 	{
-		m[i + s*i] = mv[i]->inner(*(mv[i]));
+		data[i + s*i] = mv[i]->inner(*(mv[i]));
 		for(int j = 0; j < i; ++j)
-			m[i + s*j] = m[j + s*i] = mv[i]->inner(*(mv[j]));
+			data[i + s*j] = data[j + s*i] = mv[i]->inner(*(mv[j]));
 
-	}
+	};
 }
 
-void MultiVector::reduce(GenericVector & v, const Array<double> & alpha)
+void MultiVector::reduce(GenericVector & v, const py::array_t<double> alpha)
 {
 	const double * data = alpha.data();
 	for(auto&& vi : mv)
@@ -126,14 +129,16 @@ void MultiVector::axpy(double a, const GenericVector & y)
 		vi->axpy(a, y);
 }
 
-void MultiVector::axpy(const Array<double> & a, const MultiVector & y)
+void MultiVector::axpy(const py::array_t<double> a, const MultiVector & y)
 {
 	int n = nvec();
 	assert(a.size() == n);
 	assert(y.nvec() == n);
 
+	const double* data = a.data();
+
 	for(int i = 0; i < n; ++i)
-		mv[i]->axpy(a[i], *(y.mv[i]) );
+		mv[i]->axpy(data[i], *(y.mv[i]) );
 }
 
 void MultiVector::scale(int k, double a)
@@ -141,7 +146,7 @@ void MultiVector::scale(int k, double a)
 	mv[k]->operator*=(a);
 }
 
-void MultiVector::scale(const Array<double> & a)
+void MultiVector::scale(const py::array_t<double> a)
 {
 	const double * data = a.data();
 	for(auto && vj : mv)
@@ -154,9 +159,9 @@ void MultiVector::zero()
 		vi->zero();
 }
 
-void MultiVector::norm_all(const std::string norm_type, Array<double> & norms)
+void MultiVector::norm_all(const std::string norm_type, py::array_t<double> norms)
 {
-	double * data = norms.data();
+	double * data = norms.mutable_data();
 	for(auto && vi : mv)
 		*(data++) = vi->norm(norm_type);
 }
@@ -176,6 +181,15 @@ PYBIND11_MODULE(MultiVector, m)
 {
 	py::class_<MultiVector, std::shared_ptr<MultiVector>>(m, "MultiVector")
         .def(py::init<>())
+	.def(py::init<const GenericVector&, int>())
+	.def(py::init<const MultiVector &>())
+        .def("nvec", &MultiVector::nvec)
+	.def("scale", (void (MultiVector::*)(int, double)) &MultiVector::scale)
+	.def("dot", (void (MultiVector::*)(const GenericVector&, py::array_t<double>)) &MultiVector::dot)
+	.def("dot", (void (MultiVector::*)(const MultiVector&, py::array_t<double>)) &MultiVector::dot)
+	.def("__getitem__", [](MultiVector s, size_t i) {
+            return s[i];
+	})
 	;
 
 }

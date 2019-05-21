@@ -16,6 +16,11 @@
 #include <dolfin/la/GenericVector.h>
 #include <dolfin/common/Array.h>
 
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+namespace py = pybind11;
+
 namespace dolfin
 {
 
@@ -44,33 +49,33 @@ public:
 	}
 
 	// m[i] = this[i] \cdot v
-	void dot(const GenericVector & v, Array<double> & m);
+	void dot(const GenericVector & v, py::array_t<double> m);
 
 	// m[i,j] = this[i] \cdot other[j]
-	void dot(const MultiVector & other, Array<double> & m);
+	void dot(const MultiVector & other, py::array_t<double> m);
 
 	// v += sum_i alpha[i]*this[i]
-	void reduce(GenericVector & v, const Array<double> & alpha);
+	void reduce(GenericVector & v, const py::array_t<double> alpha);
 
 	void axpy(double a, const GenericVector & y);
-	void axpy(const Array<double> & a, const MultiVector & y);
+	void axpy(const py::array_t<double> a, const MultiVector & y);
 
 	// this[k] *= a
 	void scale(int k, double a);
 
 	// this[k] *= a[k]
-	void scale(const Array<double> & a);
+	void scale(const py::array_t<double> a);
 
 	void zero();
 
-	void norm_all(const std::string norm_type, Array<double> & norms);
+	void norm_all(const std::string norm_type, py::array_t<double> norms);
 
 	void swap(MultiVector & other);
 
 	~MultiVector();
 
 private:
-	void dot_self(Array<double> & m);
+	void dot_self(py::array_t<double> m);
 
 	std::vector<std::shared_ptr<GenericVector> > mv;
 };

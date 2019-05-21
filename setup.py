@@ -25,9 +25,6 @@ except ImportError:
     raise
 else:
     fenics_version_major = int(dolfin_version[0:4])
-    if (fenics_version_major < 2016 or fenics_version_major >= 2018):
-        raise Exception(
-            'hIPPYlib requires FEniCS versions 2016.x.x or 2017.x.x')
     if not has_linear_algebra_backend("PETSc"):
         raise Exception(
             'hIPPYlib requires FEniCS to be installed with PETSc support')

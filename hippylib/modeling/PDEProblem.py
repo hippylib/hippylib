@@ -302,8 +302,6 @@ class PDEVariationalProblem(PDEProblem):
             [bc.apply(out) for bc in self.bc0]
                    
     def _createLUSolver(self):   
-        try:
-            return dl.LUSolver(self.Vh[STATE].mesh().mpi_comm() )
-        except:
-            return dl.LUSolver()
+        return dl.PETScLUSolver(self.Vh[STATE].mesh().mpi_comm() )
+
         

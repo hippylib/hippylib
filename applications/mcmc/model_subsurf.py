@@ -101,14 +101,10 @@ if __name__ == "__main__":
         return dl.exp(m)*dl.inner(dl.nabla_grad(u), dl.nabla_grad(p))*dl.dx - f*p*dl.dx
     
     pde = PDEVariationalProblem(Vh, pde_varf, bc, bc0, is_fwd_linear=True)
-    try:
-        pde.solver = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
-        pde.solver_fwd_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
-        pde.solver_adj_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
-    except:
-        pde.solver = dl.PETScKrylovSolver("cg", amg_method())
-        pde.solver_fwd_inc = dl.PETScKrylovSolver("cg", amg_method())
-        pde.solver_adj_inc = dl.PETScKrylovSolver("cg", amg_method())
+
+    pde.solver = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+    pde.solver_fwd_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+    pde.solver_adj_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
     pde.solver.parameters["relative_tolerance"] = 1e-15
     pde.solver.parameters["absolute_tolerance"] = 1e-20
     pde.solver_fwd_inc.parameters = pde.solver.parameters

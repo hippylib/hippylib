@@ -221,10 +221,9 @@ class Poisson:
         """
         A, b = self.assembleA(x, assemble_rhs = True)
         A.init_vector(out, 1)
-        try:
-            solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
-        except:
-            solver = dl.PETScKrylovSolver("cg", amg_method())
+
+        solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
+
                         
         solver.parameters["relative_tolerance"] = tol
         solver.set_operator(A)
@@ -240,10 +239,8 @@ class Poisson:
         At, badj = self.assembleA(x, assemble_adjoint = True,assemble_rhs = True)
         At.init_vector(out, 1)
                     
-        try:
-            solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
-        except:
-            solver = dl.PETScKrylovSolver("cg", amg_method())
+        solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
+
         solver.parameters["relative_tolerance"] = tol
         solver.set_operator(At)
         solver.solve(out,badj)
@@ -300,10 +297,8 @@ class Poisson:
         """
         Solve the incremental forward problem for a given rhs
         """    
-        try:
-            solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
-        except:
-            solver = dl.PETScKrylovSolver("cg", amg_method())
+        solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
+
         solver.set_operator(self.A)
         solver.parameters["relative_tolerance"] = tol
         self.A.init_vector(sol,1)
@@ -314,10 +309,9 @@ class Poisson:
         """
         Solve the incremental adjoint problem for a given rhs
         """            
-        try:
-            solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
-        except:
-            solver = dl.PETScKrylovSolver("cg", amg_method())
+        
+        solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
+
         solver.set_operator(self.At)
         solver.parameters["relative_tolerance"] = tol
         self.At.init_vector(sol,1)

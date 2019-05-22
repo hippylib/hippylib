@@ -181,20 +181,18 @@ class LaplacianPrior(_Prior):
         self.M = dl.assemble(varfM)
         self.R = dl.assemble(gamma*varfL + delta*varfM)
         
-        try:
-            self.Rsolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
-        except:
-            self.Rsolver = dl.PETScKrylovSolver("cg", amg_method())
+        
+        self.Rsolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+
         self.Rsolver.set_operator(self.R)
         self.Rsolver.parameters["maximum_iterations"] = max_iter
         self.Rsolver.parameters["relative_tolerance"] = rel_tol
         self.Rsolver.parameters["error_on_nonconvergence"] = True
         self.Rsolver.parameters["nonzero_initial_guess"] = False
         
-        try:
-            self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
-        except:
-            self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
+        
+        self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
+
         self.Msolver.set_operator(self.M)
         self.Msolver.parameters["maximum_iterations"] = max_iter
         self.Msolver.parameters["relative_tolerance"] = rel_tol
@@ -376,10 +374,8 @@ class BiLaplacianPrior(_Prior):
             robin_coeff = 0.
         
         self.M = dl.assemble(varfM)
-        try:
-            self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
-        except:
-            self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
+
+        self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
             
         self.Msolver.set_operator(self.M)
         self.Msolver.parameters["maximum_iterations"] = max_iter
@@ -389,10 +385,9 @@ class BiLaplacianPrior(_Prior):
         
         self.A = dl.assemble(gamma*varfL + delta*varfM + robin_coeff*varf_robin)        
           
-        try:
-            self.Asolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
-        except:
-            self.Asolver = dl.PETScKrylovSolver("cg", amg_method())  
+
+        self.Asolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+
         self.Asolver.set_operator(self.A)
         self.Asolver.parameters["maximum_iterations"] = max_iter
         self.Asolver.parameters["relative_tolerance"] = rel_tol
@@ -512,10 +507,8 @@ class MollifiedBiLaplacianPrior(_Prior):
         
         self.M = dl.assemble(varfM)
    
-        try:
-            self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
-        except:
-            self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
+        self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
+
         self.Msolver.set_operator(self.M)
         self.Msolver.parameters["maximum_iterations"] = max_iter
         self.Msolver.parameters["relative_tolerance"] = rel_tol
@@ -533,10 +526,8 @@ class MollifiedBiLaplacianPrior(_Prior):
                 
         self.A = dl.assemble(gamma*varfL+delta*varfM + pen*varfmo)
       
-        try:
-            self.Asolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
-        except:
-            self.Asolver = dl.PETScKrylovSolver("cg", amg_method())
+        self.Asolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+
         self.Asolver.set_operator(self.A)
         self.Asolver.parameters["maximum_iterations"] = max_iter
         self.Asolver.parameters["relative_tolerance"] = rel_tol

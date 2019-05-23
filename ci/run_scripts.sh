@@ -20,7 +20,7 @@ IMAGE=hippylib/fenics:latest
 
 DOCKER="docker run --rm -v $(pwd):/home/fenics/hippylib -w"
 
-${DOCKER} /home/fenics/hippylib $QUAY "dolfin-version"
+${DOCKER} /home/fenics/hippylib $IMAGE "dolfin-version"
 ${DOCKER} /home/fenics/hippylib/applications/poisson $IMAGE "$PYTHON_PREPROC mpirun -n 2 $PYTHON model_continuous_obs.py"
 ${DOCKER} /home/fenics/hippylib/applications/poisson $IMAGE "$PYTHON_PREPROC mpirun -n 2 $PYTHON model_subsurf.py"
 ${DOCKER} /home/fenics/hippylib/applications/ad_diff $IMAGE "$PYTHON_PREPROC mpirun -n 2 $PYTHON model_ad_diff.py"

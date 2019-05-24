@@ -18,7 +18,7 @@ import numpy as np
 import scipy.linalg as scila
 import math
 
-from ..algorithms.linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2, Solver2Operator, Operator2Solver
+from ..algorithms.linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2, Solver2Operator, Operator2Solver, Transpose
 from ..algorithms.traceEstimator import TraceEstimator
 from ..algorithms.multivector import MultiVector
 from ..algorithms.randomizedEigensolver import singlePass, doublePass, singlePassG, doublePassG
@@ -26,8 +26,9 @@ from ..algorithms.randomizedEigensolver import singlePass, doublePass, singlePas
 from ..utils.checkDolfinVersion import dlversion
 from ..utils.random import parRandom
 from ..utils.deprecate import deprecated
+from ..utils.vector2function import vector2Function
 
-from .expression import ExpressionModule
+from .expression import code_Mollifier
 
 class _RinvM:
     """
@@ -128,7 +129,7 @@ class _Prior:
             raise NameError("Unknown method")
         
         return pw_var
-    
+        
     def cost(self,m):
         d = self.mean.copy()
         d.axpy(-1., m)
@@ -147,6 +148,10 @@ class _Prior:
 
     def sample(self, noise, s, add_mean=True):
         raise NotImplementedError("Child class should implement method sample")
+
+    def getHessianPreconditioner(self):
+        " Return the preconditioner for Newton-CG "
+        return self.Rsolver
         
 class LaplacianPrior(_Prior):
     """
@@ -181,18 +186,16 @@ class LaplacianPrior(_Prior):
         self.M = dl.assemble(varfM)
         self.R = dl.assemble(gamma*varfL + delta*varfM)
         
-        
-        self.Rsolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
 
+        self.Rsolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
         self.Rsolver.set_operator(self.R)
         self.Rsolver.parameters["maximum_iterations"] = max_iter
         self.Rsolver.parameters["relative_tolerance"] = rel_tol
         self.Rsolver.parameters["error_on_nonconvergence"] = True
         self.Rsolver.parameters["nonzero_initial_guess"] = False
         
-        
-        self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
 
+        self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
         self.Msolver.set_operator(self.M)
         self.Msolver.parameters["maximum_iterations"] = max_iter
         self.Msolver.parameters["relative_tolerance"] = rel_tol
@@ -205,16 +208,13 @@ class LaplacianPrior(_Prior):
         qdegree = 2*Vh._ufl_element.degree()
         metadata = {"quadrature_degree" : qdegree}
         
-        if dlversion() >= (2017,1,0):
-            representation_old = dl.parameters["form_compiler"]["representation"]
-            dl.parameters["form_compiler"]["representation"] = "quadrature"
+
+        representation_old = dl.parameters["form_compiler"]["representation"]
+        dl.parameters["form_compiler"]["representation"] = "quadrature"
             
-        if dlversion() <= (1,6,0):
-            Qh = dl.VectorFunctionSpace(Vh.mesh(), 'Quadrature', qdegree, dim=(ndim+1) )
-        else:
-            element = dl.VectorElement("Quadrature", Vh.mesh().ufl_cell(),
-                                       qdegree, dim=(ndim+1), quad_scheme="default")
-            Qh = dl.FunctionSpace(Vh.mesh(), element)
+        element = dl.VectorElement("Quadrature", Vh.mesh().ufl_cell(),
+                                    qdegree, dim=(ndim+1), quad_scheme="default")
+        Qh = dl.FunctionSpace(Vh.mesh(), element)
             
         ph = dl.TrialFunction(Qh)
         qh = dl.TestFunction(Qh)
@@ -240,9 +240,7 @@ class LaplacianPrior(_Prior):
         self.sqrtR = MatMatMult(GG, Mqh)
         
         dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
-        
-        if dlversion() >= (2017,1,0):
-            dl.parameters["form_compiler"]["representation"] = representation_old
+        dl.parameters["form_compiler"]["representation"] = representation_old
                         
         self.mean = mean
         
@@ -330,64 +328,42 @@ class _BilaplacianRsolver():
         self.M.mult(self.help1, self.help2)
         nit += self.Asolver.solve(x, self.help2)
         return nit
-        
-        
-class BiLaplacianPrior(_Prior):
+    
+    
+class SqrtPrecisionPDE_Prior(_Prior):
     """
     This class implement a prior model with covariance matrix
-    :math:`C = (\\delta I + \\gamma \\mbox{div } \\Theta \\nabla) ^ {-2}`.
+    :math:`C = A^{-1} M A^-1`,
+    where A is the finite element matrix arising from discretization of sqrt_precision_varf_handler
     
-    The magnitude of :math:`\\delta\\gamma` governs the variance of the samples, while
-    the ratio :math:`\\frac{\\gamma}{\\delta}` governs the correlation lenght.
-    
-    Here :math:`\\Theta` is a SPD tensor that models anisotropy in the covariance kernel.
     """
     
-    def __init__(self, Vh, gamma, delta, Theta = None, mean=None, rel_tol=1e-12, max_iter=1000, robin_bc=False):
+    def __init__(self, Vh, sqrt_precision_varf_handler, mean=None, rel_tol=1e-12, max_iter=1000):
         """
         Construct the prior model.
         Input:
 
         - :code:`Vh`:              the finite element space for the parameter
-        - :code:`gamma` and :code:`delta`: the coefficient in the PDE
-        - :code:`Theta`:           the SPD tensor for anisotropic diffusion of the PDE
+        - :code:sqrt_precision_varf_handler: the PDE representation of the  sqrt of the covariance operator
         - :code:`mean`:            the prior mean
         """
-        assert delta != 0., "Intrinsic Gaussian Prior are not supported"
+
         self.Vh = Vh
         
         trial = dl.TrialFunction(Vh)
         test  = dl.TestFunction(Vh)
         
-        if Theta == None:
-            varfL = dl.inner(dl.nabla_grad(trial), dl.nabla_grad(test))*dl.dx
-        else:
-            varfL = dl.inner( Theta*dl.grad(trial), dl.grad(test))*dl.dx
-        
-        varfM = dl.inner(trial,test)*dl.dx
-        
-        varf_robin = trial*test*dl.ds
-        
-        if robin_bc:
-            robin_coeff = gamma*np.sqrt(delta/gamma)/1.42
-        else:
-            robin_coeff = 0.
-        
+        varfM = dl.inner(trial,test)*dl.dx       
         self.M = dl.assemble(varfM)
-
         self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
-            
         self.Msolver.set_operator(self.M)
         self.Msolver.parameters["maximum_iterations"] = max_iter
         self.Msolver.parameters["relative_tolerance"] = rel_tol
         self.Msolver.parameters["error_on_nonconvergence"] = True
         self.Msolver.parameters["nonzero_initial_guess"] = False
         
-        self.A = dl.assemble(gamma*varfL + delta*varfM + robin_coeff*varf_robin)        
-          
-
+        self.A = dl.assemble( sqrt_precision_varf_handler(trial, test) )        
         self.Asolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
-
         self.Asolver.set_operator(self.A)
         self.Asolver.parameters["maximum_iterations"] = max_iter
         self.Asolver.parameters["relative_tolerance"] = rel_tol
@@ -399,31 +375,35 @@ class BiLaplacianPrior(_Prior):
         qdegree = 2*Vh._ufl_element.degree()
         metadata = {"quadrature_degree" : qdegree}
 
-        if dlversion() >= (2017,1,0):
-            representation_old = dl.parameters["form_compiler"]["representation"]
-            dl.parameters["form_compiler"]["representation"] = "quadrature"
+
+        representation_old = dl.parameters["form_compiler"]["representation"]
+        dl.parameters["form_compiler"]["representation"] = "quadrature"
             
-        if dlversion() <= (1,6,0):
-            Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', qdegree)
-        else:
+        num_sub_spaces = Vh.num_sub_spaces()
+        if num_sub_spaces <= 1: #SCALAR PARAMETER
             element = dl.FiniteElement("Quadrature", Vh.mesh().ufl_cell(), qdegree, quad_scheme="default")
-            Qh = dl.FunctionSpace(Vh.mesh(), element)
+        else: #Vector FIELD PARAMETER
+            element = dl.VectorElement("Quadrature", Vh.mesh().ufl_cell(),
+                                       qdegree, dim=num_sub_spaces, quad_scheme="default")
+        Qh = dl.FunctionSpace(Vh.mesh(), element)
             
         ph = dl.TrialFunction(Qh)
         qh = dl.TestFunction(Qh)
-        Mqh = dl.assemble(ph*qh*dl.dx(metadata=metadata))
-        ones = dl.interpolate(dl.Constant(1.), Qh).vector()
+        Mqh = dl.assemble(dl.inner(ph,qh)*dl.dx(metadata=metadata))
+        if num_sub_spaces <= 1:
+            one_constant = dl.Constant(1.)
+        else:
+            one_constant = dl.Constant( tuple( [1.]*num_sub_spaces) )
+        ones = dl.interpolate(one_constant, Qh).vector()
         dMqh = Mqh*ones
         Mqh.zero()
         dMqh.set_local( ones.get_local() / np.sqrt(dMqh.get_local() ) )
         Mqh.set_diagonal(dMqh)
-        MixedM = dl.assemble(ph*test*dl.dx(metadata=metadata))
+        MixedM = dl.assemble(dl.inner(ph,test)*dl.dx(metadata=metadata))
         self.sqrtM = MatMatMult(MixedM, Mqh)
 
         dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
-        
-        if dlversion() >= (2017,1,0):
-            dl.parameters["form_compiler"]["representation"] = representation_old
+        dl.parameters["form_compiler"]["representation"] = representation_old
                              
         self.R = _BilaplacianR(self.A, self.Msolver)      
         self.Rsolver = _BilaplacianRsolver(self.Asolver, self.M)
@@ -457,11 +437,52 @@ class BiLaplacianPrior(_Prior):
         
         if add_mean:
             s.axpy(1., self.mean)
-        
-
-class MollifiedBiLaplacianPrior(_Prior):
+            
+def BiLaplacianPrior(Vh, gamma, delta, Theta = None, mean=None, rel_tol=1e-12, max_iter=1000, robin_bc=False):
     """
-    This class implement a prior model with covariance matrix
+    This function construct an instance of :code"`SqrtPrecisionPDE_Prior`  with covariance matrix
+    :math:`C = (\\delta I + \\gamma \\mbox{div } \\Theta \\nabla) ^ {-2}`.
+    
+    The magnitude of :math:`\\delta\\gamma` governs the variance of the samples, while
+    the ratio :math:`\\frac{\\gamma}{\\delta}` governs the correlation lenght.
+    
+    Here :math:`\\Theta` is a SPD tensor that models anisotropy in the covariance kernel.
+    
+    Input:
+
+    - :code:`Vh`:              the finite element space for the parameter
+    - :code:`gamma` and :code:`delta`: the coefficient in the PDE
+    - :code:`Theta`:           the SPD tensor for anisotropic diffusion of the PDE
+    - :code:`mean`:            the prior mean
+    - :code:`rel_tol`:         relative tolerance for solving linear systems involving covariance matrix
+    - :code:`max_iter`:        maximum number of iterations for solving linear systems involving covariance matrix
+    - :code:`robin_bc`:        whether to use Robin boundary condition to remove boundary artifacts
+    """
+    assert delta != 0., "Intrinsic Gaussian Prior are not supported"
+
+    
+    def sqrt_precision_varf_handler(trial, test): 
+        if Theta == None:
+            varfL = dl.inner(dl.grad(trial), dl.grad(test))*dl.dx
+        else:
+            varfL = dl.inner( Theta*dl.grad(trial), dl.grad(test))*dl.dx
+        
+        varfM = dl.inner(trial,test)*dl.dx
+        
+        varf_robin = dl.inner(trial,test)*dl.ds
+        
+        if robin_bc:
+            robin_coeff = gamma*np.sqrt(delta/gamma)/1.42
+        else:
+            robin_coeff = 0.
+        
+        return dl.Constant(gamma)*varfL + dl.Constant(delta)*varfM + dl.Constant(robin_coeff)*varf_robin
+    
+    return SqrtPrecisionPDE_Prior(Vh, sqrt_precision_varf_handler, mean, rel_tol, max_iter)
+
+def MollifiedBiLaplacianPrior(Vh, gamma, delta, locations, m_true, Theta = None, pen = 1e1, order=2, rel_tol=1e-12, max_iter=1000):
+    """
+    This function construct an instance of :code"`SqrtPrecisionPDE_Prior`  with covariance matrix
     :math:`C = \\left( [\\delta + \\mbox{pen} \\sum_i m(x - x_i) ] I + \\gamma \\mbox{div } \\Theta \\nabla\\right) ^ {-2}`,
     
     where
@@ -478,129 +499,51 @@ class MollifiedBiLaplacianPrior(_Prior):
     
         .. math:: \\left( [\\delta + \\sum_i m(x - x_i) ] I + \\gamma \\mbox{div } \\Theta \\nabla \\right) m = \\sum_i m(x - x_i) m_{\\mbox{true}}.
     
+
+    Input:
+
+    - :code:`Vh`:              the finite element space for the parameter
+    - :code:`gamma` and :code:`delta`: the coefficients in the PDE
+    - :code:`locations`:       the points :math:`x_i` at which we assume to know the true value of the parameter
+    - :code:`m_true`:          the true model
+    - :code:`Theta`:           the SPD tensor for anisotropic diffusion of the PDE
+    - :code:`pen`:             a penalization parameter for the mollifier
+
     """
+    assert delta != 0. or pen != 0, "Intrinsic Gaussian Prior are not supported"
     
-    def __init__(self, Vh, gamma, delta, locations, m_true, Theta = None, pen = 1e1, order=2, rel_tol=1e-12, max_iter=1000):
-        """
-        Construct the prior model.
-        Input:
-
-        - :code:`Vh`:              the finite element space for the parameter
-        - :code:`gamma` and :code:`delta`: the coefficients in the PDE
-        - :code:`locations`:       the points :math:`x_i` at which we assume to know the true value of the parameter
-        - :code:`m_true`:          the true model
-        - :code:`Theta`:           the SPD tensor for anisotropic diffusion of the PDE
-        - :code:`pen`:             a penalization parameter for the mollifier
-
-        """
-        assert delta != 0. or pen != 0, "Intrinsic Gaussian Prior are not supported"
-        self.Vh = Vh
-        
-        trial = dl.TrialFunction(Vh)
-        test  = dl.TestFunction(Vh)
-        
+    #mfun = Mollifier(gamma/delta, dl.inv(Theta), order, locations)
+    mfun = dl.Expression(code_Mollifier, degree = Vh.ufl_element().degree()+2)
+    mfun.l = gamma/delta
+    mfun.o = order
+    mfun.theta0 = 1./Theta.theta0
+    mfun.theta1 = 1./Theta.theta1
+    mfun.alpha = Theta.alpha
+    for ii in range(locations.shape[0]):
+        mfun.addLocation(locations[ii,0], locations[ii,1])
+            
+       
+    def sqrt_precision_varf_handler(trial, test): 
         if Theta == None:
             varfL = dl.inner(dl.nabla_grad(trial), dl.nabla_grad(test))*dl.dx
         else:
             varfL = dl.inner(Theta*dl.grad(trial), dl.grad(test))*dl.dx
         varfM = dl.inner(trial,test)*dl.dx
-        
-        self.M = dl.assemble(varfM)
-   
-        self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
-
-        self.Msolver.set_operator(self.M)
-        self.Msolver.parameters["maximum_iterations"] = max_iter
-        self.Msolver.parameters["relative_tolerance"] = rel_tol
-        self.Msolver.parameters["error_on_nonconvergence"] = True
-        self.Msolver.parameters["nonzero_initial_guess"] = False
-        
-        #mfun = Mollifier(gamma/delta, dl.inv(Theta), order, locations)
-        mfun = dl.CompiledExpression(ExpressionModule.Mollifier(), degree = Vh.ufl_element().degree()+2)
-        mfun.set(Theta._cpp_object, gamma/delta, order)
-        for ii in range(locations.shape[0]):
-            mfun.addLocation(locations[ii,0], locations[ii,1])
-                    
         varfmo = mfun*dl.inner(trial,test)*dl.dx
-        MO = dl.assemble(pen*varfmo)
-                
-        self.A = dl.assemble(gamma*varfL+delta*varfM + pen*varfmo)
-      
-        self.Asolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
-
-        self.Asolver.set_operator(self.A)
-        self.Asolver.parameters["maximum_iterations"] = max_iter
-        self.Asolver.parameters["relative_tolerance"] = rel_tol
-        self.Asolver.parameters["error_on_nonconvergence"] = True
-        self.Asolver.parameters["nonzero_initial_guess"] = False
-        
-        old_qr = dl.parameters["form_compiler"]["quadrature_degree"]
-        dl.parameters["form_compiler"]["quadrature_degree"] = -1
-        qdegree = 2*Vh._ufl_element.degree()
-        metadata = {"quadrature_degree" : qdegree}
-        
-        if dlversion() >= (2017,1,0):
-            representation_old = dl.parameters["form_compiler"]["representation"]
-            dl.parameters["form_compiler"]["representation"] = "quadrature"
-        
-        if dlversion() <= (1,6,0):
-            Qh = dl.FunctionSpace(Vh.mesh(), 'Quadrature', qdegree)
-        else:
-            element = dl.FiniteElement("Quadrature", Vh.mesh().ufl_cell(), qdegree, quad_scheme="default")
-            Qh = dl.FunctionSpace(Vh.mesh(), element)
-            
-        ph = dl.TrialFunction(Qh)
-        qh = dl.TestFunction(Qh)
-        Mqh = dl.assemble(ph*qh*dl.dx(metadata=metadata))
-        ones = dl.interpolate(dl.Constant(1.), Qh).vector()
-        dMqh = Mqh*ones
-        Mqh.zero()
-        dMqh.set_local( ones.get_local() / np.sqrt(dMqh.get_local() ) )
-        Mqh.set_diagonal(dMqh)
-        MixedM = dl.assemble(ph*test*dl.dx(metadata=metadata))
-        self.sqrtM = MatMatMult(MixedM, Mqh)
-        
-        dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
-        
-        if dlversion() >= (2017,1,0):
-            dl.parameters["form_compiler"]["representation"] = representation_old
-             
-        self.R = _BilaplacianR(self.A, self.Msolver)      
-        self.Rsolver = _BilaplacianRsolver(self.Asolver, self.M)
-        
-        rhs = dl.Vector(self.R.mpi_comm())
-        self.mean = dl.Vector(self.R.mpi_comm())
-        self.init_vector(rhs, 0)
-        self.init_vector(self.mean, 0)
-        
-        MO.mult(m_true, rhs)
-        self.Asolver.solve(self.mean, rhs)
-        
-     
-    def init_vector(self,x,dim):
-        """
-        Inizialize a vector :code:`x` to be compatible with the range/domain of :math:`R`.
-
-        If :code:`dim == "noise"` inizialize :code:`x` to be compatible with the size of
-        white noise used for sampling.
-        """
-        if dim == "noise":
-            self.sqrtM.init_vector(x, 1)
-        else:
-            self.A.init_vector(x,dim)   
-        
-    def sample(self, noise, s, add_mean=True):
-        """
-        Given :code:`noise` :math:`\\sim \\mathcal{N}(0, I)` compute a sample :code:`s` from the prior.
-
-        If :code:`add_mean == True` add the prior mean value to :code:`s`.
-        """
-        rhs = self.sqrtM*noise
-        self.Asolver.solve(s, rhs)
-        
-        if add_mean:
-            s.axpy(1., self.mean)
-
+        return dl.Constant(gamma)*varfL+dl.Constant(delta)*varfM + dl.Constant(pen)*varfmo
+    
+    prior = SqrtPrecisionPDE_Prior(Vh, sqrt_precision_varf_handler, None, rel_tol, max_iter)
+    
+    prior.mean = dl.Vector(prior.R.mpi_comm())
+    prior.init_vector(prior.mean, 0)
+    
+    test  = dl.TestFunction(Vh)
+    m_true_fun = vector2Function(m_true, Vh)
+    rhs = dl.assemble(dl.Constant(pen)*mfun*dl.inner(m_true_fun,test)*dl.dx) 
+    prior.Asolver.solve(prior.mean, rhs)
+    
+    return prior
+    
 
 class GaussianRealPrior(_Prior):
     """

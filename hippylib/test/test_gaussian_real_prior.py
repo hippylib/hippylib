@@ -153,9 +153,6 @@ class TestGaussianRealPrior(unittest.TestCase):
 
         rel_err = np.linalg.norm(sample_cov - self.test_prior.covariance) \
                   / np.linalg.norm(self.test_prior.covariance)
-        
-        print('Actual:', sample_cov)
-        print('Expected:', self.test_prior.covariance)
 
         self.assertAlmostEqual(
                 rel_err,

@@ -23,7 +23,6 @@ from ..algorithms.traceEstimator import TraceEstimator
 from ..algorithms.multivector import MultiVector
 from ..algorithms.randomizedEigensolver import singlePass, doublePass, singlePassG, doublePassG
 
-from ..utils.checkDolfinVersion import dlversion
 from ..utils.random import parRandom
 from ..utils.deprecate import deprecated
 from ..utils.vector2function import vector2Function
@@ -292,15 +291,6 @@ class _BilaplacianR:
         
     def mpi_comm(self):
         return self.A.mpi_comm()
-
-    @deprecated(name="_BilaplacianR.inner(x, y)",
-                version="2.2.0",
-                msg="It will be removed in hIPPYlib 3.x\n Use _BilaplacianR.mult(x, Rx); Rx.inner(y) instead")
-    def inner(self,x,y):
-        Rx = dl.Vector(self.A.mpi_comm())
-        self.init_vector(Rx,0)
-        self.mult(x, Rx)
-        return Rx.inner(y)
         
     def mult(self,x,y):
         self.A.mult(x, self.help1)

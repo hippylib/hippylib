@@ -17,7 +17,6 @@ import dolfin as dl
 from .variables import STATE, PARAMETER, ADJOINT
 from ..algorithms.linalg import Transpose 
 from ..utils.vector2function import vector2Function
-from ..utils.checkDolfinVersion import dlversion
 
 class PDEProblem(object):
     """ Consider the PDE problem:

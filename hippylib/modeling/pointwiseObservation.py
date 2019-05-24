@@ -14,7 +14,6 @@
 from __future__ import absolute_import, division, print_function
 
 import dolfin as dl
-from ..utils.checkDolfinVersion import dlversion
 import numpy as np
 import os
     
@@ -65,13 +64,13 @@ def exportPointwiseObservation(Vh, B, data, fname, varname="observation"):
 
     xyz = [B*dl.interpolate(fun, Vh).vector() for fun in xyz_fun]
     
-    if dlversion() >= (2016,1,0) and dlversion() != (2017,2,0):
+    try:
         xyz_array = np.stack([xi.get_local() for xi in xyz])
         pp = [dl.Point( (xyz_array[:,i]).flatten() ) for i in np.arange(xyz_array.shape[1])]
         values = data.get_local()
         fid = dl.XDMFFile(dl.MPI.comm_world, fname+".xdmf")
         fid.write(pp, values)
-    else:
+    except:
         data_on_pzero = data.gather_on_zero()
         xyz_on_pzero = np.zeros((data_on_pzero.shape[0], 3))
         for i in range(len(xyz)):

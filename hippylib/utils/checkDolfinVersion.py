@@ -13,7 +13,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
 import dolfin as dl
 
 
@@ -23,7 +22,7 @@ def dlversion():
     
     return (int(vv[0]), int(vv[1]), int(vv[2]))
 
-supported_versions = [(2018,1,0), (2019,1,0)]
+supported_versions = [(2019,1,0)]
 
 def checkdlversion():
     """
@@ -34,7 +33,7 @@ def checkdlversion():
         print( "The version of FEniCS (FEniCS {0}.{1}.{2}) you are using is not supported.".format(*dlversion()) )
         exit()
         
-if  dlversion() >= (2017,2,0):    
-    import warnings
-    from ffc.quadrature.deprecation import QuadratureRepresentationDeprecationWarning
-    warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)
+  
+import warnings
+from ffc.quadrature.deprecation import QuadratureRepresentationDeprecationWarning
+warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)

@@ -46,27 +46,11 @@ class TimeDependentVector(object):
             d *= other
         return self
     
-    @deprecated(name="self.copy(other)", version="2.2.0", msg="It will be removed in hIPPYlib 3.x\n Use self.zero(), self.axpy(1., other) instead.")
-    def _deprecated_copy(self, other):
-        """
-        Copy all the time frames and snapshot from other to self (legacy version).
-        """
-                
-        self.nsteps = other.nsteps
-        self.times = other.times
-        self.tol = other.tol
-        self.data = []
-        
-        for v in other.data:
-            self.data.append( v.copy() )
 
-    def copy(self, other=None):
+    def copy(self):
         """
         Return a copy of all the time frames and snapshots
-        """
-        if other is not None:
-            return self._deprecated_copy(other)
-        
+        """        
         res = TimeDependentVector(self.times, tol=self.tol, mpi_comm=self.mpi_comm)
         res.data = []
 

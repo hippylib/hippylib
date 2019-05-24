@@ -355,11 +355,9 @@ def q_boundary(x,on_boundary):
 def computeVelocityField(mesh):
     Xh = dl.VectorFunctionSpace(mesh,'Lagrange', 2)
     Wh = dl.FunctionSpace(mesh, 'Lagrange', 1)
-    if dlversion() <= (1,6,0):
-        XW = dl.MixedFunctionSpace([Xh, Wh])
-    else:
-        mixed_element = dl.MixedElement([Xh.ufl_element(), Wh.ufl_element()])
-        XW = dl.FunctionSpace(mesh, mixed_element)
+
+    mixed_element = dl.MixedElement([Xh.ufl_element(), Wh.ufl_element()])
+    XW = dl.FunctionSpace(mesh, mixed_element)
 
     
     Re = 1e2

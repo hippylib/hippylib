@@ -28,7 +28,7 @@ from ..utils.random import parRandom
 from ..utils.deprecate import deprecated
 from ..utils.vector2function import vector2Function
 
-from .expression import code_Mollifier
+from .expression import ExpressionModule
 
 class _RinvM:
     """
@@ -512,13 +512,8 @@ def MollifiedBiLaplacianPrior(Vh, gamma, delta, locations, m_true, Theta = None,
     """
     assert delta != 0. or pen != 0, "Intrinsic Gaussian Prior are not supported"
     
-    #mfun = Mollifier(gamma/delta, dl.inv(Theta), order, locations)
-    mfun = dl.Expression(code_Mollifier, degree = Vh.ufl_element().degree()+2)
-    mfun.l = gamma/delta
-    mfun.o = order
-    mfun.theta0 = 1./Theta.theta0
-    mfun.theta1 = 1./Theta.theta1
-    mfun.alpha = Theta.alpha
+    mfun = dl.CompiledExpression(ExpressionModule.Mollifier(), degree = Vh.ufl_element().degree()+2)
+    mfun.set(Theta._cpp_object, gamma/delta, order)
     for ii in range(locations.shape[0]):
         mfun.addLocation(locations[ii,0], locations[ii,1])
             

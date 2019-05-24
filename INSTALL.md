@@ -15,18 +15,13 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
 
-`hIPPYlib` depends on [FEniCS](http://fenicsproject.org/) versions 
-2016.1, 2016.2, 2017.1, 2017.2.  
-The suggested version of `FEniCS` to use with `hIPPYlib` is
-2017.2.
-> **Note**: `FEniCS 2018.1` is not
-supported by `hIPPYlib`.
+`hIPPYlib` depends on [FEniCS](http://fenicsproject.org/) version 2019.1.  
 
 `FEniCS` needs to be built with the following dependecies enabled:
 
  - `numpy`, `scipy`, `matplotlib`, `mpi4py`
- - `PETSc` and `petsc4py` (version 3.7.0 or above)
- - `SLEPc` and `slepc4py` (version 3.7.0 or above)
+ - `PETSc` and `petsc4py` (version 3.10.0 or above)
+ - `SLEPc` and `slepc4py` (version 3.10.0 or above)
  - PETSc dependencies: `parmetis`, `scotch`, `suitesparse`, `superlu_dist`, `ml`, `hypre`
  - (optional): `mshr`, `jupyter`
  
@@ -63,8 +58,7 @@ first install [Anaconda3](https://docs.continuum.io/anaconda/install),
 then run following commands in your terminal:
 
 ```
-conda create -n fenicsproject -c conda-forge fenics==2017.2.0 \
-                   mpi4py matplotlib scipy sympy==1.1.1 jupyter
+conda create -n fenicsproject -c conda-forge fenics==2019.1.0 matplotlib scipy jupyter
 ```
 > **Note**: FEniCS Anaconda recipes are maintained by the FEniCS community and distributed binary packages do not have a full feature set yet, especially regarding sparse direct solvers and input/output facilities.
 
@@ -86,7 +80,7 @@ We first create a new Docker container to run the `jupyter-notebook`
 command and to expose port `8888`.  In a command line shell type:
 ```
 docker run --name hippylib-nb -w /home/fenics/hippylib -v $(pwd):/home/fenics/hippylib \
-           -d -p 127.0.0.1:8888:8888 quay.io/fenicsproject/stable:2017.2.0 \
+           -d -p 127.0.0.1:8888:8888 hippylib/fenics \
            'jupyter-notebook --ip=0.0.0.0'
 docker logs hippylib-nb
 ```
@@ -109,7 +103,7 @@ In a command line shell type:
 ```
 docker run --name hippylib-nb -w /home/fenics/hippylib -v $(pwd):/home/fenics/hippylib \
            -d -p $(docker-machine ip $(docker-machine active)):8888:8888 \
-           quay.io/fenicsproject/stable:2017.2.0 'jupyter-notebook --ip=0.0.0.0'
+           hippylib/fenics 'jupyter-notebook --ip=0.0.0.0'
 docker logs hippylib-nb
 ```
 To find out the IP of the virtual machine we type:
@@ -133,16 +127,6 @@ If you would like to see the log output from the Jupyter notebook server (e.g. i
 ```
 docker logs hippylib-nb
 ```
-
-### Build FEniCS from source using hashdist (Linux and MacOS 10.12 or below)
-
-To build `FEniCS` from source we suggest using the scripts and profile
-files in `fenics-hashdist`. These scripts and profile files contain
-small modifications with respect to the ones provided by the `FEniCS`
-community to ensure that all the dependencies needed by `hIPPYlib` are
-installed.
-
-See `fenics-hashdist/README.md` for further details.
 
 
 ### Other ways to build FEniCS

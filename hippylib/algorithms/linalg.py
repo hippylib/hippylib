@@ -33,7 +33,7 @@ def amg_method(amg_type="ml_amg"):
 
 def MatMatMult(A,B):
     """
-    Compute the matrix-matrix product A*B.
+    Compute the matrix-matrix product :math:`AB`.
     """
     Amat = dl.as_backend_type(A).mat()
     Bmat = dl.as_backend_type(B).mat()
@@ -45,7 +45,7 @@ def MatMatMult(A,B):
 
 def MatPtAP(A,P):
     """
-    Compute the triple matrix product P^T*A*P.
+    Compute the triple matrix product :math:`P^T A P`.
     """
     Amat = dl.as_backend_type(A).mat()
     Pmat = dl.as_backend_type(P).mat()
@@ -56,7 +56,7 @@ def MatPtAP(A,P):
 
 def MatAtB(A,B):
     """
-    Compute the matrix-matrix product A^T*B.
+    Compute the matrix-matrix product :math:`A^T B`.
     """
     Amat = dl.as_backend_type(A).mat()
     Bmat = dl.as_backend_type(B).mat()

@@ -18,18 +18,13 @@ import os
 
 abspath = os.path.dirname( os.path.abspath(__file__) )
 source_directory = os.path.join(abspath,"cpp_rand")
-#header_file = open(os.path.join(source_directory,"PRNG.h"), "r")
-#header = header_file.read()
-#header_file.close()
 
 with open(os.path.join(source_directory,"PRNG.cpp"), "r") as cpp_file:
     cpp_code    = cpp_file.read()
 
 
 include_dirs = [".", source_directory]
-#for ss in ['PROFILE_INSTALL_DIR', 'PETSC_DIR', 'SLEPC_DIR']:
-#    if ss in os.environ.keys():
-#        include_dirs.append(os.environ[ss]+'/include')
+
         
 cpp_module = dl.compile_cpp_code(cpp_code, include_dirs=include_dirs)
 

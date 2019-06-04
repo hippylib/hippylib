@@ -41,7 +41,19 @@ command should be used
 pip install hippylib[notebook] --user
 ```
 
-### Development version
+### Development version/topic branches
+
+To pip install the development version of `hIPPYlib` use the command
+
+```
+pip install -e git+https://github.com/hippylib/hippylib.git@master#egg=hippylib
+```
+
+To pip install a topic branch (e.g. the `2019.1-dev2` branch) use
+
+```
+pip install -e git+https://github.com/hippylib/hippylib.git@2019.1-dev2#egg=hippylib
+```
 
 > **NOTE:** `hIPPYlib` applications and tutorials can also be executed directly from
 the source folder without `pip` installation.

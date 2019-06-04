@@ -25,7 +25,9 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
  - PETSc dependencies: `parmetis`, `scotch`, `suitesparse`, `superlu_dist`, `ml`, `hypre`
  - (optional): `mshr`, `jupyter`
  
- ## Install hIPPYlib using pip
+## Install hIPPYlib using pip
+
+### Latest release
 
 With the supported version of `FEniCS` and its dependencies installed on your 
 machine, `hIPPYlib` can be installed via `pip` as follows
@@ -38,6 +40,8 @@ command should be used
 ```
 pip install hippylib[notebook] --user
 ```
+
+### Development version
 
 > **NOTE:** `hIPPYlib` applications and tutorials can also be executed directly from
 the source folder without `pip` installation.
@@ -58,8 +62,10 @@ first install [Anaconda3](https://docs.continuum.io/anaconda/install),
 then run following commands in your terminal:
 
 ```
-conda create -n fenicsproject -c conda-forge fenics==2019.1.0 matplotlib scipy jupyter
+conda create -n fenics-2019.1 -c uvilla -c conda-forge fenics==2019.1.0 matplotlib scipy jupyter
 ```
+> **Note**: You need to specify the channel `-c uvilla` to used the hippylib-patched version of FEniCS 2019.1. The patch has been merged in the development version of FEniCS and it will be available in the next FEniCS release.
+
 > **Note**: FEniCS Anaconda recipes are maintained by the FEniCS community and distributed binary packages do not have a full feature set yet, especially regarding sparse direct solvers and input/output facilities.
 
 ### Run FEniCS from Docker (Linux, MacOS, Windows)

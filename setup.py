@@ -91,7 +91,7 @@ setup(
         'hippylib': [
             'utils/cpp_rand/*.cpp', 'utils/cpp_rand/*.h',
             'modeling/cpp_AssemblePointwiseObservation/*.cpp', 'modeling/cpp_AssemblePointwiseObservation/*.h',
-            'algorithms/cpp_multivector/*.cpp', 'algorithms/cpp_multivector/*.h',
+            'algorithms/cpp_multivector/*.cpp', 'algorithms/cpp_multivector/*.hpp',
         ],
     },
     project_urls={

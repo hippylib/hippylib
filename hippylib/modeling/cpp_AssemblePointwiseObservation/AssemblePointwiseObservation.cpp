@@ -26,13 +26,14 @@
 
 namespace py = pybind11;
 
-namespace dolfin{
+namespace hippylib
+{
 
 PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
-		                               std::shared_ptr<BoundingBoxTree> bbt,
+		                               std::shared_ptr<dolfin::BoundingBoxTree> bbt,
 									   const std::size_t gdim,
-									   const Array<double> & targets,
-									   std::vector<Point> & points,
+									   const dolfin::Array<double> & targets,
+									   std::vector<dolfin::Point> & points,
 		                               std::vector<PetscInt> & LG)
 {
 	 int nprocs, rank;
@@ -46,7 +47,7 @@ PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 	 std::vector<int> tmp(nTargets);
 	 for(int i = 0; i < nTargets; ++i)
 	 {
-		 Point p(gdim, targets.data()+i*gdim);
+		 dolfin::Point p(gdim, targets.data()+i*gdim);
 		 if(bbt->collides_entity(p))
 	 	 	 tmp[i] = rank;
 	 	 else
@@ -60,7 +61,7 @@ PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 		 if( owner[i] == rank )
 		 {
 			 LG.push_back(i);
-			 points.push_back( Point(gdim, targets.data()+i*gdim) );
+			 points.push_back( dolfin::Point(gdim, targets.data()+i*gdim) );
 		 }
 
 	 std::vector<PetscInt> proc_offset(nprocs+1);
@@ -85,9 +86,9 @@ PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 	 return global_rows;
 }
 
-PointwiseObservation::PointwiseObservation(const FunctionSpace & Vh, const Array<double> & targets)
+PointwiseObservation::PointwiseObservation(const dolfin::FunctionSpace & Vh, const dolfin::Array<double> & targets)
 {
-	 const Mesh& mesh = *( Vh.mesh() );
+	 const dolfin::Mesh& mesh = *( Vh.mesh() );
 	 const int num_cells = mesh.num_cells();
 	 MPI_Comm comm = mesh.mpi_comm();
 	 int nprocs, rank;
@@ -99,26 +100,24 @@ PointwiseObservation::PointwiseObservation(const FunctionSpace & Vh, const Array
 	 const std::size_t ntargets(targets.size() / gdim);
 	 assert(ntargets*gdim == targets.size() );
 
-	 std::shared_ptr<BoundingBoxTree> bbt = mesh.bounding_box_tree();
+	 std::shared_ptr<dolfin::BoundingBoxTree> bbt = mesh.bounding_box_tree();
 
-	 std::vector<Point> points(0);
+	 std::vector<dolfin::Point> points(0);
 	 std::vector<PetscInt> LGtargets(0);
 
 	 PetscInt global_ntargets = computeLGtargets(comm, bbt, gdim, targets, points, LGtargets);
 	 PetscInt local_ntargets  = points.size();
 
-	 std::shared_ptr<const FiniteElement> element( Vh.element() );
+	 std::shared_ptr<const dolfin::FiniteElement> element( Vh.element() );
 	 //Check that value_rank is either 0 (scalar FE or 1 vector FE)
 	 assert(element->value_rank() == 0 || element->value_rank() == 1);
 	 int value_dim = element->value_dimension(0);
 
-	 std::shared_ptr<const GenericDofMap> dofmap = Vh.dofmap();
+	 std::shared_ptr<const dolfin::GenericDofMap> dofmap = Vh.dofmap();
 	 PetscInt global_dof_dimension = dofmap->global_dimension();
-#if DOLFIN_VERSION_MAJOR >= 2016
-	 PetscInt local_dof_dimension = dofmap->index_map()->size(IndexMap::MapSize::OWNED);
-#else
-	 PetscInt local_dof_dimension = dofmap->local_dimension("owned");
-#endif
+
+	 PetscInt local_dof_dimension = dofmap->index_map()->size(dolfin::IndexMap::MapSize::OWNED);
+
 	 std::vector<dolfin::la_index> LGdofs = dofmap->dofs();
 
 	 PetscInt global_nrows = global_ntargets*value_dim;
@@ -161,7 +160,7 @@ PointwiseObservation::PointwiseObservation(const FunctionSpace & Vh, const Array
 			 MPI_Abort(comm, 1);
 		 }
 
-		 Cell cell(mesh, cell_id);
+		 dolfin::Cell cell(mesh, cell_id);
 		 std::vector<double> coords;
 		 cell.get_vertex_coordinates(coords);
 		 element->evaluate_basis_all(&basis_matrix[0], points[lt].coordinates(), &coords[0], cell.orientation());
@@ -187,21 +186,21 @@ PointwiseObservation::~PointwiseObservation()
 	MatDestroy(&mat);
 }
 
-std::shared_ptr<Matrix> PointwiseObservation::GetMatrix()
+std::shared_ptr<dolfin::Matrix> PointwiseObservation::GetMatrix()
 {
-	return std::shared_ptr<Matrix>( new Matrix( PETScMatrix(mat) ) );
+	return std::shared_ptr<dolfin::Matrix>( new dolfin::Matrix( dolfin::PETScMatrix(mat) ) );
 }
 
 }
 
 PYBIND11_MODULE(SIGNATURE, m) {
-    py::class_<dolfin::PointwiseObservation>(m, "PointwiseObservation")
+    py::class_<hippylib::PointwiseObservation>(m, "PointwiseObservation")
 		.def(py::init([](const dolfin::FunctionSpace & Vh, py::array_t<double> & targets)
 		          {
     				dolfin::Array<double> targets_dolfin(targets.size(), targets.mutable_data());
-    				return std::unique_ptr<dolfin::PointwiseObservation>(new dolfin::PointwiseObservation(Vh,targets_dolfin));
+    				return std::unique_ptr<hippylib::PointwiseObservation>(new hippylib::PointwiseObservation(Vh,targets_dolfin));
 		          })
 		)
-		.def("GetMatrix", &dolfin::PointwiseObservation::GetMatrix);
+		.def("GetMatrix", &hippylib::PointwiseObservation::GetMatrix);
 }
 

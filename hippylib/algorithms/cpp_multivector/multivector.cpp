@@ -22,14 +22,14 @@
 
 namespace py = pybind11;
 
-namespace dolfin
+namespace hippylib
 {
 
 MultiVector::MultiVector()
 {
 }
 
-MultiVector::MultiVector(const GenericVector & v, int nvec):
+MultiVector::MultiVector(const dolfin::GenericVector & v, int nvec):
 		mv(nvec)
 {
 	for(auto&& vj : mv)
@@ -47,7 +47,7 @@ MultiVector::MultiVector(const MultiVector & orig):
 		mv[i] = orig.mv[i]->copy();
 }
 
-void MultiVector::setSizeFromVector(const GenericVector & v, int nvec)
+void MultiVector::setSizeFromVector(const dolfin::GenericVector & v, int nvec)
 {
 	mv.resize(nvec);
 	for(auto&& vj : mv)
@@ -59,25 +59,25 @@ void MultiVector::setSizeFromVector(const GenericVector & v, int nvec)
 
 
 
-std::shared_ptr<const GenericVector> MultiVector::operator[](int i) const
+std::shared_ptr<const dolfin::GenericVector> MultiVector::operator[](int i) const
 {
 	return mv[i];
 }
 
-std::shared_ptr<GenericVector> MultiVector::operator[](int i)
+std::shared_ptr<dolfin::GenericVector> MultiVector::operator[](int i)
 {
 	return mv[i];
 }
 
 
-void MultiVector::dot(const GenericVector & v, Array<double> & m) const
+void MultiVector::dot(const dolfin::GenericVector & v, dolfin::Array<double> & m) const
 {
 	double* im = m.data();
 	for(auto&& vj : mv)
 		*(im++) = vj->inner(v);
 }
 
-void MultiVector::dot(const MultiVector & other, Array<double> & m) const
+void MultiVector::dot(const MultiVector & other, dolfin::Array<double> & m) const
 {
 	if(other.mv.begin() == mv.begin())
 		dot_self(m);
@@ -90,7 +90,7 @@ void MultiVector::dot(const MultiVector & other, Array<double> & m) const
 	}
 }
 
-void MultiVector::dot_self(Array<double> & m) const
+void MultiVector::dot_self(dolfin::Array<double> & m) const
 {
 	int s = mv.size();
 	for(int i = 0; i < s; ++i)
@@ -102,20 +102,20 @@ void MultiVector::dot_self(Array<double> & m) const
 	}
 }
 
-void MultiVector::reduce(GenericVector & v, const Array<double> & alpha) const
+void MultiVector::reduce(dolfin::GenericVector & v, const dolfin::Array<double> & alpha) const
 {
 	const double * data = alpha.data();
 	for(auto&& vi : mv)
 		v.axpy(*(data++), *vi);
 }
 
-void MultiVector::axpy(double a, const GenericVector & y)
+void MultiVector::axpy(double a, const dolfin::GenericVector & y)
 {
 	for(auto&& vi : mv)
 		vi->axpy(a, y);
 }
 
-void MultiVector::axpy(const Array<double> & a, const MultiVector & y)
+void MultiVector::axpy(const dolfin::Array<double> & a, const MultiVector & y)
 {
 	int n = nvec();
 	assert(a.size() == n);
@@ -130,7 +130,7 @@ void MultiVector::scale(int k, double a)
 	mv[k]->operator*=(a);
 }
 
-void MultiVector::scale(const Array<double> & a)
+void MultiVector::scale(const dolfin::Array<double> & a)
 {
 	const double * data = a.data();
 	for(auto && vj : mv)
@@ -143,7 +143,7 @@ void MultiVector::zero()
 		vi->zero();
 }
 
-void MultiVector::norm_all(const std::string norm_type, Array<double> & norms) const
+void MultiVector::norm_all(const std::string norm_type, dolfin::Array<double> & norms) const
 {
 	double * data = norms.data();
 	for(auto && vi : mv)
@@ -163,20 +163,20 @@ MultiVector::~MultiVector()
 }
 
 PYBIND11_MODULE(SIGNATURE, m) {
-    py::class_<dolfin::MultiVector>(m, "MultiVector")
+    py::class_<hippylib::MultiVector>(m, "MultiVector")
     	.def(py::init<>())
 		.def(py::init<const dolfin::GenericVector &, int>())
-		.def(py::init<const dolfin::MultiVector &>())
-		.def("nvec", &dolfin::MultiVector::nvec,
+		.def(py::init<const hippylib::MultiVector &>())
+		.def("nvec", &hippylib::MultiVector::nvec,
 			 "Number of vectors in the multivector")
-		.def("__len__", &dolfin::MultiVector::nvec,
+		.def("__len__", &hippylib::MultiVector::nvec,
 			 "The length of a multivector is the number of vector it contains")
-		.def("__getitem__", (std::shared_ptr<const dolfin::GenericVector> (dolfin::MultiVector::*)(int) const) &dolfin::MultiVector::operator[] )
-		.def("__setitem__", (std::shared_ptr<dolfin::GenericVector> (dolfin::MultiVector::*)(int)) &dolfin::MultiVector::operator[] )
-		.def("setSizeFromVector", &dolfin::MultiVector::setSizeFromVector,
+		.def("__getitem__", (std::shared_ptr<const dolfin::GenericVector> (hippylib::MultiVector::*)(int) const) &hippylib::MultiVector::operator[] )
+		.def("__setitem__", (std::shared_ptr<dolfin::GenericVector> (hippylib::MultiVector::*)(int)) &hippylib::MultiVector::operator[] )
+		.def("setSizeFromVector", &hippylib::MultiVector::setSizeFromVector,
 			 "Initialize a multivector by providing a vector v as template and the number of vectors nvec",
 			 py::arg("v"), py::arg("nvec"))
-		.def("dot", [](const dolfin::MultiVector & self, const dolfin::GenericVector & v)
+		.def("dot", [](const hippylib::MultiVector & self, const dolfin::GenericVector & v)
 				{
     				int size = self.nvec();
     				py::array_t<double> ma(size);
@@ -187,7 +187,7 @@ PYBIND11_MODULE(SIGNATURE, m) {
 				"Perform the inner product with a vector v",
 				py::arg("v")
     	     )
-		.def("dot", [](const dolfin::MultiVector& self, const dolfin::MultiVector & other)
+		.def("dot", [](const hippylib::MultiVector& self, const hippylib::MultiVector & other)
 				{
     				int size1 = self.nvec();
     				int size2 = other.nvec();
@@ -199,7 +199,7 @@ PYBIND11_MODULE(SIGNATURE, m) {
     			"Perform the inner product with a another multivector",
 				py::arg("other")
 			)
-        .def("reduce", [](const dolfin::MultiVector& self, dolfin::GenericVector & v, py::array_t<double> & alpha)
+        .def("reduce", [](const hippylib::MultiVector& self, dolfin::GenericVector & v, py::array_t<double> & alpha)
         		{
     				dolfin::Array<double> alpha_dolfin(self.nvec(), alpha.mutable_data());
     				self.reduce(v, alpha_dolfin);
@@ -207,10 +207,10 @@ PYBIND11_MODULE(SIGNATURE, m) {
     		"Computes v += sum_i alpha[i]*self[i]",
 			py::arg("v"), py::arg("alpha")
         )
-		.def("axpy", (void (dolfin::MultiVector::*)(double, const dolfin::GenericVector &)) &dolfin::MultiVector::axpy,
+		.def("axpy", (void (hippylib::MultiVector::*)(double, const dolfin::GenericVector &)) &hippylib::MultiVector::axpy,
 			 "Assign self[k] += a*y for k in range(self.nvec())",
 			 py::arg("a"), py::arg("y"))
-		.def("axpy", [](dolfin::MultiVector& self, py::array_t<double> & a, const dolfin::MultiVector& y)
+		.def("axpy", [](hippylib::MultiVector& self, py::array_t<double> & a, const hippylib::MultiVector& y)
 				{
     				dolfin::Array<double> a_dolfin(self.nvec(), a.mutable_data());
     				self.axpy(a_dolfin, y);
@@ -218,10 +218,10 @@ PYBIND11_MODULE(SIGNATURE, m) {
 				"Assign self[k] += a[k]*y[k] for k in range(self.nvec())",
 				py::arg("a"), py::arg("y")
 				)
-		.def("scale", (void (dolfin::MultiVector::*)(int, double)) &dolfin::MultiVector::scale,
+		.def("scale", (void (hippylib::MultiVector::*)(int, double)) &hippylib::MultiVector::scale,
 			 "Assign self[k] *= a",
 			 py::arg("k"), py::arg("a"))
-		.def("scale", [](dolfin::MultiVector& self, py::array_t<double> & a)
+		.def("scale", [](hippylib::MultiVector& self, py::array_t<double> & a)
 				{
 					dolfin::Array<double> a_dolfin(self.nvec(), a.mutable_data());
 					self.scale(a_dolfin);
@@ -229,10 +229,10 @@ PYBIND11_MODULE(SIGNATURE, m) {
 				"Assign self[k] *=a[k] for k in range(self.nvec()",
 				py::arg("a")
 				)
-		.def("zero",  &dolfin::MultiVector::zero,
+		.def("zero",  &hippylib::MultiVector::zero,
 			 "Zero out all entries of the multivector"
 			)
-		.def("norm",[](const dolfin::MultiVector& self, const std::string norm_type)
+		.def("norm",[](const hippylib::MultiVector& self, const std::string norm_type)
 				{
 					int size = self.nvec();
 					py::array_t<double> ma(size);
@@ -243,6 +243,6 @@ PYBIND11_MODULE(SIGNATURE, m) {
 			 "Compute the norm of each vector in the multivector separately",
 			 py::arg("norm_type")
 			)
-		.def("swap", &dolfin::MultiVector::swap,
+		.def("swap", &hippylib::MultiVector::swap,
 			 "Swap this with other");
 }

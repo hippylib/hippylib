@@ -16,53 +16,53 @@
 #include <dolfin/la/GenericVector.h>
 #include <dolfin/common/Array.h>
 
-namespace dolfin
+namespace hippylib
 {
 
 class MultiVector
 {
 public:
 	MultiVector();
-	MultiVector(const GenericVector & v, int nvec);
+	MultiVector(const dolfin::GenericVector & v, int nvec);
 	MultiVector(const MultiVector & orig);
 
 	int nvec() const {return mv.size();}
 
-	void setSizeFromVector(const GenericVector & v, int nvec);
+	void setSizeFromVector(const dolfin::GenericVector & v, int nvec);
 
-	std::shared_ptr<const GenericVector> operator[](int i) const;
-	std::shared_ptr<GenericVector> operator[](int i);
+	std::shared_ptr<const dolfin::GenericVector> operator[](int i) const;
+	std::shared_ptr<dolfin::GenericVector> operator[](int i);
 
 	// m[i] = this[i] \cdot v
-	void dot(const GenericVector & v, Array<double> & m) const;
+	void dot(const dolfin::GenericVector & v, dolfin::Array<double> & m) const;
 
 	// m[i,j] = this[i] \cdot other[j]
-	void dot(const MultiVector & other, Array<double> & m) const;
+	void dot(const MultiVector & other, dolfin::Array<double> & m) const;
 
 	// v += sum_i alpha[i]*this[i]
-	void reduce(GenericVector & v, const Array<double> & alpha) const;
+	void reduce(dolfin::GenericVector & v, const dolfin::Array<double> & alpha) const;
 
-	void axpy(double a, const GenericVector & y);
-	void axpy(const Array<double> & a, const MultiVector & y);
+	void axpy(double a, const dolfin::GenericVector & y);
+	void axpy(const dolfin::Array<double> & a, const MultiVector & y);
 
 	// this[k] *= a
 	void scale(int k, double a);
 
 	// this[k] *= a[k]
-	void scale(const Array<double> & a);
+	void scale(const dolfin::Array<double> & a);
 
 	void zero();
 
-	void norm_all(const std::string norm_type, Array<double> & norms) const;
+	void norm_all(const std::string norm_type, dolfin::Array<double> & norms) const;
 
 	void swap(MultiVector & other);
 
 	~MultiVector();
 
 private:
-	void dot_self(Array<double> & m) const;
+	void dot_self(dolfin::Array<double> & m) const;
 
-	std::vector<std::shared_ptr<GenericVector> > mv;
+	std::vector<std::shared_ptr<dolfin::GenericVector> > mv;
 };
 
 }

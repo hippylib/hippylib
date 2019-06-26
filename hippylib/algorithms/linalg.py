@@ -78,20 +78,10 @@ def Transpose(A):
     return dl.Matrix( dl.PETScMatrix(AT) )
 
 def SetToOwnedGid(v, gid, val):
-    #    assert(v.owns_index(gid));
-    #    la_index index = static_cast<la_index>(gid);
-    #    v.set(&val, 1, &index);
-    # la_index_dtype
     v[gid] = val
 
     
 def GetFromOwnedGid(v, gid):
-    #    assert(v.owns_index(gid));
-    #    double val;
-    #    la_index index = static_cast<la_index>(gid);
-    #    v.get(&val, 1, &index);
-    #
-    #    return val;
     return v[gid]
     
 

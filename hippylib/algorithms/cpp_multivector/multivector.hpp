@@ -23,15 +23,15 @@ class MultiVector
 {
 public:
 	MultiVector();
-	MultiVector(const dolfin::GenericVector & v, int nvec);
+	MultiVector(const dolfin::GenericVector & v, std::size_t nvec);
 	MultiVector(const MultiVector & orig);
 
-	int nvec() const {return mv.size();}
+	std::size_t nvec() const {return mv.size();}
 
-	void setSizeFromVector(const dolfin::GenericVector & v, int nvec);
+	void setSizeFromVector(const dolfin::GenericVector & v, std::size_t nvec);
 
-	std::shared_ptr<const dolfin::GenericVector> operator[](int i) const;
-	std::shared_ptr<dolfin::GenericVector> operator[](int i);
+	std::shared_ptr<const dolfin::GenericVector> operator[](std::size_t i) const;
+	std::shared_ptr<dolfin::GenericVector> operator[](std::size_t i);
 
 	// m[i] = this[i] \cdot v
 	void dot(const dolfin::GenericVector & v, dolfin::Array<double> & m) const;
@@ -46,7 +46,7 @@ public:
 	void axpy(const dolfin::Array<double> & a, const MultiVector & y);
 
 	// this[k] *= a
-	void scale(int k, double a);
+	void scale(std::size_t k, double a);
 
 	// this[k] *= a[k]
 	void scale(const dolfin::Array<double> & a);

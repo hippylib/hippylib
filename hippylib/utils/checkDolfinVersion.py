@@ -15,10 +15,14 @@ from __future__ import absolute_import, division, print_function
 
 import dolfin as dl
 
-def dlversion():
-    return (dl.DOLFIN_VERSION_MAJOR, dl.DOLFIN_VERSION_MINOR, dl.DOLFIN_VERSION_MICRO)
 
-supported_versions = [(1,6,0), (2016,1,0), (2016,2,0), (2017,1,0), (2017,2,0)]
+def dlversion():
+    version_str = dl.__version__
+    vv = [ss for ss in version_str.split(".")]
+    
+    return (int(vv[0]), int(vv[1]), int(vv[2]))
+
+supported_versions = [(2019,1,0)]
 
 def checkdlversion():
     """
@@ -29,10 +33,7 @@ def checkdlversion():
         print( "The version of FEniCS (FEniCS {0}.{1}.{2}) you are using is not supported.".format(*dlversion()) )
         exit()
         
-if  dlversion() >= (2017,2,0):
-    import matplotlib.pyplot as plt
-    dl.interactive = plt.show
-    
-    import warnings
-    from ffc.quadrature.deprecation import QuadratureRepresentationDeprecationWarning
-    warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)
+  
+import warnings
+from ffc.quadrature.deprecation import QuadratureRepresentationDeprecationWarning
+warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)

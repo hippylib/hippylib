@@ -14,6 +14,7 @@
 from __future__ import absolute_import, division, print_function
 
 import dolfin as dl
+import ufl
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -43,10 +44,10 @@ class TimeDependentAD:
         r_test  = v + dt_expr*( -dl.div(kappa*dl.nabla_grad(v))+ dl.inner(wind_velocity, dl.nabla_grad(v)) )
 
         
-        h = dl.CellSize(mesh)
+        h = dl.CellDiameter(mesh)
         vnorm = dl.sqrt(dl.inner(wind_velocity, wind_velocity))
         if gls_stab:
-            tau = dl.Min((h*h)/(dl.Constant(2.)*kappa), h/vnorm )
+            tau = ufl.min_value((h*h)/(dl.Constant(2.)*kappa), h/vnorm )
         else:
             tau = dl.Constant(0.)
                             
@@ -61,7 +62,7 @@ class TimeDependentAD:
         self.L = self.M + dt*self.N + stab
         self.Lt = self.M + dt*self.Nt + stab
         
-        boundaries = dl.FacetFunction("size_t", mesh)
+        boundaries = dl.MeshFunction("size_t", mesh,1)
         boundaries.set_all(0)
 
         class InsideBoundary(dl.SubDomain):
@@ -78,17 +79,9 @@ class TimeDependentAD:
 
         self.Prior = Prior
         
-        if dlversion() <= (1,6,0):
-            self.solver = dl.PETScLUSolver()
-        else:
-            self.solver = dl.PETScLUSolver(self.mesh.mpi_comm())
-        self.solver.set_operator(self.L)
-        
-        if dlversion() <= (1,6,0):
-            self.solvert = dl.PETScLUSolver()
-        else:
-            self.solvert = dl.PETScLUSolver(self.mesh.mpi_comm())
-        self.solvert.set_operator(self.Lt)
+     
+        self.solver  = dl.PETScLUSolver( dl.as_backend_type(self.L) )
+        self.solvert = dl.PETScLUSolver( dl.as_backend_type(self.Lt) )
                         
         self.ud = self.generate_vector(STATE)
         self.noise_variance = 0
@@ -362,11 +355,9 @@ def q_boundary(x,on_boundary):
 def computeVelocityField(mesh):
     Xh = dl.VectorFunctionSpace(mesh,'Lagrange', 2)
     Wh = dl.FunctionSpace(mesh, 'Lagrange', 1)
-    if dlversion() <= (1,6,0):
-        XW = dl.MixedFunctionSpace([Xh, Wh])
-    else:
-        mixed_element = dl.MixedElement([Xh.ufl_element(), Wh.ufl_element()])
-        XW = dl.FunctionSpace(mesh, mixed_element)
+
+    mixed_element = dl.MixedElement([Xh.ufl_element(), Wh.ufl_element()])
+    XW = dl.FunctionSpace(mesh, mixed_element)
 
     
     Re = 1e2
@@ -395,7 +386,10 @@ def computeVelocityField(mesh):
 
         
 if __name__ == "__main__":
-    dl.set_log_active(False)
+    try:
+        dl.set_log_active(False)
+    except:
+        pass
     np.random.seed(1)
     sep = "\n"+"#"*80+"\n"
     mesh = dl.refine( dl.Mesh("ad_20.xml") )

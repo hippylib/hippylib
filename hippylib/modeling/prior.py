@@ -23,12 +23,11 @@ from ..algorithms.traceEstimator import TraceEstimator
 from ..algorithms.multivector import MultiVector
 from ..algorithms.randomizedEigensolver import singlePass, doublePass, singlePassG, doublePassG
 
-from ..utils.checkDolfinVersion import dlversion
 from ..utils.random import parRandom
 from ..utils.deprecate import deprecated
 from ..utils.vector2function import vector2Function
 
-from .expression import code_Mollifier
+from .expression import ExpressionModule
 
 class _RinvM:
     """
@@ -186,20 +185,16 @@ class LaplacianPrior(_Prior):
         self.M = dl.assemble(varfM)
         self.R = dl.assemble(gamma*varfL + delta*varfM)
         
-        if dlversion() <= (1,6,0):
-            self.Rsolver = dl.PETScKrylovSolver("cg", amg_method())
-        else:
-            self.Rsolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+
+        self.Rsolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
         self.Rsolver.set_operator(self.R)
         self.Rsolver.parameters["maximum_iterations"] = max_iter
         self.Rsolver.parameters["relative_tolerance"] = rel_tol
         self.Rsolver.parameters["error_on_nonconvergence"] = True
         self.Rsolver.parameters["nonzero_initial_guess"] = False
         
-        if dlversion() <= (1,6,0):
-            self.Msolver = dl.PETScKrylovSolver("cg", "jacobi")
-        else:
-            self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
+
+        self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
         self.Msolver.set_operator(self.M)
         self.Msolver.parameters["maximum_iterations"] = max_iter
         self.Msolver.parameters["relative_tolerance"] = rel_tol
@@ -212,16 +207,13 @@ class LaplacianPrior(_Prior):
         qdegree = 2*Vh._ufl_element.degree()
         metadata = {"quadrature_degree" : qdegree}
         
-        if dlversion() >= (2017,1,0):
-            representation_old = dl.parameters["form_compiler"]["representation"]
-            dl.parameters["form_compiler"]["representation"] = "quadrature"
+
+        representation_old = dl.parameters["form_compiler"]["representation"]
+        dl.parameters["form_compiler"]["representation"] = "quadrature"
             
-        if dlversion() <= (1,6,0):
-            Qh = dl.VectorFunctionSpace(Vh.mesh(), 'Quadrature', qdegree, dim=(ndim+1) )
-        else:
-            element = dl.VectorElement("Quadrature", Vh.mesh().ufl_cell(),
-                                       qdegree, dim=(ndim+1), quad_scheme="default")
-            Qh = dl.FunctionSpace(Vh.mesh(), element)
+        element = dl.VectorElement("Quadrature", Vh.mesh().ufl_cell(),
+                                    qdegree, dim=(ndim+1), quad_scheme="default")
+        Qh = dl.FunctionSpace(Vh.mesh(), element)
             
         ph = dl.TrialFunction(Qh)
         qh = dl.TestFunction(Qh)
@@ -247,9 +239,7 @@ class LaplacianPrior(_Prior):
         self.sqrtR = MatMatMult(GG, Mqh)
         
         dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
-        
-        if dlversion() >= (2017,1,0):
-            dl.parameters["form_compiler"]["representation"] = representation_old
+        dl.parameters["form_compiler"]["representation"] = representation_old
                         
         self.mean = mean
         
@@ -301,15 +291,6 @@ class _BilaplacianR:
         
     def mpi_comm(self):
         return self.A.mpi_comm()
-
-    @deprecated(name="_BilaplacianR.inner(x, y)",
-                version="2.2.0",
-                msg="It will be removed in hIPPYlib 3.x\n Use _BilaplacianR.mult(x, Rx); Rx.inner(y) instead")
-    def inner(self,x,y):
-        Rx = dl.Vector(self.A.mpi_comm())
-        self.init_vector(Rx,0)
-        self.mult(x, Rx)
-        return Rx.inner(y)
         
     def mult(self,x,y):
         self.A.mult(x, self.help1)
@@ -384,9 +365,9 @@ class SqrtPrecisionPDE_Prior(_Prior):
         qdegree = 2*Vh._ufl_element.degree()
         metadata = {"quadrature_degree" : qdegree}
 
-        if dlversion() >= (2017,1,0):
-            representation_old = dl.parameters["form_compiler"]["representation"]
-            dl.parameters["form_compiler"]["representation"] = "quadrature"
+
+        representation_old = dl.parameters["form_compiler"]["representation"]
+        dl.parameters["form_compiler"]["representation"] = "quadrature"
             
         num_sub_spaces = Vh.num_sub_spaces()
         if num_sub_spaces <= 1: #SCALAR PARAMETER
@@ -412,9 +393,7 @@ class SqrtPrecisionPDE_Prior(_Prior):
         self.sqrtM = MatMatMult(MixedM, Mqh)
 
         dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
-        
-        if dlversion() >= (2017,1,0):
-            dl.parameters["form_compiler"]["representation"] = representation_old
+        dl.parameters["form_compiler"]["representation"] = representation_old
                              
         self.R = _BilaplacianR(self.A, self.Msolver)      
         self.Rsolver = _BilaplacianRsolver(self.Asolver, self.M)
@@ -523,13 +502,8 @@ def MollifiedBiLaplacianPrior(Vh, gamma, delta, locations, m_true, Theta = None,
     """
     assert delta != 0. or pen != 0, "Intrinsic Gaussian Prior are not supported"
     
-    #mfun = Mollifier(gamma/delta, dl.inv(Theta), order, locations)
-    mfun = dl.Expression(code_Mollifier, degree = Vh.ufl_element().degree()+2)
-    mfun.l = gamma/delta
-    mfun.o = order
-    mfun.theta0 = 1./Theta.theta0
-    mfun.theta1 = 1./Theta.theta1
-    mfun.alpha = Theta.alpha
+    mfun = dl.CompiledExpression(ExpressionModule.Mollifier(), degree = Vh.ufl_element().degree()+2)
+    mfun.set(Theta._cpp_object, gamma/delta, order)
     for ii in range(locations.shape[0]):
         mfun.addLocation(locations[ii,0], locations[ii,1])
             

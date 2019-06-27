@@ -70,11 +70,7 @@ def plot(obj, colorbar=True, subplot_loc=None, mytitle=None, show_axis='off', vm
 #    plt.gca().set_aspect('equal')
     if isinstance(obj, dl.Function):
         pp = _mplot_function(obj, vmin, vmax, logscale)
-    elif isinstance(obj, dl.CellFunctionSizet):
-        pp = _mplot_cellfunction(obj)
-    elif isinstance(obj, dl.CellFunctionDouble):
-        pp = _mplot_cellfunction(obj)
-    elif isinstance(obj, dl.CellFunctionInt):
+    elif isinstance(obj, dl.MeshFunction):
         pp = _mplot_cellfunction(obj)
     elif isinstance(obj, dl.Mesh):
         if (obj.geometry().dim() != 2):

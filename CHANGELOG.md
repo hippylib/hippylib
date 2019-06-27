@@ -19,6 +19,8 @@ Development version
 ----------------------------------------
 - Reimplement `BiLaplacianPrior` and `MollifiedBiLaplacianPrior` using a more general framework `SqrtPrecisionPDE_Prior`,
   which also supports Gaussian vector fields.
+  
+- Support for `FEniCS 2019.1.0`
                           
 Version 2.2.1, released on March 28, 2019
 ----------------------------------------                      

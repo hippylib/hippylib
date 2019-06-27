@@ -17,7 +17,6 @@ import dolfin as dl
 from .variables import STATE, PARAMETER, ADJOINT
 from ..algorithms.linalg import Transpose 
 from ..utils.vector2function import vector2Function
-from ..utils.checkDolfinVersion import dlversion
 
 class PDEProblem(object):
     """ Consider the PDE problem:
@@ -301,8 +300,7 @@ class PDEVariationalProblem(PDEProblem):
         if i in [STATE,ADJOINT]:
             [bc.apply(out) for bc in self.bc0]
                    
-    def _createLUSolver(self):
-        if dlversion() <= (1,6,0):
-            return dl.PETScLUSolver()
-        else:
-            return dl.PETScLUSolver(self.Vh[STATE].mesh().mpi_comm() )
+    def _createLUSolver(self):   
+        return dl.PETScLUSolver(self.Vh[STATE].mesh().mpi_comm() )
+
+        

@@ -13,9 +13,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-from dolfin import compile_extension_module, Vector, PETScKrylovSolver, MPI, la_index_dtype, mpi_comm_world
+import dolfin as dl
+from petsc4py import PETSc
+
 from ..utils.random import parRandom
-import os
 import numpy as np
 
 def amg_method(amg_type="ml_amg"):
@@ -24,74 +25,74 @@ def amg_method(amg_type="ml_amg"):
     If available use the preconditioner suggested by the user (ML is default).
     If not available use  petsc_amg.
     """
-    S = PETScKrylovSolver()
-    for pp in S.preconditioners():
+    for pp in dl.krylov_solver_preconditioners():
         if pp[0] == amg_type:
             return amg_type
         
     return 'petsc_amg'
 
-abspath = os.path.dirname( os.path.abspath(__file__) )
-source_directory = os.path.join(abspath,"cpp_linalg")
-header_file = open(os.path.join(source_directory,"linalg.h"), "r")
-code = header_file.read()
-header_file.close()
-cpp_sources = ["linalg.cpp"]  
-
-include_dirs = [".", source_directory]
-for ss in ['PROFILE_INSTALL_DIR', 'PETSC_DIR', 'SLEPC_DIR']:
-    if ss in os.environ.keys():
-        include_dirs.append(os.environ[ss]+'/include')
-        
-cpp_module = compile_extension_module(
-                code=code, source_directory=source_directory,
-                sources=cpp_sources, include_dirs=include_dirs)
-
 def MatMatMult(A,B):
     """
     Compute the matrix-matrix product :math:`AB`.
     """
-    s = cpp_module.cpp_linalg()
-    return s.MatMatMult(A,B)
+    Amat = dl.as_backend_type(A).mat()
+    Bmat = dl.as_backend_type(B).mat()
+    out = Amat.matMult(Bmat)
+    rmap, _ = Amat.getLGMap()
+    _, cmap = Bmat.getLGMap()
+    out.setLGMap(rmap, cmap)
+    return dl.Matrix(dl.PETScMatrix(out))
 
 def MatPtAP(A,P):
     """
     Compute the triple matrix product :math:`P^T A P`.
     """
-    s = cpp_module.cpp_linalg()
-    return s.MatPtAP(A,P)
+    Amat = dl.as_backend_type(A).mat()
+    Pmat = dl.as_backend_type(P).mat()
+    out = Amat.PtAP(Pmat, fill=1.0)
+    _, out_map = Pmat.getLGMap()
+    out.setLGMap(out_map, out_map)
+    return dl.Matrix(dl.PETScMatrix(out))
 
 def MatAtB(A,B):
     """
     Compute the matrix-matrix product :math:`A^T B`.
     """
-    s = cpp_module.cpp_linalg()
-    return s.MatAtB(A,B)
+    Amat = dl.as_backend_type(A).mat()
+    Bmat = dl.as_backend_type(B).mat()
+    out = Amat.transposeMatMult(Bmat)
+    _, rmap = Amat.getLGMap()
+    _, cmap = Bmat.getLGMap()
+    out.setLGMap(rmap, cmap)
+    return dl.Matrix(dl.PETScMatrix(out))
 
 def Transpose(A):
     """
     Compute the matrix transpose
     """
-    s = cpp_module.cpp_linalg()
-    return s.Transpose(A)
+    Amat = dl.as_backend_type(A).mat()
+    AT = PETSc.Mat()
+    Amat.transpose(AT)
+    rmap, cmap = Amat.getLGMap()
+    AT.setLGMap(cmap, rmap)
+    return dl.Matrix( dl.PETScMatrix(AT) )
 
 def SetToOwnedGid(v, gid, val):
-    s = cpp_module.cpp_linalg()
-    s.SetToOwnedGid(v, gid, val)
+    v[gid] = val
+
     
 def GetFromOwnedGid(v, gid):
-    s = cpp_module.cpp_linalg()
-    return s.GetFromOwnedGid(v, gid)
+    return v[gid]
     
 
-def to_dense(A, mpi_comm = mpi_comm_world() ):
+def to_dense(A, mpi_comm = dl.MPI.comm_world ):
     """
     Convert a sparse matrix A to dense.
     For debugging only.
     """
-    v = Vector(mpi_comm)
+    v = dl.Vector(mpi_comm)
     A.init_vector(v)
-    nprocs = MPI.size(mpi_comm)
+    nprocs = dl.MPI.size(mpi_comm)
     
     if nprocs > 1:
         raise Exception("to_dense is only serial")
@@ -106,8 +107,8 @@ def to_dense(A, mpi_comm = mpi_comm_world() ):
         
         return B
     else:
-        x = Vector(mpi_comm)
-        Ax = Vector(mpi_comm)
+        x = dl.Vector(mpi_comm)
+        Ax = dl.Vector(mpi_comm)
         A.init_vector(x,1)
         A.init_vector(Ax,0)
         
@@ -126,13 +127,13 @@ def to_dense(A, mpi_comm = mpi_comm_world() ):
         return B
 
 
-def trace(A, mpi_comm = mpi_comm_world() ):
+def trace(A, mpi_comm = dl.MPI.comm_world ):
     """
     Compute the trace of a sparse matrix :math:`A`.
     """
-    v = Vector(mpi_comm)
+    v = dl.Vector(mpi_comm)
     A.init_vector(v)
-    nprocs = MPI.size(mpi_comm)
+    nprocs = dl.MPI.size(mpi_comm)
     
     if nprocs > 1:
         raise Exception("trace is only serial")
@@ -149,7 +150,7 @@ def get_diagonal(A, d):
     Compute the diagonal of the square operator :math:`A`.
     Use :code:`Solver2Operator` if :math:`A^{-1}` is needed.
     """
-    ej, xj = Vector(d.mpi_comm()), Vector(d.mpi_comm())
+    ej, xj = dl.Vector(d.mpi_comm()), dl.Vector(d.mpi_comm())
     A.init_vector(ej,1)
     A.init_vector(xj,0)
                     
@@ -186,7 +187,7 @@ def estimate_diagonal_inv2(Asolver, k, d):
         An estimator for the diagonal of a matrix, 
         Applied Numerical Mathematics, 57 (2007), pp. 1214-1229.`
     """
-    x, b = Vector(d.mpi_comm()), Vector(d.mpi_comm())
+    x, b = dl.Vector(d.mpi_comm()), dl.Vector(d.mpi_comm())
     
     if hasattr(Asolver, "init_vector"):
         Asolver.init_vector(x,1)
@@ -220,9 +221,9 @@ class DiagonalOperator:
         return x.inner(tmp)
     
 class Solver2Operator:
-    def __init__(self,S,mpi_comm=mpi_comm_world(), init_vector = None):
+    def __init__(self,S,mpi_comm=dl.MPI.comm_world, init_vector = None):
         self.S = S
-        self.tmp = Vector(mpi_comm)
+        self.tmp = dl.Vector(mpi_comm)
         self.my_init_vector = init_vector
         
         if self.my_init_vector is None:
@@ -248,9 +249,9 @@ class Solver2Operator:
         return self.tmp.inner(x)
     
 class Operator2Solver:
-    def __init__(self,op, mpi_comm=mpi_comm_world()):
+    def __init__(self,op, mpi_comm=dl.MPI.comm_world):
         self.op = op
-        self.tmp = Vector(mpi_comm)
+        self.tmp = dl.Vector(mpi_comm)
         
     def init_vector(self, x, dim):
         if hasattr(self.op, "init_vector"):

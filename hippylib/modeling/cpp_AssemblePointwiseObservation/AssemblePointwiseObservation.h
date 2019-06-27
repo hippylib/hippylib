@@ -16,21 +16,21 @@
 #include <dolfin/la/PETScMatrix.h>
 #include <dolfin/la/Matrix.h>
 
-namespace dolfin
+namespace hippylib
 {
 
 class PointwiseObservation
 {
 public:
-	PointwiseObservation(const FunctionSpace & Vh, const Array<double> & targets);
-	std::shared_ptr<Matrix> GetMatrix();
+	PointwiseObservation(const dolfin::FunctionSpace & Vh, const dolfin::Array<double> & targets);
+	std::shared_ptr<dolfin::Matrix> GetMatrix();
 	~PointwiseObservation();
 
 private:
-	PetscInt computeLGtargets(MPI_Comm comm, std::shared_ptr<BoundingBoxTree> bbt,
+	PetscInt computeLGtargets(MPI_Comm comm, std::shared_ptr<dolfin::BoundingBoxTree> bbt,
 					 const std::size_t gdim,
-					 const Array<double> & targets,
-					 std::vector<Point> & points,
+					 const dolfin::Array<double> & targets,
+					 std::vector<dolfin::Point> & points,
 			         std::vector<PetscInt> & LG);
 	Mat mat;
 	std::vector<int> old_new;

@@ -16,7 +16,7 @@ from __future__ import absolute_import, division, print_function
 
 from .variables import *
 
-from .expression import code_AnisTensor2D, code_Mollifier
+from .expression import ExpressionModule
 from .pointwiseObservation import assemblePointwiseObservation, exportPointwiseObservation
 from .timeDependentVector import TimeDependentVector
 

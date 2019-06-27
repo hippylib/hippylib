@@ -54,7 +54,7 @@ class TestGaussianRealPrior(unittest.TestCase):
 
         self.precision = np.linalg.inv(self.cov)
 
-        mesh = dl.RectangleMesh(dl.mpi_comm_world(), 
+        mesh = dl.RectangleMesh(dl.MPI.comm_world, 
                                 dl.Point(0.0, 0.0),
                                 dl.Point(3,2), 6, 4)
 

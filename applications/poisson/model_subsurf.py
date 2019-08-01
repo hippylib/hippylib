@@ -30,8 +30,7 @@ def u_boundary(x, on_boundary):
 def v_boundary(x, on_boundary):
     return on_boundary and ( x[0] < dl.DOLFIN_EPS or x[0] > 1.0 - dl.DOLFIN_EPS)
 
-def true_model(Vh, gamma, delta, anis_diff):
-    prior = BiLaplacianPrior(Vh, gamma, delta, anis_diff )
+def true_model(prior):
     noise = dl.Vector()
     prior.init_vector(noise,"noise")
     parRandom.normal(1., noise)
@@ -85,9 +84,16 @@ if __name__ == "__main__":
     pde.solver_fwd_inc.parameters = pde.solver.parameters
     pde.solver_adj_inc.parameters = pde.solver.parameters
  
-    ntargets = 300
+    ntargets = 50
     np.random.seed(seed=1)
-    targets = np.random.uniform(0.1,0.9, [ntargets, ndim] )
+    #Targets only on the bottom
+    targets_x = np.random.uniform(0.1,0.9, [ntargets] )
+    targets_y = np.random.uniform(0.1,0.5, [ntargets] )
+    targets = np.zeros([ntargets, ndim])
+    targets[:,0] = targets_x
+    targets[:,1] = targets_y
+    #targets everywhere
+    #targets = np.random.uniform(0.1,0.9, [ntargets, ndim] )
     if rank == 0:
         print ("Number of observation points: {0}".format(ntargets) )
     misfit = PointwiseStateObservation(Vh[STATE], targets)
@@ -99,13 +105,11 @@ if __name__ == "__main__":
     anis_diff.theta0 = 2.
     anis_diff.theta1 = .5
     anis_diff.alpha = math.pi/4
-    mtrue = true_model(Vh[PARAMETER], gamma, delta,anis_diff)
-        
-    locations = np.array([[0.1, 0.1], [0.1, 0.9], [.5,.5], [.9, .1], [.9, .9]])
-
-    pen = 1e1
-    prior = MollifiedBiLaplacianPrior(Vh[PARAMETER], gamma, delta, locations, mtrue, anis_diff, pen)
     
+    prior = BiLaplacianPrior(Vh[PARAMETER], gamma, delta, anis_diff, robin_bc=True )
+    
+    mtrue = true_model(prior)
+            
     if rank == 0:
         print ( "Prior regularization: (delta_x - gamma*Laplacian)^order: delta={0}, gamma={1}, order={2}".format(delta, gamma,2) )   
                 

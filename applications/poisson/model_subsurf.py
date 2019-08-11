@@ -227,14 +227,7 @@ if __name__ == "__main__":
     U.export(Vh[PARAMETER], "hmisfit/evect.pvd", varname = "gen_evects", normalize = True)
     if rank == 0:
         np.savetxt("hmisfit/eigevalues.dat", d)
-    
-    if nproc == 1:
-        print( sep, "Visualize results", sep)
-        dl.plot(xx[STATE], title = xxname[STATE])
-        dl.plot(dl.exp(xx[PARAMETER]), title = xxname[PARAMETER])
-        dl.plot(xx[ADJOINT], title = xxname[ADJOINT])
-        dl.interactive()
-    
+        
     if rank == 0:
         plt.figure()
         plt.plot(range(0,k), d, 'b*', range(0,k), np.ones(k), '-r')

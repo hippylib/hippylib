@@ -32,7 +32,7 @@ DOCKER="docker run --rm -v $(pwd):/home/fenics/hippylib -w"
 ${DOCKER} /home/fenics/hippylib $QUAY "dolfin-version"
 ${DOCKER} /home/fenics/hippylib/applications/poisson $QUAY "$PYTHON_PREPROC mpirun -n 2 $PYTHON model_continuous_obs.py"
 ${DOCKER} /home/fenics/hippylib/applications/poisson $QUAY "$PYTHON_PREPROC mpirun -n 2 $PYTHON model_subsurf.py"
-${DOCKER} /home/fenics/hippylib/applications/ad_diff $QUAY "$PYTHON_PREPROC mpirun -n 2 $PYTHON model_ad_diff.py"
+${DOCKER} /home/fenics/hippylib/applications/ad_diff $QUAY "$PYTHON_PREPROC mpirun -n 1 $PYTHON model_ad_diff.py"
 ${DOCKER} /home/fenics/hippylib/applications/mcmc    $QUAY "$PYTHON_PREPROC mpirun -n 1 $PYTHON model_subsurf.py"
 
 if [ "$FENICS_VERSION" == "2017.2" ]; then

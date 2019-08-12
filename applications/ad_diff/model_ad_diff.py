@@ -427,8 +427,8 @@ if __name__ == "__main__":
     true_initial_condition = dl.interpolate(ic_expr, Vh).vector()
 
     
-    gamma = 5.
-    delta = 40.
+    gamma = 1.
+    delta = 8.
     prior = BiLaplacianPrior(Vh, gamma, delta, robin_bc=True)
     if rank == 0:
         print( "Prior regularization: (delta - gamma*Laplacian)^order: delta={0}, gamma={1}, order={2}".format(delta, gamma,2) )
@@ -457,7 +457,7 @@ if __name__ == "__main__":
     
     if rank == 0:
         print( sep, "Generate synthetic observation", sep )
-    rel_noise = 0.001
+    rel_noise = 0.01
     utrue = problem.generate_vector(STATE)
     x = [utrue, true_initial_condition, None]
     problem.solveFwd(x[STATE], x, 1e-9)

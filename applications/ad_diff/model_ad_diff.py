@@ -16,6 +16,7 @@ from __future__ import absolute_import, division, print_function
 import dolfin as dl
 import numpy as np
 import matplotlib.pyplot as plt
+import mshr as ms
 
 import sys
 import os
@@ -409,7 +410,12 @@ if __name__ == "__main__":
     np.random.seed(1)
     sep = "\n"+"#"*80+"\n"
     mesh = dl.refine( dl.Mesh("ad_20.xml") )
-    
+
+    domain = ms.Rectangle(dl.Point(0.,0.), dl.Point(1.,1.))-ms.Rectangle(dl.Point(0.25,0.15),dl.Point(0.5,0.4))-ms.Rectangle(dl.Point(0.6,0.6),dl.Point(0.75,0.85))
+    mesh = ms.generate_mesh(domain, 48)
+    #dl.plot(mesh, show_axis='on')
+    #dl.interactive()
+
     rank = dl.MPI.rank(mesh.mpi_comm())
     nproc = dl.MPI.size(mesh.mpi_comm())
         
@@ -551,6 +557,10 @@ if __name__ == "__main__":
         print( sep, "Generate samples from Prior and Posterior", sep)
     fid_prior = dl.File("samples/sample_prior.pvd")
     fid_post  = dl.File("samples/sample_post.pvd")
+
+    fid_prmean  = dl.File("samples/pr_mean.pvd")
+    fid_prmean << vector2Function(prior.mean, Vh, name="prior mean")
+
     nsamples = 50
     noise = dl.Vector()
     posterior.init_vector(noise,"noise")

@@ -409,12 +409,18 @@ if __name__ == "__main__":
     dl.set_log_active(False)
     np.random.seed(1)
     sep = "\n"+"#"*80+"\n"
-    mesh = dl.refine( dl.Mesh("ad_20.xml") )
 
-    domain = ms.Rectangle(dl.Point(0.,0.), dl.Point(1.,1.))-ms.Rectangle(dl.Point(0.25,0.15),dl.Point(0.5,0.4))-ms.Rectangle(dl.Point(0.6,0.6),dl.Point(0.75,0.85))
-    mesh = ms.generate_mesh(domain, 48)
-    #dl.plot(mesh, show_axis='on')
-    #dl.interactive()
+    need_mesh_refine = 0
+    nref = 1
+
+    mesh = dl.Mesh("ad_10k.xml")
+    if need_mesh_refine:
+        mesh = dl.refine( dl.Mesh("ad_10k.xml") )
+        for i in range(nref):
+            mesh = dl.refine(mesh)
+
+    dl.plot(mesh, show_axis='on')
+    dl.interactive()
 
     rank = dl.MPI.rank(mesh.mpi_comm())
     nproc = dl.MPI.size(mesh.mpi_comm())

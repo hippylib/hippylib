@@ -7,7 +7,7 @@ sed -i 's/nx = 64/nx = 32/' applications/poisson/model_subsurf.py
 sed -i 's/ny = 64/ny = 32/' applications/poisson/model_subsurf.py
 sed -i 's/nx = 64/nx = 32/' applications/poisson/model_continuous_obs.py
 sed -i 's/ny = 64/ny = 32/' applications/poisson/model_continuous_obs.py
-sed -i 's/mesh = dl.refine( dl.Mesh("ad_20.xml") )/mesh = dl.Mesh("ad_20.xml")/' applications/ad_diff/model_ad_diff.py
+sed -i 's/mesh = dl.Mesh("ad_10k.xml")/mesh = dl.Mesh("ad_20.xml")/' applications/ad_diff/model_ad_diff.py
 sed -i 's/nx = 64/nx = 32/' applications/mcmc/model_subsurf.py
 sed -i 's/ny = 64/ny = 32/' applications/mcmc/model_subsurf.py
 sed -i 's/chain.parameters["number_of_samples"] = 100/chain.parameters["number_of_samples"] = 30/' applications/mcmc/model_subsurf.py

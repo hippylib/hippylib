@@ -410,17 +410,11 @@ if __name__ == "__main__":
     np.random.seed(1)
     sep = "\n"+"#"*80+"\n"
 
-    need_mesh_refine = 0
-    nref = 1
+    nref = 0
 
     mesh = dl.Mesh("ad_10k.xml")
-    if need_mesh_refine:
-        mesh = dl.refine( dl.Mesh("ad_10k.xml") )
-        for i in range(nref):
-            mesh = dl.refine(mesh)
-
-    dl.plot(mesh, show_axis='on')
-    dl.interactive()
+    for i in range(nref):
+        mesh = dl.refine(mesh)
 
     rank = dl.MPI.rank(mesh.mpi_comm())
     nproc = dl.MPI.size(mesh.mpi_comm())

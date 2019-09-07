@@ -16,11 +16,15 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
                           https://hippylib.github.io
 
 Development version
+---------------------------------------- 
+- Support for `FEniCS 2019.1.0`
+
+Version 2.3.0, released on Sept 6, 2019
 ----------------------------------------
 - Reimplement `BiLaplacianPrior` and `MollifiedBiLaplacianPrior` using a more general framework `SqrtPrecisionPDE_Prior`,
   which also supports Gaussian vector fields.
-  
-- Support for `FEniCS 2019.1.0`
+- Update the prior distribution in `model_subsurf.py` and `tutorial/3_SubsurfaceBayesian.ipynb` to use Robin boundary conditions to alleviate boundary artifacts.
+- Update the data misfit term in `model_ad_diff.py` and `tutorial/4_AdvectionDiffusionBayesian.ipynb` to use discrete observations in space and time.
                           
 Version 2.2.1, released on March 28, 2019
 ----------------------------------------                      

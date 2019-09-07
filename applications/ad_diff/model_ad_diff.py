@@ -23,22 +23,101 @@ import os
 sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
 from hippylib import *
 
+class SpaceTimePointwiseStateObservation(Misfit):
+    def __init__(self, Vh,
+                 observation_times,
+                 targets,
+                 d = None,
+                 noise_variance=None):
+        
+        self.Vh = Vh
+        self.observation_times = observation_times
+        
+        self.B = assemblePointwiseObservation(self.Vh, targets)
+        self.ntargets = targets
+        
+        if d is None:
+            self.d = TimeDependentVector(observation_times)
+            self.d.initialize(self.B, 0)
+        else:
+            self.d = d
+            
+        self.noise_variance = noise_variance
+        
+        ## TEMP Vars
+        self.u_snapshot = dl.Vector()
+        self.Bu_snapshot = dl.Vector()
+        self.d_snapshot  = dl.Vector()
+        self.B.init_vector(self.u_snapshot, 1)
+        self.B.init_vector(self.Bu_snapshot, 0)
+        self.B.init_vector(self.d_snapshot, 0)
+        
+    def observe(self, x, obs):        
+        obs.zero()
+        
+        for t in self.observation_times:
+            x[STATE].retrieve(self.u_snapshot, t)
+            self.B.mult(self.u_snapshot, self.Bu_snapshot)
+            obs.store(self.Bu_snapshot, t)
+            
+    def cost(self, x):
+        c = 0
+        for t in self.observation_times:
+            x[STATE].retrieve(self.u_snapshot, t)
+            self.B.mult(self.u_snapshot, self.Bu_snapshot)
+            self.d.retrieve(self.d_snapshot, t)
+            self.Bu_snapshot.axpy(-1., self.d_snapshot)
+            c += self.Bu_snapshot.inner(self.Bu_snapshot)
+            
+        return c/(2.*self.noise_variance)
+    
+    def grad(self, i, x, out):
+        out.zero()
+        if i == STATE:
+            for t in self.observation_times:
+                x[STATE].retrieve(self.u_snapshot, t)
+                self.B.mult(self.u_snapshot, self.Bu_snapshot)
+                self.d.retrieve(self.d_snapshot, t)
+                self.Bu_snapshot.axpy(-1., self.d_snapshot)
+                self.Bu_snapshot *= 1./self.noise_variance
+                self.B.transpmult(self.Bu_snapshot, self.u_snapshot) 
+                out.store(self.u_snapshot, t)           
+        else:
+            pass
+            
+    def setLinearizationPoint(self, x, gauss_newton_approx=False):
+        pass
+    
+    def apply_ij(self, i,j, direction, out):
+        out.zero()
+        if i == STATE and j == STATE:
+            for t in self.observation_times:
+                direction.retrieve(self.u_snapshot, t)
+                self.B.mult(self.u_snapshot, self.Bu_snapshot)
+                self.Bu_snapshot *= 1./self.noise_variance
+                self.B.transpmult(self.Bu_snapshot, self.u_snapshot) 
+                out.store(self.u_snapshot, t)
+        else:
+            pass    
+        
+        
 
 class TimeDependentAD:    
-    def __init__(self, mesh, Vh, t_init, t_final, t_1, dt, wind_velocity, gls_stab, Prior):
+    def __init__(self, mesh, Vh, prior, misfit, simulation_times, wind_velocity, gls_stab):
         self.mesh = mesh
         self.Vh = Vh
-        self.t_init = t_init
-        self.t_final = t_final
-        self.t_1 = t_1
-        self.dt = dt
-        self.sim_times = np.arange(self.t_init, self.t_final+.5*self.dt, self.dt)
-        
+        self.prior = prior
+        self.misfit = misfit
+        # Assume constant timestepping
+        self.simulation_times = simulation_times
+        dt = simulation_times[1] - simulation_times[0]
+
+
         u = dl.TrialFunction(Vh[STATE])
         v = dl.TestFunction(Vh[STATE])
         
         kappa = dl.Constant(.001)
-        dt_expr = dl.Constant(self.dt)
+        dt_expr = dl.Constant(dt)
         
         r_trial = u + dt_expr*( -dl.div(kappa*dl.nabla_grad(u))+ dl.inner(wind_velocity, dl.nabla_grad(u)) )
         r_test  = v + dt_expr*( -dl.div(kappa*dl.nabla_grad(v))+ dl.inner(wind_velocity, dl.nabla_grad(v)) )
@@ -62,94 +141,50 @@ class TimeDependentAD:
         self.L = self.M + dt*self.N + stab
         self.Lt = self.M + dt*self.Nt + stab
         
-        boundaries = dl.MeshFunction("size_t", mesh,1)
-        boundaries.set_all(0)
-
-        class InsideBoundary(dl.SubDomain):
-            def inside(self,x,on_boundary):
-                x_in = x[0] > dl.DOLFIN_EPS and x[0] < 1 - dl.DOLFIN_EPS
-                y_in = x[1] > dl.DOLFIN_EPS and x[1] < 1 - dl.DOLFIN_EPS
-                return on_boundary and x_in and y_in
-            
-        Gamma_M = InsideBoundary()
-        Gamma_M.mark(boundaries,1)
-        ds_marked = dl.Measure("ds", subdomain_data=boundaries)
-        
-        self.Q = dl.assemble( self.dt*dl.inner(u, v) * ds_marked(1) )
-
-        self.Prior = Prior
-        
-     
         self.solver  = dl.PETScLUSolver( dl.as_backend_type(self.L) )
         self.solvert = dl.PETScLUSolver( dl.as_backend_type(self.Lt) )
                         
-        self.ud = self.generate_vector(STATE)
-        self.noise_variance = 0
         # Part of model public API
         self.gauss_newton_approx = False
-                
+                    
     def generate_vector(self, component = "ALL"):
         if component == "ALL":
-            u = TimeDependentVector(self.sim_times)
-            u.initialize(self.Q, 0)
+            u = TimeDependentVector(self.simulation_times)
+            u.initialize(self.M, 0)
             m = dl.Vector()
-            self.Prior.init_vector(m,0)
-            p = TimeDependentVector(self.sim_times)
-            p.initialize(self.Q, 0)
+            self.prior.init_vector(m,0)
+            p = TimeDependentVector(self.simulation_times)
+            p.initialize(self.M, 0)
             return [u, m, p]
         elif component == STATE:
-            u = TimeDependentVector(self.sim_times)
-            u.initialize(self.Q, 0)
+            u = TimeDependentVector(self.simulation_times)
+            u.initialize(self.M, 0)
             return u
         elif component == PARAMETER:
             m = dl.Vector()
-            self.Prior.init_vector(m,0)
+            self.prior.init_vector(m,0)
             return m
         elif component == ADJOINT:
-            p = TimeDependentVector(self.sim_times)
-            p.initialize(self.Q, 0)
+            p = TimeDependentVector(self.simulation_times)
+            p.initialize(self.M, 0)
             return p
         else:
             raise
     
     def init_parameter(self, m):
-        self.Prior.init_vector(m,0)
-        
-    def getIdentityMatrix(self, component):
-        Xh = self.Vh[component]
-        test = dl.TestFunction(Xh)
-        trial = dl.TrialFunction(Xh)
-        
-        I = dl.assemble(test*trial*dl.dx)
-        I.zero()
-        I.ident_zeros()
-        
-        return I
+        self.prior.init_vector(m,0)
         
           
     def cost(self, x):
         Rdx = dl.Vector()
-        self.Prior.init_vector(Rdx,0)
-        dx = x[PARAMETER] - self.Prior.mean
-        self.Prior.R.mult(dx, Rdx)
+        self.prior.init_vector(Rdx,0)
+        dx = x[PARAMETER] - self.prior.mean
+        self.prior.R.mult(dx, Rdx)
         reg = .5*Rdx.inner(dx)
         
-        u  = dl.Vector()
-        ud = dl.Vector()
-        self.Q.init_vector(u,0)
-        self.Q.init_vector(ud,0)
-    
-        misfit = 0
-        for t in np.arange(self.t_1, self.t_final+(.5*self.dt), self.dt):
-            x[STATE].retrieve(u,t)
-            self.ud.retrieve(ud,t)
-            diff = u - ud
-            Qdiff = self.Q * diff
-            misfit += .5/self.noise_variance*Qdiff.inner(diff)
-            
-        c = misfit + reg
+        misfit = self.misfit.cost(x)
                 
-        return [c, reg, misfit]
+        return [reg+misfit, reg, misfit]
     
     def solveFwd(self, out, x, tol=1e-9):
         out.zero()
@@ -158,65 +193,59 @@ class TimeDependentAD:
         rhs = dl.Vector()
         self.M.init_vector(rhs, 0)
         self.M.init_vector(u, 0)
-        t = self.t_init
-        while t < self.t_final:
-            t += self.dt
+        for t in self.simulation_times[1::]:
             self.M_stab.mult(uold, rhs)
             self.solver.solve(u, rhs)
             out.store(u,t)
             uold = u
     
     def solveAdj(self, out, x, tol=1e-9):
+        
+        grad_state = TimeDependentVector(self.simulation_times)
+        grad_state.initialize(self.M, 0)
+        self.misfit.grad(STATE, x, grad_state)
+        
         out.zero()
+        
         pold = dl.Vector()
-        self.M.init_vector(pold,0)    
+        self.M.init_vector(pold,0)
+            
         p = dl.Vector()
         self.M.init_vector(p,0)
-        rhs = dl.Vector()
-        self.M.init_vector(rhs,0) 
-        rhs_obs = dl.Vector()
         
-        u = dl.Vector()
-        self.M.init_vector(u,0)
-        ud = dl.Vector()
-        self.M.init_vector(ud,0)
+        rhs = dl.Vector()
+        self.M.init_vector(rhs,0)
+        
+        grad_state_snap = dl.Vector()
+        self.M.init_vector(grad_state_snap,0)
+
           
-        t = self.t_final
-        while t > self.t_init:
+        for t in self.simulation_times[::-1]:
             self.Mt_stab.mult(pold,rhs)
-            if t > self.t_1 - .5*self.dt:
-                x[STATE].retrieve(u,t)
-                self.ud.retrieve(ud,t)
-                ud.axpy(-1., u)
-                self.Q.mult(ud,rhs_obs)
-#                print( "t = ", t, "solveAdj ||ud-u||_inf = ", ud.norm("linf"), " ||rhs_obs|| = ", rhs_obs.norm("linf"))
-                rhs.axpy(1./self.noise_variance, rhs_obs)
-                
+            grad_state.retrieve(grad_state_snap, t)
+            rhs.axpy(-1., grad_state_snap)
             self.solvert.solve(p, rhs)
             pold = p
-            out.store(p, t)
-            t -= self.dt
-            
-            
+            out.store(p, t)            
             
     def evalGradientParameter(self,x, mg, misfit_only=False):
-        self.Prior.init_vector(mg,1)
+        self.prior.init_vector(mg,1)
         if misfit_only == False:
-            dm = x[PARAMETER] - self.Prior.mean
-            self.Prior.R.mult(dm, mg)
+            dm = x[PARAMETER] - self.prior.mean
+            self.prior.R.mult(dm, mg)
         else:
             mg.zero()
         
         p0 = dl.Vector()
-        self.Q.init_vector(p0,0)
-        x[ADJOINT].retrieve(p0, self.t_init + self.dt)
+        self.M.init_vector(p0,0)
+        x[ADJOINT].retrieve(p0, self.simulation_times[1])
         
         mg.axpy(-1., self.Mt_stab*p0)
         
         g = dl.Vector()
         self.M.init_vector(g,1)
         
-        self.Prior.Msolver.solve(g,mg)
+        self.prior.Msolver.solve(g,mg)
         
         grad_norm = g.inner(mg)
         
@@ -245,9 +274,7 @@ class TimeDependentAD:
         self.M.init_vector(Muold, 0)
         self.M.init_vector(myrhs, 0)
 
-        t = self.t_init
-        while t < self.t_final:
-            t += self.dt
+        for t in self.simulation_times[1::]:
             self.M_stab.mult(uold, Muold)
             rhs.retrieve(myrhs, t)
             myrhs.axpy(1., Muold)
@@ -268,15 +295,14 @@ class TimeDependentAD:
         self.M.init_vector(Mpold, 0)
         self.M.init_vector(myrhs, 0)
 
-        t = self.t_final
-        while t > self.t_init:
-            self.Mt_stab.mult(pold, Mpold)
+        for t in self.simulation_times[::-1]:
+            self.Mt_stab.mult(pold,Mpold)
             rhs.retrieve(myrhs, t)
-            myrhs.axpy(1., Mpold)
-            self.solvert.solve(p, myrhs)
-            sol.store(p,t)
+            Mpold.axpy(1., myrhs)
+            self.solvert.solve(p, Mpold)
             pold = p
-            t -= self.dt
+            sol.store(p, t)  
+            
     
     def applyC(self, dm, out):
         out.zero()
@@ -284,16 +310,15 @@ class TimeDependentAD:
         self.M.init_vector(myout, 0)
         self.M_stab.mult(dm,myout)
         myout *= -1.
-        t = self.t_init + self.dt
+        t = self.simulation_times[1]
         out.store(myout,t)
         
         myout.zero()
-        while t < self.t_final:
-            t += self.dt
+        for t in self.simulation_times[2:]:
             out.store(myout,t)
     
     def applyCt(self, dp, out):
-        t = self.t_init + self.dt
+        t = self.simulation_times[1]
         dp0 = dl.Vector()
         self.M.init_vector(dp0,0)
         dp.retrieve(dp0, t)
@@ -303,23 +328,8 @@ class TimeDependentAD:
     
     def applyWuu(self, du, out):
         out.zero()
-        myout = dl.Vector()
-        self.Q.init_vector(myout,0)
-        myout.zero()
-        
-        t = self.t_init + self.dt
-        while t < self.t_1 - .5*self.dt:
-            out.store(myout, t)
-            t += self.dt
-            
-        mydu  = dl.Vector()
-        self.Q.init_vector(mydu,0)
-        while t < self.t_final+(.5*self.dt):
-            du.retrieve(mydu,t)
-            self.Q.mult(mydu, myout)
-            myout *= 1./self.noise_variance
-            out.store(myout, t)
-            t += self.dt
+        self.misfit.apply_ij(STATE, STATE, du, out)
+
     
     def applyWum(self, dm, out):
         out.zero()
@@ -329,7 +339,7 @@ class TimeDependentAD:
         out.zero()
     
     def applyR(self, dm, out):
-        self.Prior.R.mult(dm,out)
+        self.prior.R.mult(dm,out)
     
     def applyWmm(self, dm, out):
         out.zero()
@@ -337,10 +347,9 @@ class TimeDependentAD:
     def exportState(self, x, filename, varname):
         out_file = dl.File(filename)
         ufunc = dl.Function(self.Vh[STATE], name=varname)
-        t = self.t_init
+        t = self.simulation_times[0]
         out_file << (vector2Function(x[PARAMETER], self.Vh[STATE], name=varname),t)
-        while t < self.t_final:
-            t += self.dt
+        for t in self.simulation_times[1:]:
             x[STATE].retrieve(ufunc.vector(), t)
             out_file << (ufunc, t)
             
@@ -392,8 +401,13 @@ if __name__ == "__main__":
         pass
     np.random.seed(1)
     sep = "\n"+"#"*80+"\n"
-    mesh = dl.refine( dl.Mesh("ad_20.xml") )
-    
+
+    nref = 0
+
+    mesh = dl.Mesh("ad_10k.xml")
+    for i in range(nref):
+        mesh = dl.refine(mesh)
+
     rank = dl.MPI.rank(mesh.mpi_comm())
     nproc = dl.MPI.size(mesh.mpi_comm())
         
@@ -410,43 +424,52 @@ if __name__ == "__main__":
     ic_expr = dl.Expression('min(0.5,exp(-100*(pow(x[0]-0.35,2) +  pow(x[1]-0.7,2))))', element=Vh.ufl_element())
     true_initial_condition = dl.interpolate(ic_expr, Vh).vector()
 
-    orderPrior = 2
     
-    if orderPrior == 1:
-        gamma = 1
-        delta = 1e1
-        prior = LaplacianPrior(Vh, gamma, delta)
-    elif orderPrior == 2:
-        gamma = 1
-        delta = 8
-        prior = BiLaplacianPrior(Vh, gamma, delta)
-        
-#    prior.mean = interpolate(Expression('min(0.6,exp(-50*(pow(x[0]-0.34,2) +  pow(x[1]-0.71,2))))'), Vh).vector()
-    prior.mean = dl.interpolate(dl.Constant(0.5), Vh).vector()
-    
+    gamma = 1.
+    delta = 8.
+    prior = BiLaplacianPrior(Vh, gamma, delta, robin_bc=True)
     if rank == 0:
-        print( "Prior regularization: (delta - gamma*Laplacian)^order: delta={0}, gamma={1}, order={2}".format(delta, gamma,orderPrior) )
+        print( "Prior regularization: (delta - gamma*Laplacian)^order: delta={0}, gamma={1}, order={2}".format(delta, gamma,2) )
+
+        
+    prior.mean = dl.interpolate(dl.Constant(0.25), Vh).vector()
+    
+    t_init         = 0.
+    t_final        = 4.
+    t_1            = 1.
+    dt             = .1
+    observation_dt = .2
+    
+    simulation_times = np.arange(t_init, t_final+.5*dt, dt)
+    observation_times = np.arange(t_1, t_final+.5*dt, observation_dt)
+    
+    targets = np.loadtxt('targets.txt')
+    if rank == 0:
+        print ("Number of observation points: {0}".format(targets.shape[0]) )
+    misfit = SpaceTimePointwiseStateObservation(Vh, observation_times, targets)
+    
     wind_velocity = computeVelocityField(mesh)
-    problem = TimeDependentAD(mesh, [Vh,Vh,Vh], 0., 4., 1., .2, wind_velocity, True, prior)
+
+    problem = TimeDependentAD(mesh, [Vh,Vh,Vh], prior, misfit, simulation_times, wind_velocity, True)
     
     if rank == 0:
         print( sep, "Generate synthetic observation", sep )
-    rel_noise = 0.001
+    rel_noise = 0.01
     utrue = problem.generate_vector(STATE)
     x = [utrue, true_initial_condition, None]
     problem.solveFwd(x[STATE], x, 1e-9)
-    MAX = utrue.norm("linf", "linf")
+    misfit.observe(x, misfit.d)
+    MAX = misfit.d.norm("linf", "linf")
     noise_std_dev = rel_noise * MAX
-    problem.ud.zero()
-    problem.ud.axpy(1., utrue)
-    parRandom.normal_perturb(noise_std_dev,problem.ud)
-    problem.noise_variance = noise_std_dev*noise_std_dev
+    parRandom.normal_perturb(noise_std_dev,misfit.d)
+    misfit.noise_variance = noise_std_dev*noise_std_dev
+    
     
     if rank == 0:
         print( sep, "Test the gradient and the Hessian of the model", sep )
     m0 = true_initial_condition.copy()
-    modelVerify(problem, m0, 1e-12, is_quadratic = True, verbose = (rank == 0))
-    
+    modelVerify(problem, m0, 1e-12, is_quadratic = True, misfit_only = True,  verbose = (rank == 0))
+
     if rank == 0:
         print( sep, "Compute the reduced gradient and hessian", sep)
     [u,m,p] = problem.generate_vector()
@@ -510,7 +533,6 @@ if __name__ == "__main__":
         print( sep, "Save results", sep  )
     problem.exportState([u,m,p], "results/conc.pvd", "concentration")
     problem.exportState([utrue,true_initial_condition,p], "results/true_conc.pvd", "concentration")
-    problem.exportState([problem.ud,true_initial_condition,p], "results/noisy_conc.pvd", "concentration")
 
     fid = dl.File("results/pointwise_variance.pvd")
     fid << vector2Function(post_pw_variance, Vh, name="Posterior")
@@ -526,6 +548,10 @@ if __name__ == "__main__":
         print( sep, "Generate samples from Prior and Posterior", sep)
     fid_prior = dl.File("samples/sample_prior.pvd")
     fid_post  = dl.File("samples/sample_post.pvd")
+
+    fid_prmean  = dl.File("samples/pr_mean.pvd")
+    fid_prmean << vector2Function(prior.mean, Vh, name="prior mean")
+
     nsamples = 50
     noise = dl.Vector()
     posterior.init_vector(noise,"noise")

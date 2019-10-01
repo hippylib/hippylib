@@ -22,7 +22,7 @@ namespace hippylib
 class PointwiseObservation
 {
 public:
-	PointwiseObservation(const dolfin::FunctionSpace & Vh, const dolfin::Array<double> & targets);
+	PointwiseObservation(const dolfin::FunctionSpace & Vh, const dolfin::Array<double> & targets, bool prune_and_sort);
 	std::shared_ptr<dolfin::Matrix> GetMatrix();
 	~PointwiseObservation();
 
@@ -31,7 +31,9 @@ private:
 					 const std::size_t gdim,
 					 const dolfin::Array<double> & targets,
 					 std::vector<dolfin::Point> & points,
-			         std::vector<PetscInt> & LG);
+			         std::vector<PetscInt> & LG,
+					 bool prune_and_sort);
+
 	Mat mat;
 	std::vector<int> old_new;
 };

@@ -34,7 +34,8 @@ PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 									   const std::size_t gdim,
 									   const dolfin::Array<double> & targets,
 									   std::vector<dolfin::Point> & points,
-		                               std::vector<PetscInt> & LG)
+		                               std::vector<PetscInt> & LG,
+									   bool prune_and_sort)
 {
 	 int nprocs, rank;
 	 MPI_Comm_size(comm, &nprocs);
@@ -64,29 +65,39 @@ PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 			 points.push_back( dolfin::Point(gdim, targets.data()+i*gdim) );
 		 }
 
-	 std::vector<PetscInt> proc_offset(nprocs+1);
-	 std::fill(proc_offset.begin(), proc_offset.end(), 0);
-	 for(int i = 0; i < nTargets; ++i)
-		 if (owner[i] < nprocs)
-			 ++proc_offset[owner[i]+1];
-
-	 std::partial_sum(proc_offset.begin(), proc_offset.end(), proc_offset.begin());
-	 PetscInt global_rows = proc_offset[nprocs];
-
-	 old_new.resize(nTargets);
-	 for(int i = 0; i < nTargets; ++i)
+	 PetscInt global_rows;
+	 if(prune_and_sort)
 	 {
-		 old_new[i] = proc_offset[owner[i]];
-		 ++proc_offset[owner[i]];
-	 }
+		 std::vector<PetscInt> proc_offset(nprocs+1);
+		 std::fill(proc_offset.begin(), proc_offset.end(), 0);
+		 for(int i = 0; i < nTargets; ++i)
+			 if (owner[i] < nprocs)
+				 ++proc_offset[owner[i]+1];
 
-	 for(int jj = 0; jj < LG.size(); ++jj)
-		 LG[jj] = old_new[LG[jj]];
+		 std::partial_sum(proc_offset.begin(), proc_offset.end(), proc_offset.begin());
+		 global_rows = proc_offset[nprocs];
+
+		 old_new.resize(nTargets);
+		 for(int i = 0; i < nTargets; ++i)
+		 {
+			 old_new[i] = proc_offset[owner[i]];
+			 ++proc_offset[owner[i]];
+		 }
+
+		 for(int jj = 0; jj < LG.size(); ++jj)
+			 LG[jj] = old_new[LG[jj]];
+	 }
+	 else
+	 {
+		 global_rows = nTargets;
+	 }
 
 	 return global_rows;
 }
 
-PointwiseObservation::PointwiseObservation(const dolfin::FunctionSpace & Vh, const dolfin::Array<double> & targets)
+PointwiseObservation::PointwiseObservation(const dolfin::FunctionSpace & Vh,
+										   const dolfin::Array<double> & targets,
+										   bool prune_and_sort)
 {
 	 const dolfin::Mesh& mesh = *( Vh.mesh() );
 	 const int num_cells = mesh.num_cells();
@@ -105,7 +116,7 @@ PointwiseObservation::PointwiseObservation(const dolfin::FunctionSpace & Vh, con
 	 std::vector<dolfin::Point> points(0);
 	 std::vector<PetscInt> LGtargets(0);
 
-	 PetscInt global_ntargets = computeLGtargets(comm, bbt, gdim, targets, points, LGtargets);
+	 PetscInt global_ntargets = computeLGtargets(comm, bbt, gdim, targets, points, LGtargets, prune_and_sort);
 	 PetscInt local_ntargets  = points.size();
 
 	 std::shared_ptr<const dolfin::FiniteElement> element( Vh.element() );
@@ -195,11 +206,11 @@ std::shared_ptr<dolfin::Matrix> PointwiseObservation::GetMatrix()
 
 PYBIND11_MODULE(SIGNATURE, m) {
     py::class_<hippylib::PointwiseObservation>(m, "PointwiseObservation")
-		.def(py::init([](const dolfin::FunctionSpace & Vh, py::array_t<double> & targets)
+		.def(py::init([](const dolfin::FunctionSpace & Vh, py::array_t<double> & targets, bool prune_and_sort)
 		          {
     				dolfin::Array<double> targets_dolfin(targets.size(), targets.mutable_data());
-    				return std::unique_ptr<hippylib::PointwiseObservation>(new hippylib::PointwiseObservation(Vh,targets_dolfin));
-		          })
+    				return std::unique_ptr<hippylib::PointwiseObservation>(new hippylib::PointwiseObservation(Vh,targets_dolfin, prune_and_sort));
+		          }), py::arg("Vh"), py::arg("targets"), py::arg("prune_and_sort")=false
 		)
 		.def("GetMatrix", &hippylib::PointwiseObservation::GetMatrix);
 }

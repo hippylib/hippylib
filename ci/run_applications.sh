@@ -25,12 +25,3 @@ ${DOCKER} /home/fenics/hippylib/applications/poisson $IMAGE "$PYTHON_PREPROC mpi
 ${DOCKER} /home/fenics/hippylib/applications/poisson $IMAGE "$PYTHON_PREPROC mpirun -n 2 $PYTHON model_subsurf.py"
 ${DOCKER} /home/fenics/hippylib/applications/ad_diff $IMAGE "$PYTHON_PREPROC mpirun -n 2 $PYTHON model_ad_diff.py"
 ${DOCKER} /home/fenics/hippylib/applications/mcmc    $IMAGE "$PYTHON_PREPROC mpirun -n 1 $PYTHON model_subsurf.py"
-
-
-
-${DOCKER} /home/fenics/hippylib/tutorial $IMAGE "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 1_FEniCS101.ipynb"
-${DOCKER} /home/fenics/hippylib/tutorial $IMAGE "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 2_PoissonDeterministic.ipynb"
-${DOCKER} /home/fenics/hippylib/tutorial $IMAGE "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 3_SubsurfaceBayesian.ipynb"
-${DOCKER} /home/fenics/hippylib/tutorial $IMAGE "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 4_AdvectionDiffusionBayesian.ipynb"
-${DOCKER} /home/fenics/hippylib/tutorial $IMAGE "jupyter nbconvert --ExecutePreprocessor.kernel_name="python3" --ExecutePreprocessor.timeout=1200 --to html --execute 5_HessianSpectrum.ipynb"
-

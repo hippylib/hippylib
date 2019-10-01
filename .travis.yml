@@ -6,11 +6,13 @@ services:
 
 before_install: ./ci/run_before_install.sh
 
-script: ./ci/run_unittest.sh
-
 jobs:
     include:
-        - stage: test
-          script: ./ci/run_scripts.sh
+        - stage: unittest
+          script: ./ci/run_unittest.sh
+        - stage: applications
+          script: ./ci/run_applications.sh
+        - stage: notebooks
+          script: ./ci/run_notebooks.sh 
 
 

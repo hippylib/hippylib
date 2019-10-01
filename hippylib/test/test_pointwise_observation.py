@@ -61,6 +61,20 @@ class TestPointwiseObservation(unittest.TestCase):
         
         if self.rank == 0:
             assert_allclose(self.targets, np.reshape(out_np, (self.ntargets, self.ndim), 'C'))
+            
+    def testRTObservations(self):
+        Vh = dl.FunctionSpace(self.mesh, "RT", 1)
+        xvect = dl.interpolate(dl.Expression(("x[0]", "x[1]"), degree=1), Vh).vector()
+        
+        B = assemblePointwiseObservation(Vh, self.targets, prune_and_sort=False)
+        out = dl.Vector()
+        B.init_vector(out,0)
+        B.mult(xvect, out)
+        
+        out_np =  out.gather_on_zero()
+        
+        if self.rank == 0:
+            assert_allclose(self.targets, np.reshape(out_np, (self.ntargets, self.ndim), 'C'))
 
 if __name__ == '__main__':
     unittest.main()

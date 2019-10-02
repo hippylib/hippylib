@@ -367,6 +367,9 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
             uhat = self.generate_static_state() 
             uhat.zero()
             uhat_old = uhat.copy()
+            u_old = self.generate_static_state()
+            self.linearize_x[STATE].retrieve(u_old, self.times[0])
+            
 
             for t in self.times[1:]:
                 self.linearize_x[STATE].retrieve(u.vector(), t)
@@ -376,8 +379,15 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
                 varf = dl.Constant(self.dt)*self.res_varf(u,a,p,t)
                 A = dl.assemble(dl.derivative(dl.derivative(varf, p), u))
                 
+                u_old_f = vector2Function(u_old, self.Vh[STATE])
+                uhat_old_f = vector2Function(uhat_old, self.Vh[STATE])
+
                 rhs.retrieve(rhs_t, t) 
-                rhs_mass = dl.assemble(dl.derivative(self.mass(vector2Function(uhat_old, self.Vh[STATE]),a,p,t), p))
+                rhs_mass = dl.assemble(
+                    dl.derivative(
+                        dl.derivative(
+                            self.mass(u_old_f, a, p, t), u_old_f, uhat_old_f), 
+                        p))
                 rhs_t.axpy(1., rhs_mass)
 
                 if self.adj_bc is not None:
@@ -386,6 +396,7 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
                 self.solver_fwd_inc.set_operator(A)
                 self.solver_fwd_inc.solve(uhat, rhs_t)
                 
+                u_old = u.vector().copy()
                 uhat_old = uhat.copy()
                 out.store(uhat, t)
             

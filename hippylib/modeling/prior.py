@@ -1,5 +1,7 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
-# & University of California, Merced.
+# & University of California--Merced.
+# Copyright (c) 2019, The University of Texas at Austin 
+# University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
 # See file COPYRIGHT for details.
@@ -11,20 +13,17 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
-from __future__ import absolute_import, division, print_function
-
 import dolfin as dl
 import numpy as np
 import scipy.linalg as scila
 import math
 
-from ..algorithms.linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2, Solver2Operator, Operator2Solver, Transpose
+from ..algorithms.linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2, Solver2Operator, Operator2Solver
 from ..algorithms.traceEstimator import TraceEstimator
 from ..algorithms.multivector import MultiVector
-from ..algorithms.randomizedEigensolver import singlePass, doublePass, singlePassG, doublePassG
+from ..algorithms.randomizedEigensolver import doublePass, doublePassG
 
 from ..utils.random import parRandom
-from ..utils.deprecate import deprecated
 from ..utils.vector2function import vector2Function
 
 from .expression import ExpressionModule

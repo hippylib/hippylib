@@ -1,5 +1,7 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
-# & University of California, Merced.
+# & University of California--Merced.
+# Copyright (c) 2019, The University of Texas at Austin 
+# University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
 # See file COPYRIGHT for details.
@@ -28,8 +30,6 @@ Conceptually, hIPPYlib can be viewed as a toolbox that provides
 the building blocks for experimenting new ideas and developing scalable
 algorithms for PDE-based deterministic and Bayesian inverse problems.
 """
-from __future__ import absolute_import, division, print_function
-
 
 # version
 from .version import version_info, __version__

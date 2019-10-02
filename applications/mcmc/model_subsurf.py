@@ -138,7 +138,7 @@ if __name__ == "__main__":
     #Generate synthetic observations
     utrue = pde.generate_state()
     x = [utrue, mtrue, None]
-    pde.solveFwd(x[STATE], x, 1e-9)
+    pde.solveFwd(x[STATE], x)
     misfit.B.mult(x[STATE], misfit.d)
     rel_noise = 0.01
     MAX = misfit.d.norm("linf")
@@ -155,7 +155,6 @@ if __name__ == "__main__":
     parameters["rel_tolerance"] = 1e-8
     parameters["abs_tolerance"] = 1e-12
     parameters["max_iter"]      = 25
-    parameters["inner_rel_tolerance"] = 1e-15
     parameters["globalization"] = "LS"
     parameters["GN_iter"] = 5
     if rank != 0:
@@ -176,7 +175,7 @@ if __name__ == "__main__":
     
     ## Build the low rank approximation of the posterior
     model.setPointForHessianEvaluations(x, gauss_newton_approx=True)
-    Hmisfit = ReducedHessian(model, solver.parameters["inner_rel_tolerance"], misfit_only=True)
+    Hmisfit = ReducedHessian(model, misfit_only=True)
     k = 50
     p = 20
     if rank == 0:

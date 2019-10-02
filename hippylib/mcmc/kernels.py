@@ -26,7 +26,6 @@ class MALAKernel:
         self.model = model
         self.pr_mean = model.prior.mean
         self.parameters = {}
-        self.parameters["inner_rel_tolerance"]   = 1e-9
         self.parameters["delta_t"]               = 0.25*1e-4
         
         self.noise = dl.Vector(self.model.prior.R.mpi_comm())
@@ -39,10 +38,9 @@ class MALAKernel:
         return 1
     
     def init_sample(self, s):
-        inner_tol = self.parameters["inner_rel_tolerance"]
-        self.model.solveFwd(s.u, [s.u,s.m,s.p], inner_tol)
+        self.model.solveFwd(s.u, [s.u,s.m,s.p])
         s.cost = self.model.cost([s.u,s.m,s.p])[2]
-        self.model.solveAdj(s.p, [s.u,s.m,s.p], inner_tol)
+        self.model.solveAdj(s.p, [s.u,s.m,s.p])
         self.model.evalGradientParameter([s.u,s.m,s.p], s.g, misfit_only=True)
         self.model.prior.Rsolver.solve(s.Cg, s.g)
         
@@ -88,7 +86,6 @@ class pCNKernel:
     def __init__(self, model):
         self.model = model
         self.parameters = {}
-        self.parameters["inner_rel_tolerance"]   = 1e-9
         self.parameters["s"]                     = 0.1
         
         self.noise = dl.Vector(self.model.prior.R.mpi_comm())
@@ -101,8 +98,7 @@ class pCNKernel:
         return 0
 
     def init_sample(self, current):
-        inner_tol = self.parameters["inner_rel_tolerance"]
-        self.model.solveFwd(current.u, [current.u,current.m,None], inner_tol)
+        self.model.solveFwd(current.u, [current.u,current.m,None])
         current.cost = self.model.cost([current.u,current.m,None])[2]
         
     def sample(self, current, proposed): 
@@ -145,7 +141,6 @@ class gpCNKernel:
         self.nu = nu
         self.prior = model.prior
         self.parameters = {}
-        self.parameters["inner_rel_tolerance"]   = 1e-9
         self.parameters["s"]                     = 0.1
         
         self.noise = dl.Vector(self.model.prior.R.mpi_comm())
@@ -158,8 +153,7 @@ class gpCNKernel:
         return 0
 
     def init_sample(self, current):
-        inner_tol = self.parameters["inner_rel_tolerance"]
-        self.model.solveFwd(current.u, [current.u,current.m,None], inner_tol)
+        self.model.solveFwd(current.u, [current.u,current.m,None])
         current.cost = self.model.cost([current.u,current.m,None])[2]
         
     def sample(self, current, proposed): 
@@ -204,7 +198,6 @@ class ISKernel:
         self.nu = nu
         self.prior = model.prior
         self.parameters = {}
-        self.parameters["inner_rel_tolerance"]   = 1e-9
         
         self.noise = dl.Vector(self.model.prior.R.mpi_comm())
         self.nu.init_vector(self.noise, "noise")
@@ -216,8 +209,7 @@ class ISKernel:
         return 0
 
     def init_sample(self, current):
-        inner_tol = self.parameters["inner_rel_tolerance"]
-        self.model.solveFwd(current.u, [current.u,current.m,None], inner_tol)
+        self.model.solveFwd(current.u, [current.u,current.m,None])
         current.cost = self.model.cost([current.u,current.m,None])[2]
         
     def sample(self, current, proposed): 

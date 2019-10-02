@@ -63,6 +63,15 @@ class Poisson:
         
         self.gauss_newton_approx=False
         
+        self.solver = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+        self.solver_fwd_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+        self.solver_adj_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+       
+        self.solver.parameters["relative_tolerance"] = 1e-15
+        self.solver.parameters["absolute_tolerance"] = 1e-20
+        self.solver_fwd_inc.parameters = self.solver.parameters
+        self.solver_adj_inc.parameters = self.solver.parameters
+        
     def generate_vector(self, component="ALL"):
         """
         Return the list x=[u,m,p] where:
@@ -215,35 +224,26 @@ class Poisson:
         
         return cost, reg, misfit
     
-    def solveFwd(self, out, x, tol=1e-9):
+    def solveFwd(self, out, x):
         """
         Solve the forward problem.
         """
         A, b = self.assembleA(x, assemble_rhs = True)
         A.init_vector(out, 1)
 
-        solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
-
-                        
-        solver.parameters["relative_tolerance"] = tol
-        solver.set_operator(A)
-        solver.solve(out,b)
-        
-#        print ("FWD", (self.A*out - b).norm("l2")/b.norm("l2"), nit)
+        self.solver.set_operator(A)
+        self.solver.solve(out,b)
 
     
-    def solveAdj(self, out, x, tol=1e-9):
+    def solveAdj(self, out, x):
         """
         Solve the adjoint problem.
         """
         At, badj = self.assembleA(x, assemble_adjoint = True,assemble_rhs = True)
         At.init_vector(out, 1)
                     
-        solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
-
-        solver.parameters["relative_tolerance"] = tol
-        solver.set_operator(At)
-        solver.solve(out,badj)
+        self.solver.set_operator(At)
+        self.solver.solve(out,badj)
         
 #        print ("ADJ", (self.At*out - badj).norm("l2")/badj.norm("l2"), nit)
     
@@ -291,31 +291,24 @@ class Poisson:
         else:
             self.Wmu = self.assembleWmu(x)
             self.Wmm = self.assembleWmm(x)
+            
+        self.solver_fwd_inc.set_operator(self.A)
+        self.solver_adj_inc.set_operator(self.At)
 
         
-    def solveFwdIncremental(self, sol, rhs, tol):
+    def solveFwdIncremental(self, sol, rhs):
         """
         Solve the incremental forward problem for a given rhs
-        """    
-        solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
-
-        solver.set_operator(self.A)
-        solver.parameters["relative_tolerance"] = tol
+        """
         self.A.init_vector(sol,1)
-        solver.solve(sol,rhs)
-#        print ("FwdInc", (self.A*sol-rhs).norm("l2")/rhs.norm("l2"), nit)
+        self.solver_fwd_inc.solve(sol,rhs)
         
-    def solveAdjIncremental(self, sol, rhs, tol):
+    def solveAdjIncremental(self, sol, rhs):
         """
         Solve the incremental adjoint problem for a given rhs
         """            
-        
-        solver = dl.PETScKrylovSolver(self.mesh.mpi_comm(), "cg", amg_method())
-
-        solver.set_operator(self.At)
-        solver.parameters["relative_tolerance"] = tol
         self.At.init_vector(sol,1)
-        solver.solve(sol, rhs)
+        self.solver_adj_inc.solve(sol, rhs)
 #        print ("AdjInc", (self.At*sol-rhs).norm("l2")/rhs.norm("l2"), nit)
     
     def applyC(self, dm, out):
@@ -372,14 +365,13 @@ if __name__ == "__main__":
     model = Poisson(mesh, Vh, Prior)
         
     m0 = dl.interpolate(dl.Expression("sin(x[0])", element=Vh[PARAMETER].ufl_element()), Vh[PARAMETER])
-    modelVerify(model, m0.vector(), 1e-12, is_quadratic = False, verbose = (rank==0))
+    modelVerify(model, m0.vector(), is_quadratic = False, verbose = (rank==0))
 
     m0 = dl.interpolate(dl.Constant(0.0),Vh[PARAMETER])
     parameters = ReducedSpaceNewtonCG_ParameterList()
     parameters["rel_tolerance"] = 1e-9
     parameters["abs_tolerance"] = 1e-12
     parameters["max_iter"]      = 25
-    parameters["inner_rel_tolerance"] = 1e-15
     parameters["globalization"] = "LS"
     parameters["GN_iter"] = 6
     if rank != 0:
@@ -401,7 +393,7 @@ if __name__ == "__main__":
         print ("Final cost: ", solver.final_cost)
     
     model.setPointForHessianEvaluations(x, gauss_newton_approx=False)
-    Hmisfit = ReducedHessian(model, solver.parameters["inner_rel_tolerance"], misfit_only=True)
+    Hmisfit = ReducedHessian(model, misfit_only=True)
     p = 20
     k = 50
     Omega = MultiVector(x[PARAMETER], k+p)

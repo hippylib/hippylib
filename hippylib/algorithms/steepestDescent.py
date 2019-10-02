@@ -21,7 +21,6 @@ def SteepestDescent_ParameterList():
         parameters["rel_tolerance"]         = [1e-6, "we converge when sqrt(g,g)/sqrt(g_0,g_0) <= rel_tolerance"]
         parameters["abs_tolerance"]         = [1e-12, "we converge when sqrt(g,g) <= abs_tolerance"]
         parameters["max_iter"]              = [500, "maximum number of iterations"]
-        parameters["inner_rel_tolerance"]   = [1e-9, "relative tolerance used for the solution of the forward, adjoint, and incremental (fwd,adj) problems"]
         parameters["c_armijo"]              = [1e-4, "Armijo constant for sufficient reduction"]
         parameters["max_backtracking_iter"] = [10, "Maximum number of backtracking iterations"]
         parameters["print_level"]           = [0, "Print info on screen"]
@@ -42,8 +41,8 @@ class SteepestDescent:
 
        - :code:`generate_vector()` -> generate the object containing state, parameter, adjoint.
        - :code:`cost(x)` -> evaluate the cost functional, report regularization part and misfit separately.
-       - :code:`solveFwd(out, x,tol)` -> solve the possibly non linear forward problem up to tolerance :code:`tol`.
-       - :code:`solveAdj(out, x,tol)` -> solve the linear adjoint problem.
+       - :code:`solveFwd(out, x)` -> solve the possibly non linear forward problem.
+       - :code:`solveAdj(out, x)` -> solve the linear adjoint problem.
        - :code:`evalGradientParameter(x, out)` -> evaluate the gradient of the parameter and compute its norm.
        - :code:`Rsolver()`          --> A solver for the regularization term.
        
@@ -79,7 +78,6 @@ class SteepestDescent:
         rel_tol = self.parameters["rel_tolerance"]
         abs_tol = self.parameters["abs_tolerance"]
         max_iter = self.parameters["max_iter"]
-        innerTol = self.parameters["inner_rel_tolerance"]
         c_armijo = self.parameters["c_armijo"]
         max_backtracking_iter = self.parameters["max_backtracking_iter"]
         alpha = self.parameters["alpha"]
@@ -90,7 +88,7 @@ class SteepestDescent:
         if x[ADJOINT] is None:
             x[ADJOINT] = self.model.generate_vector(ADJOINT)
             
-        self.model.solveFwd(x[STATE], x, innerTol)
+        self.model.solveFwd(x[STATE], x)
         
         self.it = 0
         self.converged = False
@@ -106,7 +104,7 @@ class SteepestDescent:
         cost_old, _, _ = self.model.cost(x)
                 
         while (self.it < max_iter) and (self.converged == False):
-            self.model.solveAdj(x[ADJOINT], x, innerTol)
+            self.model.solveAdj(x[ADJOINT], x)
             
             gradnorm = self.model.evalGradientParameter(x, mg)
             
@@ -137,7 +135,7 @@ class SteepestDescent:
                 x_star[PARAMETER].axpy(alpha, mhat)
                 x_star[STATE].zero()
                 x_star[STATE].axpy(1., x[STATE])
-                self.model.solveFwd(x_star[STATE], x_star, innerTol)
+                self.model.solveFwd(x_star[STATE], x_star)
                 
                 cost_new, reg_new, misfit_new = self.model.cost(x_star)
                                 

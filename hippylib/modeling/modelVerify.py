@@ -19,7 +19,7 @@ from .variables import STATE, PARAMETER, ADJOINT
 from .reducedHessian import ReducedHessian
 from ..utils.random import parRandom
     
-def modelVerify(model,m0, innerTol, is_quadratic = False, misfit_only=False, verbose = True, eps = None):
+def modelVerify(model,m0, is_quadratic = False, misfit_only=False, verbose = True, eps = None):
     """
     Verify the reduced Gradient and the Hessian of a model.
     It will produce two loglog plots of the finite difference checks for the gradient and for the Hessian.
@@ -36,8 +36,8 @@ def modelVerify(model,m0, innerTol, is_quadratic = False, misfit_only=False, ver
     
     x = model.generate_vector()
     x[PARAMETER] = m0
-    model.solveFwd(x[STATE], x, innerTol)
-    model.solveAdj(x[ADJOINT], x, innerTol)
+    model.solveFwd(x[STATE], x)
+    model.solveAdj(x[ADJOINT], x)
     cx = model.cost(x)
     
     grad_x = model.generate_vector(PARAMETER)
@@ -45,7 +45,7 @@ def modelVerify(model,m0, innerTol, is_quadratic = False, misfit_only=False, ver
     grad_xh = grad_x.inner( h )
     
     model.setPointForHessianEvaluations(x)
-    H = ReducedHessian(model,innerTol, misfit_only=misfit_only)
+    H = ReducedHessian(model, misfit_only=misfit_only)
     Hh = model.generate_vector(PARAMETER)
     H.mult(h, Hh)
     
@@ -64,8 +64,8 @@ def modelVerify(model,m0, innerTol, is_quadratic = False, misfit_only=False, ver
         x_plus = model.generate_vector()
         x_plus[PARAMETER].axpy(1., m0 )
         x_plus[PARAMETER].axpy(my_eps, h)
-        model.solveFwd(x_plus[STATE],   x_plus, innerTol)
-        model.solveAdj(x_plus[ADJOINT], x_plus,innerTol)
+        model.solveFwd(x_plus[STATE],   x_plus)
+        model.solveAdj(x_plus[ADJOINT], x_plus)
         
         dc = model.cost(x_plus)[index] - cx[index]
         err_grad[i] = abs(dc/my_eps - grad_xh)

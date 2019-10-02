@@ -51,11 +51,11 @@ def ReducedSpaceNewtonCG_ParameterList():
     parameters["abs_tolerance"]         = [1e-12, "we converge when sqrt(g,g) <= abs_tolerance"]
     parameters["gdm_tolerance"]         = [1e-18, "we converge when (g,dm) <= gdm_tolerance"]
     parameters["max_iter"]              = [20, "maximum number of iterations"]
-    parameters["inner_rel_tolerance"]   = [1e-9, "relative tolerance used for the solution of the forward, adjoint, and incremental (fwd,adj) problems"]
     parameters["globalization"]         = ["LS", "Globalization technique: line search (LS)  or trust region (TR)"]
     parameters["print_level"]           = [0, "Control verbosity of printing screen"]
     parameters["GN_iter"]               = [5, "Number of Gauss Newton iterations before switching to Newton"]
     parameters["cg_coarse_tolerance"]   = [.5, "Coarsest tolerance for the CG method (Eisenstat-Walker)"]
+    parameters["cg_max_iter"]           = [100, "Maximum CG iterations"]
     parameters["LS"]                    = [LS_ParameterList(), "Sublist containing LS globalization parameters"]
     parameters["TR"]                    = [TR_ParameterList(), "Sublist containing TR globalization parameters"]
     
@@ -84,12 +84,12 @@ class ReducedSpaceNewtonCG:
     
        - :code:`generate_vector()` -> generate the object containing state, parameter, adjoint
        - :code:`cost(x)` -> evaluate the cost functional, report regularization part and misfit separately
-       - :code:`solveFwd(out, x,tol)` -> solve the possibly non linear forward problem up a tolerance :code:`tol`
-       - :code:`solveAdj(out, x,tol)` -> solve the linear adjoint problem
+       - :code:`solveFwd(out, x)` -> solve the possibly non linear forward problem
+       - :code:`solveAdj(out, x)` -> solve the linear adjoint problem
        - :code:`evalGradientParameter(x, out)` -> evaluate the gradient of the parameter and compute its norm
        - :code:`setPointForHessianEvaluations(x)` -> set the state to perform hessian evaluations
-       - :code:`solveFwdIncremental(out, rhs, tol)` -> solve the linearized forward problem for a given :code:`rhs`
-       - :code:`solveAdjIncremental(out, rhs, tol)` -> solve the linear adjoint problem for a given :code:`rhs`
+       - :code:`solveFwdIncremental(out, rhs)` -> solve the linearized forward problem for a given :code:`rhs`
+       - :code:`solveAdjIncremental(out, rhs)` -> solve the linear adjoint problem for a given :code:`rhs`
        - :code:`applyC(dm, out)`    --> Compute out :math:`= C_x dm`
        - :code:`applyCt(dp, out)`   --> Compute out = :math:`C_x  dp`
        - :code:`applyWuu(du,out)`   --> Compute out = :math:`(W_{uu})_x  du`
@@ -163,15 +163,15 @@ class ReducedSpaceNewtonCG:
         rel_tol = self.parameters["rel_tolerance"]
         abs_tol = self.parameters["abs_tolerance"]
         max_iter = self.parameters["max_iter"]
-        innerTol = self.parameters["inner_rel_tolerance"]
         print_level = self.parameters["print_level"]
         GN_iter = self.parameters["GN_iter"]
         cg_coarse_tolerance = self.parameters["cg_coarse_tolerance"]
+        cg_max_iter         = self.parameters["cg_max_iter"]
         
         c_armijo = self.parameters["LS"]["c_armijo"]
         max_backtracking_iter = self.parameters["LS"]["max_backtracking_iter"]
         
-        self.model.solveFwd(x[STATE], x, innerTol)
+        self.model.solveFwd(x[STATE], x)
         
         self.it = 0
         self.converged = False
@@ -187,7 +187,7 @@ class ReducedSpaceNewtonCG:
         cost_old, _, _ = self.model.cost(x)
         
         while (self.it < max_iter) and (self.converged == False):
-            self.model.solveAdj(x[ADJOINT], x, innerTol)
+            self.model.solveAdj(x[ADJOINT], x)
             
             self.model.setPointForHessianEvaluations(x, gauss_newton_approx=(self.it < GN_iter) )
             gradnorm = self.model.evalGradientParameter(x, mg)
@@ -206,11 +206,12 @@ class ReducedSpaceNewtonCG:
             
             tolcg = min(cg_coarse_tolerance, math.sqrt(gradnorm/gradnorm_ini))
             
-            HessApply = ReducedHessian(self.model, innerTol)
+            HessApply = ReducedHessian(self.model)
             solver = CGSolverSteihaug(comm = self.model.prior.R.mpi_comm())
             solver.set_operator(HessApply)
             solver.set_preconditioner(self.model.Rsolver())
             solver.parameters["rel_tolerance"] = tolcg
+            solver.parameters["max_iter"] = cg_max_iter
             solver.parameters["zero_initial_guess"] = True
             solver.parameters["print_level"] = print_level-1
             
@@ -230,7 +231,7 @@ class ReducedSpaceNewtonCG:
                 x_star[PARAMETER].axpy(alpha, mhat)
                 x_star[STATE].zero()
                 x_star[STATE].axpy(1., x[STATE])
-                self.model.solveFwd(x_star[STATE], x_star, innerTol)
+                self.model.solveFwd(x_star[STATE], x_star)
                 
                 cost_new, reg_new, misfit_new = self.model.cost(x_star)
                   
@@ -276,16 +277,16 @@ class ReducedSpaceNewtonCG:
         rel_tol = self.parameters["rel_tolerance"]
         abs_tol = self.parameters["abs_tolerance"]
         max_iter = self.parameters["max_iter"]
-        innerTol = self.parameters["inner_rel_tolerance"]
         print_level = self.parameters["print_level"]
         GN_iter = self.parameters["GN_iter"]
         cg_coarse_tolerance = self.parameters["cg_coarse_tolerance"]
+        cg_max_iter         = self.parameters["cg_max_iter"]
         
         eta_TR = self.parameters["TR"]["eta"]
         delta_TR = None
         
         
-        self.model.solveFwd(x[STATE], x, innerTol)
+        self.model.solveFwd(x[STATE], x)
         
         self.it = 0
         self.converged = False
@@ -302,7 +303,7 @@ class ReducedSpaceNewtonCG:
         
         cost_old, reg_old, misfit_old = self.model.cost(x)
         while (self.it < max_iter) and (self.converged == False):
-            self.model.solveAdj(x[ADJOINT], x, innerTol)
+            self.model.solveAdj(x[ADJOINT], x)
             
             self.model.setPointForHessianEvaluations(x, gauss_newton_approx=(self.it < GN_iter) )
             gradnorm = self.model.evalGradientParameter(x, mg)
@@ -322,13 +323,15 @@ class ReducedSpaceNewtonCG:
 
             tolcg = min(cg_coarse_tolerance, math.sqrt(gradnorm/gradnorm_ini))
             
-            HessApply = ReducedHessian(self.model, innerTol)
+            HessApply = ReducedHessian(self.model)
             solver = CGSolverSteihaug(comm = self.model.prior.R.mpi_comm())
             solver.set_operator(HessApply)
             solver.set_preconditioner(self.model.Rsolver())
             if self.it > 1:
                 solver.set_TR(delta_TR, self.model.prior.R)
             solver.parameters["rel_tolerance"] = tolcg
+            self.parameters["max_iter"]        = cg_max_iter
+            solver.parameters["zero_initial_guess"] = True
             solver.parameters["print_level"] = print_level-1
             
             solver.solve(mhat, -mg)
@@ -344,7 +347,7 @@ class ReducedSpaceNewtonCG:
             x_star[PARAMETER].axpy(1., mhat)   #m_star = m +mhat
             x_star[STATE].zero()
             x_star[STATE].axpy(1., x[STATE])      #u_star = u
-            self.model.solveFwd(x_star[STATE], x_star, innerTol)
+            self.model.solveFwd(x_star[STATE], x_star)
             cost_star, reg_star, misfit_star = self.model.cost(x_star)
             ACTUAL_RED = cost_old - cost_star
             #Calculate Predicted Reduction

@@ -21,17 +21,15 @@ class ReducedHessian:
     The constructor takes the following parameters:
 
     - :code:`model`:               the object which contains the description of the problem.
-    - :code:`innerTol`:            the relative tolerance for the solution of the incremental forward and adjoint problems.
     - :code:`misfit_only`:         a boolean flag that describes whenever the full Hessian or only the misfit component of the Hessian is used.
     
     Type :code:`help(modelTemplate)` for more information on which methods model should implement.
     """
-    def __init__(self, model, innerTol, misfit_only=False):
+    def __init__(self, model, misfit_only=False):
         """
         Construct the reduced Hessian Operator
         """
         self.model = model
-        self.tol = innerTol
         self.gauss_newton_approx = self.model.gauss_newton_approx 
         self.misfit_only=misfit_only
         self.ncalls = 0
@@ -84,9 +82,9 @@ class ReducedHessian:
         Return the result in :code:`y`.        
         """
         self.model.applyC(x, self.rhs_fwd)
-        self.model.solveFwdIncremental(self.uhat, self.rhs_fwd, self.tol)
+        self.model.solveFwdIncremental(self.uhat, self.rhs_fwd)
         self.model.applyWuu(self.uhat, self.rhs_adj)
-        self.model.solveAdjIncremental(self.phat, self.rhs_adj, self.tol)
+        self.model.solveAdjIncremental(self.phat, self.rhs_adj)
         self.model.applyCt(self.phat, y)
         
         if not self.misfit_only:
@@ -100,11 +98,11 @@ class ReducedHessian:
         Return the result in :code:`y`.        
         """
         self.model.applyC(x, self.rhs_fwd)
-        self.model.solveFwdIncremental(self.uhat, self.rhs_fwd, self.tol)
+        self.model.solveFwdIncremental(self.uhat, self.rhs_fwd)
         self.model.applyWuu(self.uhat, self.rhs_adj)
         self.model.applyWum(x, self.rhs_adj2)
         self.rhs_adj.axpy(-1., self.rhs_adj2)
-        self.model.solveAdjIncremental(self.phat, self.rhs_adj, self.tol)
+        self.model.solveAdjIncremental(self.phat, self.rhs_adj)
         self.model.applyWmm(x, y)
         self.model.applyCt(self.phat, self.yhelp)
         y.axpy(1., self.yhelp)
@@ -124,19 +122,17 @@ class FDHessian:
     - :code:`model`:               the object which contains the description of the problem.
     - :code:`m0`:                  the value of the parameter at which the Hessian needs to be evaluated.
     - :code:`h`:                   the mesh size for FD.
-    - :code:`innerTol`:            the relative tolerance for the solution of the forward and adjoint problems.
     - :code:`misfit_only`:         a boolean flag that describes whenever the full Hessian or only the misfit component of the Hessian is used.
     
     Type :code:`help(Template)` for more information on which methods model should implement.
     """
-    def __init__(self, model, m0, h, innerTol,  misfit_only=False):
+    def __init__(self, model, m0, h,  misfit_only=False):
         """
         Construct the reduced Hessian Operator
         """
         self.model = model
         self.m0 = m0.copy()
         self.h = h
-        self.tol = innerTol
         self.misfit_only=misfit_only
         self.ncalls = 0
         
@@ -171,14 +167,14 @@ class FDHessian:
         
         m_plus = self.m0.copy()
         m_plus.axpy(h, x)
-        self.model.solveFwd(self.state_plus, [self.state_plus, m_plus, self.adj_plus], self.tol)
-        self.model.solveAdj(self.adj_plus, [self.state_plus, m_plus, self.adj_plus], self.tol)
+        self.model.solveFwd(self.state_plus, [self.state_plus, m_plus, self.adj_plus])
+        self.model.solveAdj(self.adj_plus, [self.state_plus, m_plus, self.adj_plus])
         self.model.evalGradientParameter([self.state_plus, m_plus, self.adj_plus], self.g_plus, misfit_only = True)
         
         m_minus = self.m0.copy()
         m_minus.axpy(-h, x)
-        self.model.solveFwd(self.state_minus, [self.state_minus, m_minus, self.adj_minus], self.tol)
-        self.model.solveAdj(self.adj_minus, [self.state_minus, m_minus, self.adj_minus], self.tol)
+        self.model.solveFwd(self.state_minus, [self.state_minus, m_minus, self.adj_minus])
+        self.model.solveAdj(self.adj_minus, [self.state_minus, m_minus, self.adj_minus])
         self.model.evalGradientParameter([self.state_minus, m_minus, self.adj_minus], self.g_minus, misfit_only = True)
         
         y.zero()

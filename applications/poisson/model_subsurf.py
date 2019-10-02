@@ -118,7 +118,7 @@ if __name__ == "__main__":
     #Generate synthetic observations
     utrue = pde.generate_state()
     x = [utrue, mtrue, None]
-    pde.solveFwd(x[STATE], x, 1e-9)
+    pde.solveFwd(x[STATE], x)
     misfit.B.mult(x[STATE], misfit.d)
     rel_noise = 0.01
     MAX = misfit.d.norm("linf")
@@ -132,7 +132,7 @@ if __name__ == "__main__":
         print( sep, "Test the gradient and the Hessian of the model", sep )
     
     m0 = dl.interpolate(dl.Expression("sin(x[0])", element=Vh[PARAMETER].ufl_element() ), Vh[PARAMETER])
-    modelVerify(model, m0.vector(), 1e-12, is_quadratic = False, verbose = (rank == 0) )
+    modelVerify(model, m0.vector(), is_quadratic = False, verbose = (rank == 0) )
 
     if rank == 0:
         print( sep, "Find the MAP point", sep)
@@ -141,7 +141,6 @@ if __name__ == "__main__":
     parameters["rel_tolerance"] = 1e-9
     parameters["abs_tolerance"] = 1e-12
     parameters["max_iter"]      = 25
-    parameters["inner_rel_tolerance"] = 1e-15
     parameters["globalization"] = "LS"
     parameters["GN_iter"] = 5
     if rank != 0:
@@ -167,7 +166,7 @@ if __name__ == "__main__":
         print (sep, "Compute the low rank Gaussian Approximation of the posterior", sep)
     
     model.setPointForHessianEvaluations(x, gauss_newton_approx = False)
-    Hmisfit = ReducedHessian(model, solver.parameters["inner_rel_tolerance"], misfit_only=True)
+    Hmisfit = ReducedHessian(model, misfit_only=True)
     k = 50
     p = 20
     if rank == 0:

@@ -68,7 +68,7 @@ def exportPointwiseObservation(Vh, B, data, fname, varname="observation"):
         xyz_array = np.stack([xi.get_local() for xi in xyz])
         pp = [dl.Point( (xyz_array[:,i]).flatten() ) for i in np.arange(xyz_array.shape[1])]
         values = data.get_local()
-        fid = dl.XDMFFile(dl.MPI.comm_world, fname+".xdmf")
+        fid = dl.XDMFFile(Vh.mesh().mpi_comm(), fname+".xdmf")
         fid.write(pp, values)
     except:
         data_on_pzero = data.gather_on_zero()

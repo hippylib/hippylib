@@ -149,6 +149,7 @@ will allow us to reach you directly with project announcements.
   - Code must be compatible with Python 3.
   - When adding new features add an example in the `application` folder and/or a
     new notebook in the `tutorial` folder.
+  - The preferred way to export solutions for visualization in paraview is using `dl.XDMFFile`
 
 - *Keep the code general and reasonably efficient*
   - Main goal is fast prototyping for research.

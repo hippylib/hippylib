@@ -46,7 +46,9 @@ class FullTracer(object):
         self.data[self.i, 0] = q
         self.data[self.i, 1] = current.cost
         if self.par_fid is not None:
-            self.par_fid << vector2Function(current.m, self.Vh[PARAMETER], name="parameter")
+            self.par_fid.write(vector2Function(current.m, self.Vh[PARAMETER], name="parameter"), self.i)
+
         if self.state_fid is not None:
-            self.state_fid << vector2Function(current.u, self.Vh[STATE], name = "state")
+            self.state_fid.write(vector2Function(current.u, self.Vh[STATE], name="state"), self.i)
+
         self.i+=1

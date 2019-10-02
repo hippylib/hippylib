@@ -222,8 +222,12 @@ if __name__ == "__main__":
         if rank == 0:
             print( kernel.name() )
         
-        fid_m = dl.File(kernel.name()+"/parameter.pvd")
-        fid_u = dl.File(kernel.name()+"/state.pvd")
+        fid_m = dl.XDMFFile("results/"+kernel.name()+"/parameter.xdmf")
+        fid_m.parameters["functions_share_mesh"] = True
+        fid_m.parameters["rewrite_function_mesh"] = False
+        fid_u = dl.XDMFFile("results/"+kernel.name()+"/state.xdmf")
+        fid_u.parameters["functions_share_mesh"] = True
+        fid_u.parameters["rewrite_function_mesh"] = False
         chain = MCMC(kernel)
         chain.parameters["burn_in"] = 0
         chain.parameters["number_of_samples"] = 100
@@ -236,7 +240,7 @@ if __name__ == "__main__":
         
         iact, lags, acoors = integratedAutocorrelationTime(tracer.data[:,0])
         if rank == 0:
-            np.savetxt(kernel.name()+".txt", tracer.data)
+            np.savetxt("results/"+kernel.name()+".txt", tracer.data)
             print( "Number accepted = {0}".format(n_accept) )
             print( "E[q] = {0}".format(chain.sum_q/float(chain.parameters["number_of_samples"])) )
         

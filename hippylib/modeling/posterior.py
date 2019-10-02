@@ -13,7 +13,7 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
-from dolfin import Vector, Function, File
+from dolfin import Vector, Function
 from ..algorithms.lowRankOperator import LowRankOperator
 import numpy as np
 

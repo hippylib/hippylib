@@ -1,5 +1,7 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
-# & University of California, Merced.
+# & University of California--Merced.
+# Copyright (c) 2019, The University of Texas at Austin 
+# University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
 # See file COPYRIGHT for details.
@@ -10,8 +12,6 @@
 # hIPPYlib is free software; you can redistribute it and/or modify it under the
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
-
-from __future__ import absolute_import, division, print_function
 
 import dolfin as dl
 import math
@@ -190,44 +190,54 @@ if __name__ == "__main__":
     if rank == 0:
         print ("KL-Distance from prior: ", kl_dist)
     
-    fid = dl.File("results/pointwise_variance.pvd")
-    fid << vector2Function(post_pw_variance,Vh[PARAMETER], name="Posterior")
-    fid << vector2Function(pr_pw_variance, Vh[PARAMETER], name="Prior")
-    fid << vector2Function(corr_pw_variance, Vh[PARAMETER], name="Correction")
+    with dl.XDMFFile(mesh.mpi_comm(), "results/pointwise_variance.xdmf") as fid:
+        fid.parameters["functions_share_mesh"] = True
+        fid.parameters["rewrite_function_mesh"] = False
+    
+        fid.write(vector2Function(post_pw_variance, Vh[PARAMETER], name="Posterior"), 0)
+        fid.write(vector2Function(pr_pw_variance, Vh[PARAMETER], name="Prior"), 0)
+        fid.write(vector2Function(corr_pw_variance, Vh[PARAMETER], name="Correction"), 0)
 
     if rank == 0:
         print (sep, "Save State, Parameter, Adjoint, and observation in paraview", sep)
-    xxname = ["State", "Parameter", "Adjoint"]
+    xxname = ["state", "parameter", "adjoint"]
     xx = [vector2Function(x[i], Vh[i], name=xxname[i]) for i in range(len(Vh))]
-    dl.File("results/poisson_state.pvd") << xx[STATE]
-    dl.File("results/poisson_state_true.pvd") << vector2Function(utrue, Vh[STATE], name = xxname[STATE])
-    dl.File("results/poisson_parameter.pvd") << xx[PARAMETER]
-    dl.File("results/poisson_parameter_true.pvd") << vector2Function(mtrue, Vh[PARAMETER], name = xxname[PARAMETER])
-    dl.File("results/poisson_parameter_prmean.pvd") << vector2Function(prior.mean, Vh[PARAMETER], name = xxname[PARAMETER])
-    dl.File("results/poisson_adjoint.pvd") << xx[ADJOINT]
+    
+    with dl.XDMFFile(mesh.mpi_comm(), "results/results.xdmf") as fid:
+        fid.parameters["functions_share_mesh"] = True
+        fid.parameters["rewrite_function_mesh"] = False 
+           
+        fid.write(xx[STATE],0)
+        fid.write(vector2Function(utrue, Vh[STATE], name = "true state"), 0)
+        fid.write(xx[PARAMETER],0)
+        fid.write(vector2Function(mtrue, Vh[PARAMETER], name = "true parameter"), 0)
+        fid.write(vector2Function(prior.mean, Vh[PARAMETER], name = "prior mean"), 0)
+        fid.write(xx[ADJOINT],0)
         
     exportPointwiseObservation(Vh[STATE], misfit.B, misfit.d, "results/poisson_observation")
     
     if rank == 0:
         print( sep, "Generate samples from Prior and Posterior\n","Export generalized Eigenpairs", sep )
-    fid_prior = dl.File("samples/sample_prior.pvd")
-    fid_post  = dl.File("samples/sample_post.pvd")
-    nsamples = 500
+
+    nsamples = 50
     noise = dl.Vector()
     posterior.init_vector(noise,"noise")
     s_prior = dl.Function(Vh[PARAMETER], name="sample_prior")
     s_post = dl.Function(Vh[PARAMETER], name="sample_post")
-    for i in range(nsamples):
-        parRandom.normal(1., noise)
-        posterior.sample(noise, s_prior.vector(), s_post.vector())
-        fid_prior << s_prior
-        fid_post << s_post
+    with dl.XDMFFile(mesh.mpi_comm(), "results/samples.xdmf") as fid:
+        fid.parameters["functions_share_mesh"] = True
+        fid.parameters["rewrite_function_mesh"] = False
+        for i in range(nsamples):
+            parRandom.normal(1., noise)
+            posterior.sample(noise, s_prior.vector(), s_post.vector())
+            fid.write(s_prior, i)
+            fid.write(s_post, i)
         
     #Save eigenvalues for printing:
     
-    U.export(Vh[PARAMETER], "hmisfit/evect.pvd", varname = "gen_evects", normalize = True)
+    U.export(Vh[PARAMETER], "results/evect.xdmf", varname = "gen_evects", normalize = True)
     if rank == 0:
-        np.savetxt("hmisfit/eigevalues.dat", d)
+        np.savetxt("results/eigevalues.dat", d)
         
     if rank == 0:
         plt.figure()

@@ -1,5 +1,7 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
-# & University of California, Merced.
+# & University of California--Merced.
+# Copyright (c) 2019, The University of Texas at Austin 
+# University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
 # See file COPYRIGHT for details.
@@ -10,8 +12,6 @@
 # hIPPYlib is free software; you can redistribute it and/or modify it under the
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
-
-from __future__ import absolute_import, division, print_function
 
 import dolfin as dl
 import numpy as np
@@ -27,19 +27,20 @@ def u_boundary(x, on_boundary):
     return on_boundary
 
 class Poisson:
-    def __init__(self, mesh, Vh, Prior):
+    def __init__(self, mesh, Vh, prior):
         """
         Construct a model by proving
         - the mesh
         - the finite element spaces for the STATE/ADJOINT variable and the PARAMETER variable
-        - the Prior information
+        - the prior information
         """
         self.mesh = mesh
         self.Vh = Vh
         
         # Initialize Expressions
-        self.mtrue = dl.Expression('std::log(2 + 7*(std::pow(std::pow(x[0] - 0.5,2) + std::pow(x[1] - 0.5,2),0.5) > 0.2))',
+        mtrue_exp = dl.Expression('std::log(2 + 7*(std::pow(std::pow(x[0] - 0.5,2) + std::pow(x[1] - 0.5,2),0.5) > 0.2))',
                                 element=Vh[PARAMETER].ufl_element())
+        self.mtrue = dl.interpolate(mtrue_exp, self.Vh[PARAMETER]).vector()
         self.f = dl.Constant(1.0)
         self.u_o = dl.Vector()
         
@@ -49,7 +50,7 @@ class Poisson:
         self.bc0 = dl.DirichletBC(self.Vh[STATE], self.u_bdr0, u_boundary)
         
         # Assemble constant matrices      
-        self.prior = Prior
+        self.prior = prior
         self.Wuu = self.assembleWuu()
         
 
@@ -188,8 +189,7 @@ class Poisson:
         """
         Compute the synthetic observation
         """
-        mt = dl.interpolate(self.mtrue, Vh[PARAMETER])
-        x = [self.generate_vector(STATE), mt.vector(), None]
+        x = [self.generate_vector(STATE), self.mtrue, None]
         A, b = self.assembleA(x, assemble_rhs = True)
         
         A.init_vector(u_o, 1)
@@ -361,8 +361,8 @@ if __name__ == "__main__":
     Vh1 = dl.FunctionSpace(mesh, 'Lagrange', 1)
     Vh = [Vh2, Vh1, Vh2]
     
-    Prior = LaplacianPrior(Vh[PARAMETER], gamma=1e-8, delta=1e-9)
-    model = Poisson(mesh, Vh, Prior)
+    prior = LaplacianPrior(Vh[PARAMETER], gamma=1e-8, delta=1e-9)
+    model = Poisson(mesh, Vh, prior)
         
     m0 = dl.interpolate(dl.Expression("sin(x[0])", element=Vh[PARAMETER].ufl_element()), Vh[PARAMETER])
     modelVerify(model, m0.vector(), is_quadratic = False, verbose = (rank==0))
@@ -399,19 +399,29 @@ if __name__ == "__main__":
     Omega = MultiVector(x[PARAMETER], k+p)
     parRandom.normal(1., Omega)
 
-    d, U = doublePassG(Hmisfit, Prior.R, Prior.Rsolver, Omega, k, s=1, check=False)
+    d, U = doublePassG(Hmisfit, prior.R, prior.Rsolver, Omega, k, s=1, check=False)
+    
+    xxname = ["state", "parameter", "adjoint"]
+    xx = [vector2Function(x[i], Vh[i], name=xxname[i]) for i in range(len(Vh))]
+    
+    with dl.XDMFFile(mesh.mpi_comm(), "results/results.xdmf") as fid:
+        fid.parameters["functions_share_mesh"] = True
+        fid.parameters["rewrite_function_mesh"] = False 
+           
+        fid.write(xx[STATE],0)
+        fid.write(xx[PARAMETER],0)
+        fid.write(vector2Function(model.mtrue, Vh[PARAMETER], name = "true parameter"), 0)
+        fid.write(vector2Function(prior.mean, Vh[PARAMETER], name = "prior mean"), 0)
+        fid.write(xx[ADJOINT],0)
+        fid.write(vector2Function(model.u_o, Vh[STATE], name = "observation"), 0)
+    
+    U.export(Vh[PARAMETER], "results/evect.xdmf", varname = "gen_evects", normalize = True)
+    if rank == 0:
+        np.savetxt("results/eigevalues.dat", d)
 
     if rank == 0:
         plt.figure()
         plt.plot(range(0,k), d, 'b*',range(0,k), np.ones(k), '-r')
         plt.yscale('log')
         plt.show()
-    
-    if nproc == 1:
-        xx = [vector2Function(x[i], Vh[i]) for i in range(len(Vh))]
-        dl.plot(xx[STATE], title = "State")
-        dl.plot(dl.exp(xx[PARAMETER]), title = "exp(Parameter)")
-        dl.plot(xx[ADJOINT], title = "Adjoint")
-        dl.plot(vector2Function(model.u_o, Vh[STATE]), title = "Observation")
-        dl.interactive()
     

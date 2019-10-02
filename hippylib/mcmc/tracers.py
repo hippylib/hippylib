@@ -1,5 +1,7 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
-# & University of California, Merced.
+# & University of California--Merced.
+# Copyright (c) 2019, The University of Texas at Austin 
+# University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
 # See file COPYRIGHT for details.
@@ -10,8 +12,6 @@
 # hIPPYlib is free software; you can redistribute it and/or modify it under the
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
-
-from __future__ import absolute_import, division, print_function
 
 from ..modeling.variables import STATE, PARAMETER
 from ..utils.vector2function import vector2Function
@@ -46,7 +46,9 @@ class FullTracer(object):
         self.data[self.i, 0] = q
         self.data[self.i, 1] = current.cost
         if self.par_fid is not None:
-            self.par_fid << vector2Function(current.m, self.Vh[PARAMETER], name="parameter")
+            self.par_fid.write(vector2Function(current.m, self.Vh[PARAMETER], name="parameter"), self.i)
+
         if self.state_fid is not None:
-            self.state_fid << vector2Function(current.u, self.Vh[STATE], name = "state")
+            self.state_fid.write(vector2Function(current.u, self.Vh[STATE], name="state"), self.i)
+
         self.i+=1

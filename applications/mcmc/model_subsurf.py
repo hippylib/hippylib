@@ -1,5 +1,7 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
-# & University of California, Merced.
+# & University of California--Merced.
+# Copyright (c) 2019, The University of Texas at Austin 
+# University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
 # See file COPYRIGHT for details.
@@ -10,8 +12,6 @@
 # hIPPYlib is free software; you can redistribute it and/or modify it under the
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
-
-from __future__ import absolute_import, division, print_function
 
 import dolfin as dl
 import math
@@ -221,8 +221,12 @@ if __name__ == "__main__":
         if rank == 0:
             print( kernel.name() )
         
-        fid_m = dl.File(kernel.name()+"/parameter.pvd")
-        fid_u = dl.File(kernel.name()+"/state.pvd")
+        fid_m = dl.XDMFFile("results/"+kernel.name()+"/parameter.xdmf")
+        fid_m.parameters["functions_share_mesh"] = True
+        fid_m.parameters["rewrite_function_mesh"] = False
+        fid_u = dl.XDMFFile("results/"+kernel.name()+"/state.xdmf")
+        fid_u.parameters["functions_share_mesh"] = True
+        fid_u.parameters["rewrite_function_mesh"] = False
         chain = MCMC(kernel)
         chain.parameters["burn_in"] = 0
         chain.parameters["number_of_samples"] = 100
@@ -235,7 +239,7 @@ if __name__ == "__main__":
         
         iact, lags, acoors = integratedAutocorrelationTime(tracer.data[:,0])
         if rank == 0:
-            np.savetxt(kernel.name()+".txt", tracer.data)
+            np.savetxt("results/"+kernel.name()+".txt", tracer.data)
             print( "Number accepted = {0}".format(n_accept) )
             print( "E[q] = {0}".format(chain.sum_q/float(chain.parameters["number_of_samples"])) )
         

@@ -1,5 +1,7 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
-# & University of California, Merced.
+# & University of California--Merced.
+# Copyright (c) 2019, The University of Texas at Austin 
+# University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
 # See file COPYRIGHT for details.
@@ -10,8 +12,6 @@
 # hIPPYlib is free software; you can redistribute it and/or modify it under the
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
-
-from __future__ import absolute_import, division, print_function
 
 import dolfin as dl
 from ..utils.vector2function import vector2Function
@@ -183,18 +183,49 @@ class MultiVector(cpp_module.MultiVector):
         - :code:`varname`:   the name of the paraview variable.
         - :code:`normalize`: if :code:`True` the vector is rescaled such that :math:`\\| u \\|_{\\infty} = 1.` 
         """
-        fid = dl.File(filename)
+        if '.xdmf' in filename:
+            self._exportXDMF(Vh, filename, varname, normalize)
+        else:
+            self._exportFile(Vh, filename, varname, normalize)
+            
+    def _exportXDMF(self, Vh, filename, varname, normalize):
+        """
+        Specialization of export using dl.File
+        """
+        fid = dl.XDMFFile(Vh.mesh().mpi_comm(), filename)
+        fid.parameters["functions_share_mesh"] = True
+        fid.parameters["rewrite_function_mesh"] = False
+        
+        fun = dl.Function(Vh, name = varname)
+        
         if not normalize:
             for i in range(self.nvec()):
-                fun = vector2Function(self[i], Vh, name = varname)
-                fid << fun
+                fun.vector().zero()
+                fun.vector().axpy(1., self[i])
+                fid.write(fun,i)
         else:
-            tmp = self[0].copy()
             for i in range(self.nvec()):
                 s = self[i].norm("linf")
-                tmp.zero()
-                tmp.axpy(1./s, self[i])
-                fun = vector2Function(tmp, Vh, name = varname)
+                fun.vector().zero()
+                fun.vector().axpy(1./s, self[i])
+                fid.write(fun,i)
+        
+    def _exportFile(self, Vh, filename, varname, normalize):
+        """
+        Specialization of export using dl.File
+        """
+        fid = dl.File(filename)
+        fun = dl.Function(Vh, name = varname)
+        if not normalize:
+            for i in range(self.nvec()):
+                fun.vector().zero()
+                fun.vector().axpy(1., self[i])
+                fid << fun
+        else:
+            for i in range(self.nvec()):
+                s = self[i].norm("linf")
+                fun.vector().zero()
+                fun.vector().axpy(1./s, self[i])
                 fid << fun
             
     

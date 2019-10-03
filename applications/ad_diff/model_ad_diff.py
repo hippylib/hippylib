@@ -17,6 +17,7 @@ import dolfin as dl
 import ufl
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
 
 import sys
 import os
@@ -397,6 +398,16 @@ def computeVelocityField(mesh):
 
         
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Model Advection Diffusion')
+    parser.add_argument('--mesh',
+                        default="ad_10k.xml",
+                        type=str,
+                        help="Mesh filename")
+    parser.add_argument('--nref',
+                        default=0,
+                        type=int,
+                        help="Number of uniform mesh refinements")
+    args = parser.parse_args()
     try:
         dl.set_log_active(False)
     except:
@@ -404,9 +415,9 @@ if __name__ == "__main__":
     np.random.seed(1)
     sep = "\n"+"#"*80+"\n"
 
-    nref = 0
+    nref = args.nref
 
-    mesh = dl.Mesh("ad_10k.xml")
+    mesh = dl.Mesh(args.mesh)
     for i in range(nref):
         mesh = dl.refine(mesh)
 

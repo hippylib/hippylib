@@ -17,6 +17,7 @@ import dolfin as dl
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
 
 import sys
 import os
@@ -67,14 +68,28 @@ def true_model(Vh, gamma, delta, anis_diff):
     return mtrue
             
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Model Subsurface')
+    parser.add_argument('--nx',
+                        default=64,
+                        type=int,
+                        help="Number of elements in x-direction")
+    parser.add_argument('--ny',
+                        default=64,
+                        type=int,
+                        help="Number of elements in y-direction")
+    parser.add_argument('--nsamples',
+                        default=100,
+                        type=int,
+                        help="Number of MCMC samples")
+    args = parser.parse_args()
     try:
         dl.set_log_active(False)
     except:
         pass
     sep = "\n"+"#"*80+"\n"
     ndim = 2
-    nx = 64  
-    ny = 64
+    nx = args.nx  
+    ny = args.ny
     mesh = dl.UnitSquareMesh(nx, ny)
     
     rank = dl.MPI.rank(mesh.mpi_comm())
@@ -229,7 +244,7 @@ if __name__ == "__main__":
         fid_u.parameters["rewrite_function_mesh"] = False
         chain = MCMC(kernel)
         chain.parameters["burn_in"] = 0
-        chain.parameters["number_of_samples"] = 100
+        chain.parameters["number_of_samples"] = args.nsamples
         chain.parameters["print_progress"] = 10            
         tracer = FullTracer(chain.parameters["number_of_samples"], Vh, fid_m, fid_u)
         if rank != 0:

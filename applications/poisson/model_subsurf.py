@@ -17,6 +17,7 @@ import dolfin as dl
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
 
 import sys
 import os
@@ -40,14 +41,28 @@ def true_model(prior):
     return mtrue
             
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Model Subsurface')
+    parser.add_argument('--nx',
+                        default=64,
+                        type=int,
+                        help="Number of elements in x-direction")
+    parser.add_argument('--ny',
+                        default=64,
+                        type=int,
+                        help="Number of elements in y-direction")
+    parser.add_argument('--nsamples',
+                        default=50,
+                        type=int,
+                        help="Number of samples from prior and Laplace Approximation")
+    args = parser.parse_args()
     try:
         dl.set_log_active(False)
     except:
         pass
     sep = "\n"+"#"*80+"\n"
     ndim = 2
-    nx = 64
-    ny = 64
+    nx = args.nx
+    ny = args.ny
     mesh = dl.UnitSquareMesh(nx, ny)
     
     rank = dl.MPI.rank(mesh.mpi_comm())
@@ -219,7 +234,7 @@ if __name__ == "__main__":
     if rank == 0:
         print( sep, "Generate samples from Prior and Posterior\n","Export generalized Eigenpairs", sep )
 
-    nsamples = 50
+    nsamples = args.nsamples
     noise = dl.Vector()
     posterior.init_vector(noise,"noise")
     s_prior = dl.Function(Vh[PARAMETER], name="sample_prior")

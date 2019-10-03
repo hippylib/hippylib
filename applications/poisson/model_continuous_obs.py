@@ -16,6 +16,7 @@
 import dolfin as dl
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
 
 import sys
 import os
@@ -346,12 +347,22 @@ class Poisson:
             self.Wmm.mult(dm, out)
             
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Model Continuous observations')
+    parser.add_argument('--nx',
+                        default=64,
+                        type=int,
+                        help="Number of elements in x-direction")
+    parser.add_argument('--ny',
+                        default=64,
+                        type=int,
+                        help="Number of elements in y-direction")
+    args = parser.parse_args()
     try:
         dl.set_log_active(False)
     except:
         pass
-    nx = 64
-    ny = 64
+    nx = args.nx
+    ny = args.ny
     mesh = dl.UnitSquareMesh(nx, ny)
     
     rank = dl.MPI.rank(mesh.mpi_comm())

@@ -22,6 +22,7 @@ Development version
   Setting the flag `prune_and_sort` to `True` restores previous behavior.
 - Remove unused input `tol` from `Model.solveFwd`, `Model.solveAdj`, `Model.solveFwdIncremental`, `Model.solveAdjIncremental`
   and from related classes.
+- Use `argparse` to set parameters in application drivers from command line
 - Use `dl.XDMFFile` to export solutions for visualization in Paraview in all application drivers
 
 

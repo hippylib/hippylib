@@ -187,7 +187,7 @@ class TimeDependentAD:
                 
         return [reg+misfit, reg, misfit]
     
-    def solveFwd(self, out, x, tol=1e-9):
+    def solveFwd(self, out, x):
         out.zero()
         uold = x[PARAMETER]
         u = dl.Vector()
@@ -200,7 +200,7 @@ class TimeDependentAD:
             out.store(u,t)
             uold = u
     
-    def solveAdj(self, out, x, tol=1e-9):
+    def solveAdj(self, out, x):
         
         grad_state = TimeDependentVector(self.simulation_times)
         grad_state.initialize(self.M, 0)
@@ -264,7 +264,7 @@ class TimeDependentAD:
         return
 
         
-    def solveFwdIncremental(self, sol, rhs, tol):
+    def solveFwdIncremental(self, sol, rhs):
         sol.zero()
         uold = dl.Vector()
         u = dl.Vector()
@@ -285,7 +285,7 @@ class TimeDependentAD:
 
 
         
-    def solveAdjIncremental(self, sol, rhs, tol):
+    def solveAdjIncremental(self, sol, rhs):
         sol.zero()
         pold = dl.Vector()
         p = dl.Vector()
@@ -470,7 +470,7 @@ if __name__ == "__main__":
     rel_noise = 0.01
     utrue = problem.generate_vector(STATE)
     x = [utrue, true_initial_condition, None]
-    problem.solveFwd(x[STATE], x, 1e-9)
+    problem.solveFwd(x[STATE], x)
     misfit.observe(x, misfit.d)
     MAX = misfit.d.norm("linf", "linf")
     noise_std_dev = rel_noise * MAX
@@ -481,13 +481,13 @@ if __name__ == "__main__":
     if rank == 0:
         print( sep, "Test the gradient and the Hessian of the model", sep )
     m0 = true_initial_condition.copy()
-    modelVerify(problem, m0, 1e-12, is_quadratic = True, misfit_only = True,  verbose = (rank == 0))
+    modelVerify(problem, m0, is_quadratic = True, misfit_only = True,  verbose = (rank == 0))
 
     if rank == 0:
         print( sep, "Compute the reduced gradient and hessian", sep)
     [u,m,p] = problem.generate_vector()
-    problem.solveFwd(u, [u,m,p], 1e-12)
-    problem.solveAdj(p, [u,m,p], 1e-12)
+    problem.solveFwd(u, [u,m,p])
+    problem.solveAdj(p, [u,m,p])
     mg = problem.generate_vector(PARAMETER)
     grad_norm = problem.evalGradientParameter([u,m,p], mg)
     
@@ -497,7 +497,7 @@ if __name__ == "__main__":
     if rank == 0:
         print( sep, "Compute the low rank Gaussian Approximation of the posterior", sep  )
     
-    H = ReducedHessian(problem, 1e-12, misfit_only=True) 
+    H = ReducedHessian(problem, misfit_only=True) 
     k = 80
     p = 20
     if rank == 0:
@@ -527,7 +527,7 @@ if __name__ == "__main__":
     if rank != 0:
         solver.parameters["print_level"] = -1
     solver.solve(m, -mg)
-    problem.solveFwd(u, [u,m,p], 1e-12)
+    problem.solveFwd(u, [u,m,p])
  
     total_cost, reg_cost, misfit_cost = problem.cost([u,m,p])
     if rank == 0:

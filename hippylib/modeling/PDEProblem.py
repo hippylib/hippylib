@@ -39,7 +39,7 @@ class PDEProblem(object):
         """ Initialize the parameter. """
         raise NotImplementedError("Child class should implement method init_parameter")
 
-    def solveFwd(self, state, x, tol):
+    def solveFwd(self, state, x):
         """ Solve the possibly nonlinear forward problem:
         Given :math:`m`, find :math:`u` such that
 
@@ -47,7 +47,7 @@ class PDEProblem(object):
         """
         raise NotImplementedError("Child class should implement method solveFwd")
 
-    def solveAdj(self, state, x, adj_rhs, tol):
+    def solveAdj(self, state, x, adj_rhs):
         """ Solve the linear adjoint problem: 
             Given :math:`m`, :math:`u`; find :math:`p` such that
             
@@ -67,7 +67,7 @@ class PDEProblem(object):
             the Hessian should be used."""
         raise NotImplementedError("Child class should implement method setLinearizationPoint")
       
-    def solveIncremental(self, out, rhs, is_adj, mytol):
+    def solveIncremental(self, out, rhs, is_adj):
         """ If :code:`is_adj = False`:
 
             Solve the forward incremental system:
@@ -141,7 +141,7 @@ class PDEVariationalProblem(PDEProblem):
         dummy = self.generate_parameter()
         m.init( dummy.mpi_comm(), dummy.local_range() )
     
-    def solveFwd(self, state, x, tol):
+    def solveFwd(self, state, x):
         """ Solve the possibly nonlinear forward problem:
         Given :math:`m`, find :math:`u` such that
         
@@ -167,7 +167,7 @@ class PDEVariationalProblem(PDEProblem):
             state.zero()
             state.axpy(1., u.vector())
         
-    def solveAdj(self, adj, x, adj_rhs, tol):
+    def solveAdj(self, adj, x, adj_rhs):
         """ Solve the linear adjoint problem: 
             Given :math:`m, u`; find :math:`p` such that
             
@@ -237,7 +237,7 @@ class PDEVariationalProblem(PDEProblem):
             self.Wmu = Transpose(Wmu_t)
             self.Wmm = dl.assemble(dl.derivative(g_form[PARAMETER],x_fun[PARAMETER]))
         
-    def solveIncremental(self, out, rhs, is_adj, mytol):
+    def solveIncremental(self, out, rhs, is_adj):
         """ If :code:`is_adj == False`:
 
             Solve the forward incremental system:

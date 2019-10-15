@@ -95,7 +95,7 @@ class Model:
         reg_cost = self.prior.cost(x[PARAMETER])
         return [misfit_cost+reg_cost, reg_cost, misfit_cost]
     
-    def solveFwd(self, out, x, tol=1e-9):
+    def solveFwd(self, out, x):
         """
         Solve the (possibly non-linear) forward problem.
         
@@ -107,16 +107,13 @@ class Model:
                 1) the parameter variable :code:`m` for the solution of the forward problem
                 2) the initial guess :code:`u` if the forward problem is non-linear
         
-                .. note:: :code:`p` is not accessed
-
-            - :code:`tol` is the relative tolerance for the solution of the forward problem. \
-            `[Default 1e-9]`.
+                .. note:: :code:`p` is not accessed.
         """
         self.n_fwd_solve = self.n_fwd_solve + 1
-        self.problem.solveFwd(out, x, tol)
+        self.problem.solveFwd(out, x)
 
     
-    def solveAdj(self, out, x, tol=1e-9):
+    def solveAdj(self, out, x):
         """
         Solve the linear adjoint problem.
 
@@ -129,14 +126,12 @@ class Model:
                 2) the state variable :code:`u` for assembling the adjoint right hand side
 
                 .. note:: :code:`p` is not accessed
-            - :code:`tol` is the relative tolerance for the solution of the adjoint problem. \
-            `[Default 1e-9].`
         """
         self.n_adj_solve = self.n_adj_solve + 1
         rhs = self.problem.generate_state()
         self.misfit.grad(STATE, x, rhs)
         rhs *= -1.
-        self.problem.solveAdj(out, x, rhs, tol)
+        self.problem.solveAdj(out, x, rhs)
     
     def evalGradientParameter(self,x, mg, misfit_only=False):
         """
@@ -183,7 +178,7 @@ class Model:
         self.misfit.setLinearizationPoint(x, self.gauss_newton_approx)
 
         
-    def solveFwdIncremental(self, sol, rhs, tol):
+    def solveFwdIncremental(self, sol, rhs):
         """
         Solve the linearized (incremental) forward problem for a given right-hand side
 
@@ -191,12 +186,11 @@ class Model:
 
             - :code:`sol` the solution of the linearized forward problem (Output)
             - :code:`rhs` the right hand side of the linear system
-            - :code:`tol` the relative tolerance for the linear system
         """
         self.n_inc_solve = self.n_inc_solve + 1
-        self.problem.solveIncremental(sol,rhs, False, tol)
+        self.problem.solveIncremental(sol,rhs, False)
         
-    def solveAdjIncremental(self, sol, rhs, tol):
+    def solveAdjIncremental(self, sol, rhs):
         """
         Solve the incremental adjoint problem for a given right-hand side
 
@@ -204,10 +198,9 @@ class Model:
 
             - :code:`sol` the solution of the incremental adjoint problem (Output)
             - :code:`rhs` the right hand side of the linear system
-            - :code:`tol` the relative tolerance for the linear system
         """
         self.n_inc_solve = self.n_inc_solve + 1
-        self.problem.solveIncremental(sol,rhs, True, tol)
+        self.problem.solveIncremental(sol,rhs, True)
     
     def applyC(self, dm, out):
         """

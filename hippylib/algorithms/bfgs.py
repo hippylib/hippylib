@@ -31,7 +31,6 @@ def BFGS_ParameterList():
     parameters["abs_tolerance"]         = [1e-12, "we converge when sqrt(g,g) <= abs_tolerance"]
     parameters["gdm_tolerance"]         = [1e-18, "we converge when (g,dm) <= gdm_tolerance"]
     parameters["max_iter"]              = [500, "maximum number of iterations"]
-    parameters["inner_rel_tolerance"]   = [1e-9, "relative tolerance used for the solution of the forward, adjoint, and incremental (fwd,adj) problems"]
     parameters["globalization"]         = ["LS", "Globalization technique: line search (LS)  or trust region (TR)"]
     parameters["print_level"]           = [0, "Control verbosity of printing screen"]
     ls_list = LS_ParameterList()
@@ -184,8 +183,8 @@ class BFGS:
 
        - :code:`generate_vector()` -> generate the object containing state, parameter, adjoint
        - :code:`cost(x)` -> evaluate the cost functional, report regularization part and misfit separately
-       - :code:`solveFwd(out, x,tol)` -> solve the possibly non-linear forward problem up a tolerance tol
-       - :code:`solveAdj(out, x,tol)` -> solve the linear adjoint problem
+       - :code:`solveFwd(out, x)` -> solve the possibly non-linear forward problem
+       - :code:`solveAdj(out, x)` -> solve the linear adjoint problem
        - :code:`evalGradientParameter(x, out)` -> evaluate the gradient of the parameter and compute its norm
        - :code:`applyR(dm, out)`    --> Compute :code:`out` = :math:`R dm`
        - :code:`Rsolver()`          --> A solver for the regularization term
@@ -246,7 +245,6 @@ class BFGS:
         rel_tol = self.parameters["rel_tolerance"]
         abs_tol = self.parameters["abs_tolerance"]
         max_iter = self.parameters["max_iter"]
-        innerTol = self.parameters["inner_rel_tolerance"]
         ls_list = self.parameters[self.parameters["globalization"]]
         c_armijo = ls_list["c_armijo"]
         max_backtracking_iter = ls_list["max_backtracking_iter"]
@@ -262,7 +260,7 @@ class BFGS:
         if x[ADJOINT] is None:
             x[ADJOINT] = self.model.generate_vector(ADJOINT)
             
-        self.model.solveFwd(x[STATE], x, innerTol)
+        self.model.solveFwd(x[STATE], x)
         
         self.it = 0
         self.converged = False
@@ -286,7 +284,7 @@ class BFGS:
         
         while (self.it < max_iter) and (self.converged == False):
             
-            self.model.solveAdj(x[ADJOINT], x, innerTol)
+            self.model.solveAdj(x[ADJOINT], x)
             
             if hasattr(self.BFGSop.H0inv, "setPoint"):
                 self.BFGSop.H0inv.setPoint(x)
@@ -331,7 +329,7 @@ class BFGS:
                     x_star[PARAMETER].set_local(np.minimum(x_star[PARAMETER].get_local(), param_max))
                     x_star[PARAMETER].apply("")
                     
-                self.model.solveFwd(x_star[STATE], x_star, innerTol)
+                self.model.solveFwd(x_star[STATE], x_star)
                 cost_new, reg_new, misfit_new = self.model.cost(x_star)
                 
                 # Check if armijo conditions are satisfied

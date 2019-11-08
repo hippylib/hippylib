@@ -233,6 +233,12 @@ def MatMvMult(A, x, y):
     assert x.nvec() == y.nvec(), "x and y have non-matching number of vectors"
     for i in range(x.nvec()):
         A.mult(x[i], y[i])
+
+def MatMvTranspmult(A, x, y):
+    assert x.nvec() == y.nvec(), "x and y have non-matching number of vectors"
+    assert hasattr(A,'transpmult'), "A does not have transpmult method implemented"
+    for i in range(x.nvec()):
+        A.transpmult(x[i], y[i])
         
 def MvDSmatMult(X, A, Y):
     assert X.nvec() == A.shape[0], "X Number of vecs incompatible with number of rows in A"

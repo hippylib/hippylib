@@ -17,7 +17,7 @@
 from .linalg import MatMatMult, MatPtAP, MatAtB, Transpose, \
                    to_dense, trace, get_diagonal, estimate_diagonal_inv2,  \
                    amg_method, DiagonalOperator, Solver2Operator, Operator2Solver
-from .multivector import MultiVector, MatMvMult, MvDSmatMult
+from .multivector import MultiVector, MatMvMult, MatMvTranspmult, MvDSmatMult
 
 # hIPPYlib algorithms
 from .cgsolverSteihaug import CGSolverSteihaug, CGSolverSteihaug_ParameterList
@@ -25,6 +25,7 @@ from .NewtonCG import ReducedSpaceNewtonCG, ReducedSpaceNewtonCG_ParameterList, 
 from .bfgs import BFGS_operator, BFGS, BFGS_ParameterList
 from .steepestDescent import SteepestDescent, SteepestDescent_ParameterList
 from .randomizedEigensolver import singlePass, doublePass, singlePassG, doublePassG
+from .randomizedSVD import accuracyEnhancedSVD
 from .lowRankOperator import LowRankOperator
 from .traceEstimator import TraceEstimator
 from .cgsampler import CGSampler

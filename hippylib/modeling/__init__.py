@@ -27,6 +27,3 @@ from .modelVerify import modelVerify
 from .reducedHessian import ReducedHessian, FDHessian
 
 from .posterior import GaussianLRPosterior, LowRankHessian
-
-
-from .jacobian import Jacobian

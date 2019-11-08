@@ -33,6 +33,22 @@ Randomized Methods for Matrix Computations
 https://arxiv.org/pdf/1607.01649v3.pdf
 """
 
+# These functions are useful for debugging
+def MV_to_dense(multivector):
+    multivector_shape = (multivector[0].get_local().shape[0],multivector.nvec())
+    as_np_array = np.zeros(multivector_shape)
+    for i in range(multivector_shape[-1]):
+        temp = multivector[i].get_local()
+        # print('For iteration i ||get_local|| = ', np.linalg.norm(temp))
+        as_np_array[:,i] = temp
+
+    return as_np_array
+
+def MV_shape(multivector):
+    return (multivector[0].get_local().shape[0],multivector.nvec())
+
+
+
 def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
     """
     The accuracy enhanced randomized singular value decomposition from  [2].
@@ -51,52 +67,65 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
     """
 
     # Check compatibility of operator A
-    assert hasattr(A,'shape'), 'Operator A must have member variable shape'
-    assert hasattr(A,'transpmult'), 'Operator A must have member variable transpmult'
-    assert hasattr(A,'Bu'), 'Operator A must have member variable Bu which is an\
-                                         observation space vector used in copy construction'
+    assert hasattr(A,'transpmult'), 'Operator A must have member function transpmult'
 
     nvec  = Omega.nvec()
     assert(nvec >= k )
 
-    Omega_shape = (Omega[0].get_local().shape[0],nvec)
-    print('A_shape',A.shape)
-    print('Omega_shape',Omega_shape)
-
     
     Z = MultiVector(Omega)
-    Y = MultiVector(A.Bu,nvec)
+
+    y_vec = Vector()
+    A.init_vector(y_vec,0)
+    Y = MultiVector(y_vec,nvec)
+    print('Y_shape = ',MV_shape(Y))
+    print('Z shape = ',(Z[0].get_local().shape[0],Z.nvec()))
     MatMvMult(A,Omega,Y)
+
+
     for i in range(s):
         MatMvTranspmult(A,Y,Z)
         MatMvMult(A, Z, Y)
 
     Q = MultiVector(Y)
     Q.orthogonalize()
-
     print('Q shape = ',(Q[0].get_local().shape[0],Q.nvec()))
+
 
     BT = MultiVector(Omega)
     MatMvTranspmult(A,Q,BT)
 
-    BT_numpy = np.zeros((BT[0].get_local().shape[0],BT.nvec()))
-    for i in range(BT.nvec()):
-        BT_numpy[:,i] = BT[i].get_local()
+    BT_numpy = MV_to_dense(BT)
+
+    R_B = BT.orthogonalize()
+
+
+    print('||R|| = ', np.linalg.norm(R_B))
+    print('The shape of R is ',R_B.shape)
 
     B = BT_numpy.T
+    print('B shape = ',B.shape)
+    print('||B|| = ',np.linalg.norm(B))
 
-    U_hat,D,V = np.linalg.svd(B,full_matrices = False) 
+    U_hat,d,V = np.linalg.svd(B,full_matrices = False) 
+
+    print('U_hat shape = ', U_hat.shape)
+    print('d shape = ', d.shape)
+    print('V shape = ', V.shape)
 
     U_hat = U_hat[:,:k]
-    D = D[:k]
+    d = d[:k]
     V = V[:,:k]
 
     print('U_hat shape = ', U_hat.shape)
-    print('D shape = ', D.shape)
+    print('d shape = ', d.shape)
     print('V shape = ', V.shape)
 
+    U = MultiVector(y_vec, k)   
 
-    U = MultiVector(Omega[0], k)   
+    print('U shape = ',(U[0].get_local().shape[0],U.nvec()))
+    print('Q shape = ',(Q[0].get_local().shape[0],Q.nvec()))
+    print('U_hat shape = ', U_hat.shape)
 
     MvDSmatMult(Q, U_hat, U)
         

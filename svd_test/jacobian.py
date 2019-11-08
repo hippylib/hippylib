@@ -13,28 +13,26 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
-
-from .variables import STATE, PARAMETER, ADJOINT
+from hippylib import *
 import dolfin as dl
 import numpy as np
 
 class Jacobian:
     """
-    This class implements matrix free application of the reduced Hessian operator.
+    This class implements matrix free application of the Jacobian operator.
     The constructor takes the following parameters:
 
     - :code:`model`:               the object which contains the description of the problem.
-    - :code:`misfit_only`:         a boolean flag that describes whenever the full Hessian or only the misfit component of the Hessian is used.
     
     Type :code:`help(modelTemplate)` for more information on which methods model should implement.
     """
-    def __init__(self, model, misfit_only=False):
+    def __init__(self, model):
         """
-        Construct the reduced Hessian Operator
+        Construct the Jacobian operator
         """
         self.model = model
         self.gauss_newton_approx = True
-        self.misfit_only= misfit_only
+
         self.ncalls = 0
         
         self.rhs_fwd = model.generate_vector(STATE)
@@ -59,11 +57,17 @@ class Jacobian:
         Parameters:
 
         - :code:`x`: the vector to reshape.
-        - :code:`dim`: if 0 then :code:`x` will be reshaped to be compatible with the range of the reduced Hessian, if 1 then :code:`x` will be reshaped to be compatible with the domain of the reduced Hessian.
+        - :code:`dim`: if 0 then :code:`x` will be made compatible with the range of the Jacobian, if 1 then :code:`x` will be made compatible with the domain of the Jacobian.
                
-        .. note:: Since the reduced Hessian is a self adjoint operator, the range and the domain is the same. Either way, we choosed to add the parameter :code:`dim` for consistency with the interface of :code:`Matrix` in dolfin.
-        """
-        self.model.init_parameter(x)
+         """
+        if dim == 0:
+            self.model.misfit.B.init_vector(x,0)
+        elif dim == 1:
+            self.model.init_parameter(x)
+        else: 
+            raise
+
+        
         
     def mult(self,x,y):
         """

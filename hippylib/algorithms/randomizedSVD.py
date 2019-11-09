@@ -72,62 +72,38 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
     nvec  = Omega.nvec()
     assert(nvec >= k )
 
-    
     Z = MultiVector(Omega)
 
     y_vec = Vector()
     A.init_vector(y_vec,0)
     Y = MultiVector(y_vec,nvec)
-    print('Y_shape = ',MV_shape(Y))
-    print('Z shape = ',(Z[0].get_local().shape[0],Z.nvec()))
     MatMvMult(A,Omega,Y)
-
-
+    # Perform power iteration for the range approximation step
     for i in range(s):
         MatMvTranspmult(A,Y,Z)
         MatMvMult(A, Z, Y)
-
+    # First orthogonal matrix for left singular vectors
     Q = MultiVector(Y)
     Q.orthogonalize()
-    print('Q shape = ',(Q[0].get_local().shape[0],Q.nvec()))
 
+    # Form BT = A^TQ (B = Q^TA) and orthogonalize in one step
+    # This becomes the orthogonal matrix for right singular vectors
+    Q_BT = MultiVector(Omega)
+    MatMvTranspmult(A,Q,Q_BT)
+    R_BT = Q_BT.orthogonalize()
 
-    BT = MultiVector(Omega)
-    MatMvTranspmult(A,Q,BT)
+    V_hat,d,U_hat = np.linalg.svd(R_BT,full_matrices = False) 
 
-    BT_numpy = MV_to_dense(BT)
-
-    R_B = BT.orthogonalize()
-
-
-    print('||R|| = ', np.linalg.norm(R_B))
-    print('The shape of R is ',R_B.shape)
-
-    B = BT_numpy.T
-    print('B shape = ',B.shape)
-    print('||B|| = ',np.linalg.norm(B))
-
-    U_hat,d,V = np.linalg.svd(B,full_matrices = False) 
-
-    print('U_hat shape = ', U_hat.shape)
-    print('d shape = ', d.shape)
-    print('V shape = ', V.shape)
-
+    # Select the first k columns
     U_hat = U_hat[:,:k]
     d = d[:k]
-    V = V[:,:k]
+    V_hat = V_hat[:,:k]
 
-    print('U_hat shape = ', U_hat.shape)
-    print('d shape = ', d.shape)
-    print('V shape = ', V.shape)
+    U = MultiVector(y_vec, k)
+    MvDSmatMult(Q, U_hat, U)   
+    V = MultiVector(Omega[0],k)
+    MvDSmatMult(Q_BT, V_hat, V)
 
-    U = MultiVector(y_vec, k)   
-
-    print('U shape = ',(U[0].get_local().shape[0],U.nvec()))
-    print('Q shape = ',(Q[0].get_local().shape[0],Q.nvec()))
-    print('U_hat shape = ', U_hat.shape)
-
-    MvDSmatMult(Q, U_hat, U)
         
     return U, d, V
 

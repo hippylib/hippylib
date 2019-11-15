@@ -41,7 +41,6 @@ def MV_to_dense(multivector):
         temp = multivector[i].get_local()
         # print('For iteration i ||get_local|| = ', np.linalg.norm(temp))
         as_np_array[:,i] = temp
-
     return as_np_array
 
 def MV_shape(multivector):
@@ -86,13 +85,14 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
     Q = MultiVector(Y)
     Q.orthogonalize()
 
+
     # Form BT = A^TQ (B = Q^TA) and orthogonalize in one step
     # This becomes the orthogonal matrix for right singular vectors
-    Q_BT = MultiVector(Omega)
-    MatMvTranspmult(A,Q,Q_BT)
-    R_BT = Q_BT.orthogonalize()
+    Q_Bt = MultiVector(Omega)
+    MatMvTranspmult(A,Q,Q_Bt)
+    R_Bt = Q_Bt.orthogonalize()
 
-    V_hat,d,U_hat = np.linalg.svd(R_BT,full_matrices = False) 
+    V_hat,d,U_hat = np.linalg.svd(R_Bt,full_matrices = False) 
 
     # Select the first k columns
     U_hat = U_hat[:,:k]
@@ -102,49 +102,60 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
     U = MultiVector(y_vec, k)
     MvDSmatMult(Q, U_hat, U)   
     V = MultiVector(Omega[0],k)
-    MvDSmatMult(Q_BT, V_hat, V)
+    MvDSmatMult(Q_Bt, V_hat, V)
 
-        
+    if check:
+        check_SVD(A,U,d,V)
+
     return U, d, V
 
 
-def check_std(A, U, d):
+def check_SVD(A, U, d,V,tol = 1e-1):
     """
     Test the frobenious norm of  :math:`U^TU - I_k`.
 
-    Test the frobenious norm of  :math:`(V^TAV) - I_k`, with :math:`V = U D^{-1/2}`.
+    Test the frobenious norm of  :math:`(V^TV) - I_k`.
     
-    Test the :math:`l_2` norm of the residual: :math:`r[i] = A U[i] - d[i] U[i]`.
+    Test the :math:`l_2` norm of the residual: :math:`r_1[i] = A V[i] -  U[i] d[i]`.
+
+    Test the :math:`l_2` norm of the residual: :math:`r_2[i] = A^T U[i] -  V[i] d[i]`.
     """
+    assert U.nvec() == V.nvec(), "U and V second dimension need to agree"
+
     nvec  = U.nvec()
-    AU = MultiVector(U[0], nvec)
-    MatMvMult(A, U, AU)
+    AV = MultiVector(U[0], nvec)
+    MatMvMult(A, V, AV)
+    AtU = MultiVector(V[0],nvec)
+    MatMvTranspmult(A,U,AtU)
+
+    # # Residual checks
+    Ut_AV = np.diag(AV.dot_mv(U))
+    r_1 = np.zeros_like(d)
+    for i,d_i in enumerate(d):
+        r_1[i] = min(np.abs(Ut_AV[i] + d_i),np.abs(Ut_AV[i] - d_i))
+    # r_1 = Ut_AV - d
     
-    # Residual checks
-    diff = MultiVector(AU)
-    diff.axpy(-d, U)
-    res_norms = diff.norm("l2")
+    VtAtU = np.diag(AtU.dot_mv(V))
+    # r_2 = VtAtU - d
+    r_2 = np.zeros_like(d)
+    for i,d_i in enumerate(d):
+        r_2[i] = min(np.abs(VtAtU[i] + d_i),np.abs(VtAtU[i] - d_i))
     
-    # B-ortho check
+    # Orthogonality checks check
     UtU = U.dot_mv(U)
     err = UtU - np.eye(nvec, dtype=UtU.dtype)
-    err_Bortho = np.linalg.norm(err, 'fro')
+    err_Uortho = np.linalg.norm(err, 'fro')
     
-    #A-ortho check
-    V = MultiVector(U)
-    scaling = np.power(np.abs(d), -0.5)
-    V.scale(scaling)
-    AU.scale(scaling)
-    VtAV = AU.dot_mv(V)
-    err = VtAV - np.diag(np.sign(d))#np.eye(nvec, dtype=VtAV.dtype)
-    err_Aortho = np.linalg.norm(err, 'fro')
+    VtV = U.dot_mv(U)
+    err = VtV - np.eye(nvec, dtype=VtV.dtype)
+    err_Vortho = np.linalg.norm(err, 'fro')
     
     mpi_comm = U[0].mpi_comm()
     rank = MPI.rank(mpi_comm)
     if rank == 0:
-        print( "|| UtU - I ||_F = ", err_Bortho)
-        print( "|| VtAV - I ||_F = ", err_Aortho, " with V = U D^{-1/2}")
-        print( "lambda", "||Au - lambda*u||_2")
-        for i in range(res_norms.shape[0]):
-            print( "{0:5e} {1:5e}".format(d[i], res_norms[i]))
+        print( "|| UtU - I ||_F = ", err_Uortho)
+        print( "|| VtV - I ||_F = ", err_Vortho)
+        print( "|utAv - sigma| < tol ",np.all(r_1 < tol))
+        print( "|vtAtu - sigma| < tol ",np.all(r_2 < tol))
+
   

@@ -75,8 +75,8 @@ class TestRandomizedSVD(unittest.TestCase):
         x_vec = dl.Vector()
         M.init_vector(x_vec,1)
 
-        k_evec = 50
-        p_evec = 10
+        k_evec = 10
+        p_evec = 50
         Omega = MultiVector(x_vec,k_evec+p_evec)
 
         myRandom.normal(1.,Omega)

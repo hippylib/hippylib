@@ -108,6 +108,7 @@ class TestRandomizedSVD(unittest.TestCase):
         for i,d_i in enumerate(self.d):
             r_1[i] = min(np.abs(UtAV[i] + d_i),np.abs(UtAV[i] - d_i))
         if self.rank == 0:
+            print(r_1)
             assert np.all(r_1 < 5e-2)
 
     def testResidualVtAtU(self):
@@ -119,6 +120,7 @@ class TestRandomizedSVD(unittest.TestCase):
         for i,d_i in enumerate(self.d):
             r_2[i] = min(np.abs(VtAtU[i] + d_i),np.abs(VtAtU[i] - d_i))
         if self.rank == 0:
+            print(r_2)
             assert np.all(r_2 < 5e-2)
         
 

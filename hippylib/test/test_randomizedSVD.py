@@ -102,48 +102,37 @@ class TestRandomizedSVD(unittest.TestCase):
         # Bringing the orthogonalization inside of the power iteration could fix this
         self.U,self.d,self.V = accuracyEnhancedSVD(self.J,Omega,k_evec,s=1)
         assert np.all(self.d>0)
-        
-        
-    def testOrthogonalityU(self):
+
+    def testAccuracyEnhancedSVD(self):
         UtU = self.U.dot_mv(self.U)
         err = UtU - np.eye(UtU.shape[0], dtype=UtU.dtype)
         err_Uortho = np.linalg.norm(err, 'fro')
 
-        if self.rank == 0:
-            assert err_Uortho < 1e-8
-
-    def testOrthogonalityV(self):
         VtV = self.V.dot_mv(self.V)
         err = VtV - np.eye(VtV.shape[0], dtype=VtV.dtype)
         err_Vortho = np.linalg.norm(err, 'fro')
-        if self.rank == 0:
-            assert err_Vortho < 1e-8
-
-    def testResidualUtAV(self):
+            
         nvec  = self.U.nvec()
         AV = MultiVector(self.U[0], nvec)
         MatMvMult(self.J, self.V, AV)
         UtAV = np.diag(AV.dot_mv(self.U))
         r_1 = np.zeros_like(self.d)
-        for i,d_i in enumerate(self.d):
-            r_1[i] = min(np.abs(UtAV[i] + d_i),np.abs(UtAV[i] - d_i))
-        if self.rank == 0:
-            print('np.maximum( 5e-2,0.1*self.d) = ',np.maximum( 5e-2,0.1*self.d))
-            print('r_1 error = ',r_1)
-            assert np.all(r_1 < np.maximum( 5e-2,0.1*self.d))
 
-    def testResidualVtAtU(self):
-        nvec  = self.V.nvec()
         AtU = MultiVector(self.V[0], nvec)
         MatMvTranspmult(self.J, self.U, AtU)
         VtAtU = np.diag(AtU.dot_mv(self.V))
         r_2 = np.zeros_like(self.d)
+
         for i,d_i in enumerate(self.d):
+            r_1[i] = min(np.abs(UtAV[i] + d_i),np.abs(UtAV[i] - d_i))
             r_2[i] = min(np.abs(VtAtU[i] + d_i),np.abs(VtAtU[i] - d_i))
+
         if self.rank == 0:
-            print('np.maximum( 5e-2,0.1*self.d) = ',np.maximum( 5e-2,0.1*self.d))
-            print('r_2 error = ',r_2)
+            assert err_Uortho < 1e-8
+            assert err_Vortho < 1e-8
+            assert np.all(r_1 < np.maximum( 5e-2,0.1*self.d))
             assert np.all(r_2 < np.maximum( 5e-2,0.1*self.d))
+
         
 
 if __name__ == '__main__':

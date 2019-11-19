@@ -24,24 +24,35 @@ sys.path.append('../../')
 from hippylib import *
 
 class J_op:
-    def __init__(self, Asolver, M):
+    def __init__(self, Asolver, B, M):
         self.Asolver = Asolver
-        self.M = M
-        self.temp = dl.Vector()
-        self.M.init_vector(self.temp,0)
+        self.B = B
+        self.M = M 
+        self.temp0 = dl.Vector()
+        self.temp1 = dl.Vector()
+        self.temp1help = dl.Vector()
+        self.B.init_vector(self.temp0,0)
+        self.B.init_vector(self.temp1,1)
+        self.B.init_vector(self.temp1help,1)
         
     def init_vector(self, x, dim):
-        self.M.init_vector(x,dim)
+        
+        self.B.init_vector(x,dim)
 
     def mpi_comm(self):
-        return self.M.mpi_comm()
+        return self.B.mpi_comm()
 
     def mult(self, x, y):
-        self.Asolver.solve(y, self.M*x)
+        self.Asolver.solve(self.temp1, x)
+        self.M.mult(self.temp1,self.temp1help)
+        self.B.mult(self.temp1help,y)
+        
 
     def transpmult(self, x, y):
-        self.Asolver.solve(self.temp,x)
-        self.M.transpmult(self.temp,y)
+        self.B.transpmult(x,self.temp1)
+        self.M.transpmult(self.temp1,self.temp1help)
+        self.Asolver.solve(y,self.temp1help)
+
 
 
 class TestRandomizedSVD(unittest.TestCase):
@@ -49,12 +60,11 @@ class TestRandomizedSVD(unittest.TestCase):
         mesh = dl.UnitSquareMesh(10, 10)
         self.rank = dl.MPI.rank(mesh.mpi_comm())
         Vh1 = dl.FunctionSpace(mesh, 'Lagrange', 1)
-        Vh2 = dl.FunctionSpace(mesh, 'Lagrange', 2)
 
-        uh,vh = dl.TrialFunction(Vh2),dl.TestFunction(Vh2)
+        uh,vh = dl.TrialFunction(Vh1),dl.TestFunction(Vh1)
         mh = dl.TrialFunction(Vh1)
 
-        alpha = 1.0
+        alpha = 0.1
 
         varfA = dl.inner(dl.nabla_grad(uh), dl.nabla_grad(vh))*dl.dx +\
                     alpha*dl.inner(uh,vh)*dl.dx
@@ -69,7 +79,15 @@ class TestRandomizedSVD(unittest.TestCase):
         Asolver.parameters["maximum_iterations"] = 100
         Asolver.parameters["relative_tolerance"] = 1e-12
 
-        self.J = J_op(Asolver,M)
+        ndim = 2
+        ntargets = 10
+        np.random.seed(seed=1)
+        targets = np.random.uniform(0.1,0.9, [ntargets, ndim] )
+        rel_noise = 0.01
+
+        pointwise_obs = PointwiseStateObservation(Vh1, targets)
+
+        self.J = J_op(Asolver,pointwise_obs.B,M)
         myRandom = Random()
 
         x_vec = dl.Vector()
@@ -80,8 +98,9 @@ class TestRandomizedSVD(unittest.TestCase):
         Omega = MultiVector(x_vec,k_evec+p_evec)
 
         myRandom.normal(1.,Omega)
-
-        self.U,self.d,self.V = accuracyEnhancedSVD(self.J,Omega,k_evec,s=2)
+        # The way that this spectrum clusters power iteration makes the algorithm worse
+        # Bringing the orthogonalization inside of the power iteration could fix this
+        self.U,self.d,self.V = accuracyEnhancedSVD(self.J,Omega,k_evec,s=1)
         assert np.all(self.d>0)
         
         

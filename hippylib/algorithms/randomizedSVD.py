@@ -129,10 +129,10 @@ def check_SVD(A, U, d,V,tol = 1e-1):
     MatMvTranspmult(A,U,AtU)
 
     # # Residual checks
-    Ut_AV = np.diag(AV.dot_mv(U))
+    UtAV = np.diag(AV.dot_mv(U))
     r_1 = np.zeros_like(d)
     for i,d_i in enumerate(d):
-        r_1[i] = min(np.abs(Ut_AV[i] + d_i),np.abs(Ut_AV[i] - d_i))
+        r_1[i] = min(np.abs(UtAV[i] + d_i),np.abs(UtAV[i] - d_i))
     # r_1 = Ut_AV - d
     
     VtAtU = np.diag(AtU.dot_mv(V))
@@ -156,6 +156,7 @@ def check_SVD(A, U, d,V,tol = 1e-1):
         print( "|| UtU - I ||_F = ", err_Uortho)
         print( "|| VtV - I ||_F = ", err_Vortho)
         print( "|utAv - sigma| < tol ",np.all(r_1 < tol))
+        print(r_1)
         print( "|vtAtu - sigma| < tol ",np.all(r_2 < tol))
-
+        print(r_2)
   

@@ -82,6 +82,7 @@ class TestRandomizedSVD(unittest.TestCase):
         myRandom.normal(1.,Omega)
 
         self.U,self.d,self.V = accuracyEnhancedSVD(self.J,Omega,k_evec,s=2)
+        assert np.all(self.d>0)
         
         
     def testOrthogonalityU(self):
@@ -108,7 +109,8 @@ class TestRandomizedSVD(unittest.TestCase):
         for i,d_i in enumerate(self.d):
             r_1[i] = min(np.abs(UtAV[i] + d_i),np.abs(UtAV[i] - d_i))
         if self.rank == 0:
-            print(r_1)
+            print('np.maximum( 5e-2,0.1*self.d) = ',np.maximum( 5e-2,0.1*self.d))
+            print('r_1 error = ',r_1)
             assert np.all(r_1 < np.maximum( 5e-2,0.1*self.d))
 
     def testResidualVtAtU(self):
@@ -120,7 +122,8 @@ class TestRandomizedSVD(unittest.TestCase):
         for i,d_i in enumerate(self.d):
             r_2[i] = min(np.abs(VtAtU[i] + d_i),np.abs(VtAtU[i] - d_i))
         if self.rank == 0:
-            print(r_2)
+            print('np.maximum( 5e-2,0.1*self.d) = ',np.maximum( 5e-2,0.1*self.d))
+            print('r_2 error = ',r_2)
             assert np.all(r_2 < np.maximum( 5e-2,0.1*self.d))
         
 

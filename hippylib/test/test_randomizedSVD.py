@@ -109,7 +109,7 @@ class TestRandomizedSVD(unittest.TestCase):
             r_1[i] = min(np.abs(UtAV[i] + d_i),np.abs(UtAV[i] - d_i))
         if self.rank == 0:
             print(r_1)
-            assert np.all(r_1 < 5e-2)
+            assert np.all(r_1 < np.maximum( 5e-2,0.1*self.d))
 
     def testResidualVtAtU(self):
         nvec  = self.V.nvec()
@@ -121,7 +121,7 @@ class TestRandomizedSVD(unittest.TestCase):
             r_2[i] = min(np.abs(VtAtU[i] + d_i),np.abs(VtAtU[i] - d_i))
         if self.rank == 0:
             print(r_2)
-            assert np.all(r_2 < 5e-2)
+            assert np.all(r_2 < np.maximum( 5e-2,0.1*self.d))
         
 
 if __name__ == '__main__':

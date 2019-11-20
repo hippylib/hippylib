@@ -80,7 +80,7 @@ class TestRandomizedEigensolver(unittest.TestCase):
         varfA = dl.inner(dl.grad(uh), dl.grad(vh))*dl.dx +\
                     alpha*dl.inner(uh,vh)*dl.dx
         A = dl.assemble(varfA)
-        Asolver = dl.PETScKrylovSolver(self.A.mpi_comm(), "cg", amg_method())
+        Asolver = dl.PETScKrylovSolver(A.mpi_comm(), "cg", amg_method())
         Asolver.set_operator(self.A)
         Asolver.parameters["maximum_iterations"] = 100
         Asolver.parameters["relative_tolerance"] = 1e-12
@@ -134,7 +134,7 @@ class TestRandomizedEigensolver(unittest.TestCase):
         err = VtAV - np.diag(np.sign(d))
         err_Aortho = np.linalg.norm(err, 'fro')
 
-        if self.rank == 0:
+        if self.mpi_rank == 0:
             assert err_Bortho < 1e-8
             assert err_Aortho < 1e-4
             assert np.all(res_norms < 1e-4)
@@ -162,7 +162,7 @@ class TestRandomizedEigensolver(unittest.TestCase):
         err = VtAV - np.diag(np.sign(d))
         err_Aortho = np.linalg.norm(err, 'fro')
 
-        if self.rank == 0:
+        if self.mpi_rank == 0:
             assert err_Bortho < 1e-8
             assert err_Aortho < 1e-4
             assert np.all(res_norms < 1e-4)
@@ -192,7 +192,7 @@ class TestRandomizedEigensolver(unittest.TestCase):
         err = VtAV - np.diag(np.sign(d))
         err_Aortho = np.linalg.norm(err, 'fro')
 
-        if self.rank == 0:
+        if self.mpi_rank == 0:
             assert err_Bortho < 1e-8
             assert err_Aortho < 1e-4
             assert np.all(res_norms < 1e-4)
@@ -222,7 +222,7 @@ class TestRandomizedEigensolver(unittest.TestCase):
         err = VtAV - np.diag(np.sign(d))
         err_Aortho = np.linalg.norm(err, 'fro')
 
-        if self.rank == 0:
+        if self.mpi_rank == 0:
             assert err_Bortho < 1e-8
             assert err_Aortho < 1e-4
             assert np.all(res_norms < 1e-4)

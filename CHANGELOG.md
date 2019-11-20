@@ -24,7 +24,8 @@ Development version
   and from related classes.
 - Use `argparse` to set parameters in application drivers from command line
 - Use `dl.XDMFFile` to export solutions for visualization in Paraview in all application drivers
-- Implemented accuracy enhanced SVD algorithm in `randomizedSVD.py`, implemented unit tests for randomized eigenvalue solvers and randomized SVD
+- Implement accuracy enhanced SVD algorithm in `randomizedSVD.py`
+- Increase coverage of unit testing in CI
 
 
 Version 2.3.0, released on Sept 6, 2019

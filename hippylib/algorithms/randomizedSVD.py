@@ -57,7 +57,7 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
 
     Z = MultiVector(Omega)
 
-    y_vec = Vector()
+    y_vec = Vector(A.mpi_comm())
     A.init_vector(y_vec,0)
     Y = MultiVector(y_vec,nvec)
     MatMvMult(A,Omega,Y)

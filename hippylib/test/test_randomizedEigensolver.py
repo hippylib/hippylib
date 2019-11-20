@@ -84,7 +84,7 @@ class TestRandomizedEigensolver(unittest.TestCase):
                     alpha*dl.inner(uh,vh)*dl.dx
         A = dl.assemble(varfA)
         Asolver = dl.PETScKrylovSolver(A.mpi_comm(), "cg", amg_method())
-        Asolver.set_operator(self.A)
+        Asolver.set_operator(A)
         Asolver.parameters["maximum_iterations"] = 100
         Asolver.parameters["relative_tolerance"] = 1e-12
 

@@ -76,7 +76,7 @@ class TestRandomizedSVD(unittest.TestCase):
         ntargets = 10
         np.random.seed(seed=1)
         targets = np.random.uniform(0.1,0.9, [ntargets, ndim] )
-        B = assemblePointwiseStateObservation(Vh1, targets)
+        B = assemblePointwiseObservation(Vh1, targets)
 
         # Define Asolver
         alpha = dl.Constant(0.1)

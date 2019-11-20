@@ -21,7 +21,7 @@ from numpy.testing import assert_allclose
 
 import sys
 sys.path.append('../../')
-from hippylib import (MultiVector, Random, assemblePointwiseStateObservation,
+from hippylib import (MultiVector, Random, assemblePointwiseObservation,
                       singlePass, singlePassG, doublePass, doublePassG, MatMvMult)
                       
 
@@ -73,7 +73,7 @@ class TestRandomizedEigensolver(unittest.TestCase):
         ntargets = 200
         np.random.seed(seed=1)
         targets = np.random.uniform(0.1,0.9, [ntargets, ndim] )
-        B = assemblePointwiseStateObservation(Vh1, targets)
+        B = assemblePointwiseObservation(Vh1, targets)
 
         ## Set up Asolver
         alpha = dl.Constant(1.0)

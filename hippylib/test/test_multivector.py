@@ -55,7 +55,7 @@ class TestMultiVector(unittest.TestCase):
         
         MQ = MultiVector(self.Q)
         MQ.zero()
-        MatMvMult(self.M, Q, MQ)
+        MatMvMult(self.M, self.Q, MQ)
         
         QtMQ = self.Q.dot_mv(self.MQ)
 

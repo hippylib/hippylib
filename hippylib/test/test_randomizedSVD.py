@@ -24,73 +24,78 @@ sys.path.append('../../')
 from hippylib import *
 
 class J_op:
-    def __init__(self, Asolver, B, M):
+    """
+    J_op implements action of BA^-1M. A s.p.d.
+    """
+    def __init__(self, B, Asolver, M):
         self.Asolver = Asolver
         self.B = B
         self.M = M 
-        self.temp0 = dl.Vector()
-        self.temp1 = dl.Vector()
-        self.temp1help = dl.Vector()
+        self.temp0 = dl.Vector(self.M.mpi_comm())
+        self.temp1 = dl.Vector(self.M.mpi_comm())
+        self.temp1help = dl.Vector(self.M.mpi_comm())
         self.B.init_vector(self.temp0,0)
         self.B.init_vector(self.temp1,1)
         self.B.init_vector(self.temp1help,1)
         
     def init_vector(self, x, dim):
-        
-        self.B.init_vector(x,dim)
+        if dim == 1:
+            self.M.init_vector(x, 1)
+        elif dim == 0:
+            self.B.init_vector(x,0)
+        else:
+            assert(dim in [0,1])
 
     def mpi_comm(self):
         return self.B.mpi_comm()
 
     def mult(self, x, y):
-        self.Asolver.solve(self.temp1, x)
-        self.M.mult(self.temp1,self.temp1help)
+        self.M.mult(x,self.temp1)
+        self.Asolver.solve(self.temp1help, self.temp1)
         self.B.mult(self.temp1help,y)
         
-
     def transpmult(self, x, y):
         self.B.transpmult(x,self.temp1)
-        self.M.transpmult(self.temp1,self.temp1help)
-        self.Asolver.solve(y,self.temp1help)
-
-
-
+        self.Asolver.solve(self.temp1help, self.temp1)
+        self.M.transpmult(self.temp1help, y)
+        
+        
 class TestRandomizedSVD(unittest.TestCase):
     def setUp(self):
         mesh = dl.UnitSquareMesh(10, 10)
-        self.rank = dl.MPI.rank(mesh.mpi_comm())
+        self.mpi_rank = dl.MPI.rank(mesh.mpi_comm())
+        self.mpi_size = dl.MPI.size(mesh.mpi_comm())
+        
         Vh1 = dl.FunctionSpace(mesh, 'Lagrange', 1)
 
         uh,vh = dl.TrialFunction(Vh1),dl.TestFunction(Vh1)
         mh = dl.TrialFunction(Vh1)
+        
+        # Define B
+        ndim = 2
+        ntargets = 10
+        np.random.seed(seed=1)
+        targets = np.random.uniform(0.1,0.9, [ntargets, ndim] )
+        B = assemblePointwiseStateObservation(Vh1, targets)
 
-        alpha = 0.1
-
+        # Define Asolver
+        alpha = dl.Constant(0.1)
         varfA = dl.inner(dl.nabla_grad(uh), dl.nabla_grad(vh))*dl.dx +\
                     alpha*dl.inner(uh,vh)*dl.dx
-
         A = dl.assemble(varfA)
-
-        varfM = dl.inner(mh,vh)*dl.dx
-        M = dl.assemble(varfM)
-
         Asolver = dl.PETScKrylovSolver(A.mpi_comm(), "cg", amg_method())
         Asolver.set_operator(A)
         Asolver.parameters["maximum_iterations"] = 100
         Asolver.parameters["relative_tolerance"] = 1e-12
 
-        ndim = 2
-        ntargets = 10
-        np.random.seed(seed=1)
-        targets = np.random.uniform(0.1,0.9, [ntargets, ndim] )
-        rel_noise = 0.01
+        # Define M
+        varfM = dl.inner(mh,vh)*dl.dx
+        M = dl.assemble(varfM)
 
-        pointwise_obs = PointwiseStateObservation(Vh1, targets)
+        self.J = J_op(B,Asolver,M)
+        myRandom = Random(self.mpi_rank, self.mpi_size)
 
-        self.J = J_op(Asolver,pointwise_obs.B,M)
-        myRandom = Random()
-
-        x_vec = dl.Vector()
+        x_vec = dl.Vector(M.mpi_comm())
         M.init_vector(x_vec,1)
 
         k_evec = 10

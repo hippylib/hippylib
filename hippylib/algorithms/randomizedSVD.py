@@ -14,10 +14,8 @@
 # Software Foundation) version 2.0 dated June 1991.
 
 from dolfin import Vector, MPI
-from .linalg import Solver2Operator
 from .multivector import MultiVector, MatMvMult, MatMvTranspmult, MvDSmatMult
 import numpy as np
-from scipy.linalg import solve_sylvester
 
 """
 Randomized algorithms for the solution of singular value decomposition problem (SVD)
@@ -34,28 +32,13 @@ Randomized Methods for Matrix Computations
 https://arxiv.org/pdf/1607.01649v3.pdf
 """
 
-# These functions are useful for debugging
-def MV_to_dense(multivector):
-    multivector_shape = (multivector[0].get_local().shape[0],multivector.nvec())
-    as_np_array = np.zeros(multivector_shape)
-    for i in range(multivector_shape[-1]):
-        temp = multivector[i].get_local()
-        # print('For iteration i ||get_local|| = ', np.linalg.norm(temp))
-        as_np_array[:,i] = temp
-    return as_np_array
-
-def MV_shape(multivector):
-    return (multivector[0].get_local().shape[0],multivector.nvec())
-
-
-
 def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
     """
     The accuracy enhanced randomized singular value decomposition from  [2].
     
     Inputs:
 
-    - :code:`A`: the rectangular operator for which we need to estimate the dominant left-right singular vector pairs.
+    - :code:`A`: the m x n rectangular operator for which we need to estimate the dominant left-right singular vector pairs.
     - :code:`Omega`: a random gassian matrix with :math:`m \\geq k` columns.
     - :code:`k`: the number of eigenpairs to extract.
     
@@ -110,72 +93,6 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
 
     return U, d, V
 
-def singlePassSVD(A,Omega_c,Omega_r,k,s=1,check=False):
-    """
-    The single pass randomized singular value decomposition from  [2].
-    
-    Inputs:
-
-    - :code:`A`: the rectangular operator for which we need to estimate the dominant left-right singular vector pairs.
-    - :code:`Omega`: a random gassian matrix with :math:`m \\geq k` columns.
-    - :code:`k`: the number of eigenpairs to extract.
-    
-    Outputs:
-    - :code:`U`: the estimate of the :math:`k` dominant left singular vectors of of :math:`A,\\, U^T U = I_k`.
-    - :code:`d`: the estimate of the :math:`k` dominant singular values of :math:`A`.
-    - :code:`V`: the estimate of the :math:`k` dominant right singular vectors of :math:`A,\\, V^T V = I_k`.
-    
-    """
-
-    # Check compatibility of operator A
-    assert hasattr(A,'transpmult'), 'Operator A must have member function transpmult'
-
-    nvec  = Omega_c.nvec()
-    assert(nvec >= k )
-    assert Omega_r.nvec() == nvec
-
-    Y_c = MultiVector(Omega_r)
-    Y_r = MultiVector(Omega_c)
-
-    MatMvMult(A,Omega_c,Y_c)
-    MatMvTranspmult(A,Omega_r,Y_r)
-
-    # Orthogonalize 
-    Q_c = MultiVector(Y_c)
-    Q_c.orthogonalize()
-    Q_r = MultiVector(Y_r)
-    Q_r.orthogonalize()
-
-    # Need to solve the system of equations: (Omega_rT Q_c)C = Y_rT Q_r
-    #                                        C(Q_rT Omega_c) = Q_cTY_c
-    Omega_rTQ_c = Q_c.dot_mv(Omega_r)
-    Y_rTQ_r = Q_r.dot_mv(Y_r)
-    Q_rTOmega_c = Omega_c.dot_mv(Q_r)
-    Q_cTY_c = Y_c.dot_mv(Q_c)
-    # Sylvester solution to the least squares problem
-    sylvester_lead = Omega_rTQ_c.T@Omega_rTQ_c
-    sylvester_trail = Q_rTOmega_c@(Q_rTOmega_c.T)
-    sylvester_rhs = ((Omega_rTQ_c.T)@Y_rTQ_r) + (Q_cTY_c@(Q_rTOmega_c.T))
-    C = solve_sylvester(sylvester_lead,sylvester_trail,sylvester_rhs)
-    sylvester_error = np.linalg.norm(sylvester_lead@C + C@sylvester_trail - sylvester_rhs)
-    assert sylvester_error < 1e-4, 'Issue with sylvester solver'
-
-    U_hat,d,V_hat = np.linalg.svd(C,full_matrices = False) 
-
-    # Select the first k columns
-    U_hat = U_hat[:,:k]
-    d = d[:k]
-    V_hat = V_hat[:,:k]
-
-    U = MultiVector(Omega_r[0], k)
-    MvDSmatMult(Q_c, U_hat, U)   
-    V = MultiVector(Omega_c[0],k)
-    MvDSmatMult(Q_r, V_hat, V)
-
-    if check:
-        check_SVD(A,U,d,V)
-
-    return U, d, V
 
 
 
@@ -186,9 +103,9 @@ def check_SVD(A, U, d,V,tol = 1e-1):
 
     Test the frobenious norm of  :math:`(V^TV) - I_k`.
     
-    Test the :math:`l_2` norm of the residual: :math:`r_1[i] = A V[i] -  U[i] d[i]`.
+    Test the :math:`l_2` norm of the residual: :math:`r_1[i] = U[i]^T A V[i] - d[i]`.
 
-    Test the :math:`l_2` norm of the residual: :math:`r_2[i] = A^T U[i] -  V[i] d[i]`.
+    Test the :math:`l_2` norm of the residual: :math:`r_2[i] = V[i]^TA^T U[i] -  d[i]`.
     """
     assert U.nvec() == V.nvec(), "U and V second dimension need to agree"
 

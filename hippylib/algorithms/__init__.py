@@ -25,7 +25,7 @@ from .NewtonCG import ReducedSpaceNewtonCG, ReducedSpaceNewtonCG_ParameterList, 
 from .bfgs import BFGS_operator, BFGS, BFGS_ParameterList
 from .steepestDescent import SteepestDescent, SteepestDescent_ParameterList
 from .randomizedEigensolver import singlePass, doublePass, singlePassG, doublePassG
-from .randomizedSVD import accuracyEnhancedSVD, singlePassSVD
+from .randomizedSVD import accuracyEnhancedSVD
 from .lowRankOperator import LowRankOperator
 from .traceEstimator import TraceEstimator
 from .cgsampler import CGSampler

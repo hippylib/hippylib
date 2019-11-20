@@ -51,7 +51,7 @@ class TestMultiVector(unittest.TestCase):
     def testBOrthogonalization(self):
         myRandom = Random(self.mpi_rank, self.mpi_size)
         myRandom.normal(1.,self.Q)
-        _ = self.Q.orthogonalize(self.M)
+        self.Q.Borthogonalize(self.M)
         
         MQ = MultiVector(self.Q)
         MQ.zero()

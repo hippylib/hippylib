@@ -21,84 +21,86 @@ from numpy.testing import assert_allclose
 
 import sys
 sys.path.append('../../')
-from hippylib import *
+from hippylib import (MultiVector, Random, assemblePointwiseStateObservation,
+                      singlePass, singlePassG, doublePass, doublePassG, MatMvMult)
+                      
 
 
 class Aop:
-    def __init__(self,varfA,varfM,B):
-        self.A = dl.assemble(varfA)
-        Asolver = dl.PETScKrylovSolver(self.A.mpi_comm(), "cg", amg_method())
-        Asolver.set_operator(self.A)
-        Asolver.parameters["maximum_iterations"] = 100
-        Asolver.parameters["relative_tolerance"] = 1e-12
-
-        self.Asolver = Asolver
-
-        self.M = dl.assemble(varfM)
-        self.temp = dl.Vector()
-        self.temphelp = dl.Vector()
-        self.M.init_vector(self.temp,0)
-        self.M.init_vector(self.temphelp,0)
+    def __init__(self,B, Asolver, M):
 
         self.B = B
-        self.Bhelp = dl.Vector()
+        self.Asolver = Asolver
+        self.M = M
+
+        self.temp = dl.Vector(M.mpi_comm())
+        self.temphelp = dl.Vector(M.mpi_comm())
+        self.M.init_vector(self.temp,0)
+        self.M.init_vector(self.temphelp,0)
+        self.Bhelp = dl.Vector(M.mpi_comm())
         self.B.init_vector(self.Bhelp,0)
 
 
     def mult(self,x,y):
-        self.temp = self.M*x
+        self.M.mult(x, self.temp)
         self.Asolver.solve(self.temphelp,self.temp)
         self.B.mult(self.temphelp,self.Bhelp)
         self.B.transpmult(self.Bhelp,self.temp)
         self.Asolver.solve(self.temphelp,self.temp)
         self.M.transpmult(self.temphelp,y)
         
-
+    def mpi_comm(self):
+        return self.M.mpi_comm()
 
     def init_vector(self,x,dim):
-        # Should not matter since A must be square, but to be technically correct 
-        if dim == 0:
-            self.A.init_vector(x,1)
-        elif dim == 1:
-            self.A.init_vector(x,0)
+        self.M.init_vector(x,1)
+
 
 
 class TestRandomizedEigensolver(unittest.TestCase):
     def setUp(self):
         mesh = dl.UnitSquareMesh(10, 10)
-        self.rank = dl.MPI.rank(mesh.mpi_comm())
+        self.mpi_rank = dl.MPI.rank(mesh.mpi_comm())
+        self.mpi_size = dl.MPI.size(mesh.mpi_comm())
+        
         Vh1 = dl.FunctionSpace(mesh, 'Lagrange', 1)
 
         uh,vh = dl.TrialFunction(Vh1),dl.TestFunction(Vh1)
-        mh = dl.TrialFunction(Vh1)
-
-        alpha = 1.0
-
-        varfA = dl.inner(dl.nabla_grad(uh), dl.nabla_grad(vh))*dl.dx +\
-                    alpha*dl.inner(uh,vh)*dl.dx
-
+        mh,test_mh = dl.TrialFunction(Vh1),dl.TestFunction(Vh1)
         
-        varfM = dl.inner(mh,vh)*dl.dx
+        ## Set up B
+        ndim = 2
+        ntargets = 200
+        np.random.seed(seed=1)
+        targets = np.random.uniform(0.1,0.9, [ntargets, ndim] )
+        B = assemblePointwiseStateObservation(Vh1, targets)
 
-        self.rhs_G = dl.assemble(varfM)
+        ## Set up Asolver
+        alpha = dl.Constant(1.0)
+        varfA = dl.inner(dl.grad(uh), dl.grad(vh))*dl.dx +\
+                    alpha*dl.inner(uh,vh)*dl.dx
+        A = dl.assemble(varfA)
+        Asolver = dl.PETScKrylovSolver(self.A.mpi_comm(), "cg", amg_method())
+        Asolver.set_operator(self.A)
+        Asolver.parameters["maximum_iterations"] = 100
+        Asolver.parameters["relative_tolerance"] = 1e-12
+
+        ## Set up M
+        varfM = dl.inner(mh,vh)*dl.dx
+        M = dl.assemble(varfM)
+
+        self.Aop = Aop(B, Asolver, M)
+
+        varfG = dl.inner(mh,test_mh)*dl.dx
+        self.rhs_G = dl.assemble(varfG)
         self.rhs_Ginv = dl.PETScKrylovSolver(self.rhs_G.mpi_comm(), "cg", amg_method())
         self.rhs_Ginv.set_operator(self.rhs_G)
         self.rhs_Ginv.parameters["maximum_iterations"] = 100
         self.rhs_Ginv.parameters["relative_tolerance"] = 1e-12
 
-        ndim = 2
-        ntargets = 200
-        np.random.seed(seed=1)
-        targets = np.random.uniform(0.1,0.9, [ntargets, ndim] )
-        rel_noise = 0.01
+        myRandom = Random(self.mpi_rank, self.mpi_size)
 
-        pointwise_obs = PointwiseStateObservation(Vh1, targets)
-
-        self.Aop = Aop(varfA,varfM,pointwise_obs.B)
-
-        myRandom = Random()
-
-        x_vec = dl.Vector()
+        x_vec = dl.Vector(mesh.mpi_comm())
         self.Aop.init_vector(x_vec,1)
 
         k_evec = 10

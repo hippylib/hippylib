@@ -27,9 +27,9 @@ from hippylib import (MultiVector, Random, assemblePointwiseObservation, amg_met
 
 
 class Aop:
-  """
-  Implements the action of MtA^-1BtBA-1M with A s.p.d.
-  """
+    """
+    Implements the action of MtA^-1BtBA-1M with A s.p.d.
+    """
     def __init__(self,B, Asolver, M):
 
         self.B = B

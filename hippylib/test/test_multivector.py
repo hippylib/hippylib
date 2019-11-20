@@ -21,30 +21,46 @@ from numpy.testing import assert_allclose
 
 import sys
 sys.path.append('../../')
-from hippylib import *
+from hippylib import MultiVector, Random, MatMvMult
 
 class TestMultiVector(unittest.TestCase):
     def setUp(self):
         mesh = dl.UnitSquareMesh(10, 10)
+        self.mpi_rank = dl.MPI.rank(mesh.mpi_comm())
+        self.mpi_size = dl.MPI.size(mesh.mpi_comm())
+        
         Vh = dl.FunctionSpace(mesh, 'Lagrange', 1)
         uh,vh = dl.TrialFunction(Vh),dl.TestFunction(Vh)
+        
         varfM = dl.inner(uh,vh)*dl.dx
-        M = dl.assemble(varfM)
-        x = dl.Vector()
-        M.init_vector(x,0)
+        self.M = dl.assemble(varfM)
+        x = dl.Vector( mesh.mpi_comm() )
+        self.M.init_vector(x,0)
         k = 121
         self.Q = MultiVector(x,k)
-
-        self.rank = dl.MPI.rank(mesh.mpi_comm())
-        
+    
     def testOrthogonalization(self):
-        myRandom = Random()
+        myRandom = Random(self.mpi_rank, self.mpi_size)
         myRandom.normal(1.,self.Q)
         _ = self.Q.orthogonalize()
         QtQ = self.Q.dot_mv(self.Q)
 
-        if self.rank == 0:
+        if self.mpi_rank == 0:
             assert np.linalg.norm(QtQ - np.eye(QtQ.shape[0])) < 1e-8
+            
+    def testBOrthogonalization(self):
+        myRandom = Random(self.mpi_rank, self.mpi_size)
+        myRandom.normal(1.,self.Q)
+        _ = self.Q.orthogonalize(self.M)
+        
+        MQ = MultiVector(self.Q)
+        MQ.zero()
+        MatMvMult(self.M, Q, MQ)
+        
+        QtMQ = self.Q.dot_mv(self.MQ)
+
+        if self.mpi_rank == 0:
+            assert np.linalg.norm(QtMQ - np.eye(QtMQ.shape[0])) < 1e-8
         
 
 if __name__ == '__main__':

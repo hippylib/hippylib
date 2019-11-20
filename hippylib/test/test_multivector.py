@@ -57,7 +57,7 @@ class TestMultiVector(unittest.TestCase):
         MQ.zero()
         MatMvMult(self.M, self.Q, MQ)
         
-        QtMQ = self.Q.dot_mv(self.MQ)
+        QtMQ = self.Q.dot_mv(MQ)
 
         if self.mpi_rank == 0:
             assert np.linalg.norm(QtMQ - np.eye(QtMQ.shape[0])) < 1e-8

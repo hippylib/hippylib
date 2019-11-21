@@ -137,11 +137,10 @@ class TestRandomizedSVD(unittest.TestCase):
             r_1[i] = np.abs(UtAV[i] - d_i)
             r_2[i] = np.abs(VtAtU[i] - d_i)
 
-        if self.mpi_rank == 0:
-            assert err_Uortho < 1e-8
-            assert err_Vortho < 1e-8
-            assert np.all(r_1 < np.maximum( 5e-2,0.1*self.d))
-            assert np.all(r_2 < np.maximum( 5e-2,0.1*self.d))
+        assert err_Uortho < 1e-8
+        assert err_Vortho < 1e-8
+        assert np.all(r_1 < np.maximum( 5e-2,0.1*self.d))
+        assert np.all(r_2 < np.maximum( 5e-2,0.1*self.d))
             
     def testSinglePassSVD(self):
         # Only check execution at this time

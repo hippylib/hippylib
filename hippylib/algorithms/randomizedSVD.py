@@ -67,6 +67,7 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
         MatMvTranspmult(A,Y,Z)
         MatMvMult(A, Z, Y)
     # First orthogonal matrix for left singular vectors
+    # Note: Bringing the orthogonalization inside of the power iteration could improve accuracy
     Q = MultiVector(Y)
     Q.orthogonalize()
 

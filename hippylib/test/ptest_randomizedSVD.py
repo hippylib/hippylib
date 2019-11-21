@@ -93,17 +93,21 @@ class TestRandomizedSVD(unittest.TestCase):
         C = dl.assemble(varfC)
 
         self.J = J_op(B,Asolver,C)
+        
+        self.k_evec = 10
+        p_evec = 50
+        
         myRandom = Random(self.mpi_rank, self.mpi_size)
 
         x_vec = dl.Vector(C.mpi_comm())
         C.init_vector(x_vec,1)
-
-        self.k_evec = 10
-        p_evec = 50
         self.Omega = MultiVector(x_vec,k_evec+p_evec)
-
         myRandom.normal(1.,self.Omega)
-
+        
+        y_vec = dl.Vector(C.mpi_comm())
+        B.init_vector(y_vec,0)
+        self.Omega_adj = MultiVector(y_vec,k_evec+p_evec)
+        myRandom.normal(1.,self.Omega_adj)
 
     def testAccuracyEnhancedSVD(self):
         
@@ -138,6 +142,10 @@ class TestRandomizedSVD(unittest.TestCase):
             assert err_Vortho < 1e-8
             assert np.all(r_1 < np.maximum( 5e-2,0.1*self.d))
             assert np.all(r_2 < np.maximum( 5e-2,0.1*self.d))
+            
+    def testSinglePassSVD(self):
+        # Only check execution at this time
+        U, s, V = singlePassSVD(self.J,self.Omega,self.Omega_adj,self.k_evec)
 
         
 

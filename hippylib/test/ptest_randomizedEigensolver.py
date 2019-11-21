@@ -89,10 +89,10 @@ class TestRandomizedEigensolver(unittest.TestCase):
         Asolver.parameters["relative_tolerance"] = 1e-12
 
         ## Set up M
-        varfM = dl.inner(mh,vh)*dl.dx
-        M = dl.assemble(varfM)
+        varfC = dl.inner(mh,vh)*dl.dx
+        C = dl.assemble(varfC)
 
-        self.Hop = Hop(B, Asolver, M)
+        self.Hop = Hop(B, Asolver, C)
 
         varfG = dl.inner(mh,test_mh)*dl.dx
         self.rhs_G = dl.assemble(varfG)

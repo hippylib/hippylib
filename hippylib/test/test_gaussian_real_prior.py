@@ -228,7 +228,7 @@ class TestGaussianRealPrior(unittest.TestCase):
 
 if __name__ == '__main__':
     mpi_comm_world = dl.MPI.comm_world
-    mpi_size = dl.MPI.comm_size(mpi_comm_world)
+    mpi_size = dl.MPI.size(mpi_comm_world)
     if mpi_size == 1:
         unittest.main()
 

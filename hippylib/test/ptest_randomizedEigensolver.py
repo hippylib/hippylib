@@ -26,7 +26,7 @@ from hippylib import (MultiVector, Random, assemblePointwiseObservation, amg_met
                       
 
 
-class Aop:
+class Hop:
     """
     Implements the action of MtA^-1BtBA-1M with A s.p.d.
     """
@@ -92,7 +92,7 @@ class TestRandomizedEigensolver(unittest.TestCase):
         varfM = dl.inner(mh,vh)*dl.dx
         M = dl.assemble(varfM)
 
-        self.Aop = Aop(B, Asolver, M)
+        self.Hop = Hop(B, Asolver, M)
 
         varfG = dl.inner(mh,test_mh)*dl.dx
         self.rhs_G = dl.assemble(varfG)
@@ -104,7 +104,7 @@ class TestRandomizedEigensolver(unittest.TestCase):
         myRandom = Random(self.mpi_rank, self.mpi_size)
 
         x_vec = dl.Vector(mesh.mpi_comm())
-        self.Aop.init_vector(x_vec,1)
+        self.Hop.init_vector(x_vec,1)
 
         k_evec = 10
         p_evec = 50
@@ -115,10 +115,10 @@ class TestRandomizedEigensolver(unittest.TestCase):
 
         
     def testSinglePass(self):
-        d,U = singlePass(self.Aop,self.Omega,self.k_evec,s=2)
+        d,U = singlePass(self.Hop,self.Omega,self.k_evec,s=2)
         nvec  = U.nvec()
         AU = MultiVector(U[0], nvec)
-        MatMvMult(self.Aop, U, AU)
+        MatMvMult(self.Hop, U, AU)
 
         # Residual checks
         diff = MultiVector(AU)
@@ -143,10 +143,10 @@ class TestRandomizedEigensolver(unittest.TestCase):
             assert np.all(res_norms < 1e-4)
 
     def testDoublePass(self):
-        d,U = doublePass(self.Aop,self.Omega,self.k_evec,s=2)
+        d,U = doublePass(self.Hop,self.Omega,self.k_evec,s=2)
         nvec  = U.nvec()
         AU = MultiVector(U[0], nvec)
-        MatMvMult(self.Aop, U, AU)
+        MatMvMult(self.Hop, U, AU)
 
         # Residual checks
         diff = MultiVector(AU)
@@ -171,11 +171,11 @@ class TestRandomizedEigensolver(unittest.TestCase):
             assert np.all(res_norms < 1e-4)
 
     def testSinglePassG(self):
-        d,U = singlePassG(self.Aop,self.rhs_G,self.rhs_Ginv,self.Omega,self.k_evec,s=2)
+        d,U = singlePassG(self.Hop,self.rhs_G,self.rhs_Ginv,self.Omega,self.k_evec,s=2)
         nvec  = U.nvec()
         AU = MultiVector(U[0], nvec)
         BU = MultiVector(U[0],nvec)
-        MatMvMult(self.Aop, U, AU)
+        MatMvMult(self.Hop, U, AU)
         MatMvMult(self.rhs_G,U,BU)
 
         # Residual checks
@@ -201,11 +201,11 @@ class TestRandomizedEigensolver(unittest.TestCase):
             assert np.all(res_norms < 1e-4)
 
     def testDoublePassG(self):
-        d,U = doublePassG(self.Aop,self.rhs_G,self.rhs_Ginv,self.Omega,self.k_evec,s=2)
+        d,U = doublePassG(self.Hop,self.rhs_G,self.rhs_Ginv,self.Omega,self.k_evec,s=2)
         nvec  = U.nvec()
         AU = MultiVector(U[0], nvec)
         BU = MultiVector(U[0],nvec)
-        MatMvMult(self.Aop, U, AU)
+        MatMvMult(self.Hop, U, AU)
         MatMvMult(self.rhs_G,U,BU)
 
         # Residual checks

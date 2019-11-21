@@ -28,35 +28,36 @@ from hippylib import (MultiVector, Random, assemblePointwiseObservation, amg_met
 
 class Hop:
     """
-    Implements the action of MtA^-1BtBA-1M with A s.p.d.
+    Implements the action of CtA^-1BtBA-1C with A s.p.d.
     """
-    def __init__(self,B, Asolver, M):
+    def __init__(self,B, Asolver, C):
 
         self.B = B
         self.Asolver = Asolver
-        self.M = M
+        self.C = C
 
-        self.temp = dl.Vector(M.mpi_comm())
-        self.temphelp = dl.Vector(M.mpi_comm())
-        self.M.init_vector(self.temp,0)
-        self.M.init_vector(self.temphelp,0)
-        self.Bhelp = dl.Vector(M.mpi_comm())
+        self.temp = dl.Vector(self.C.mpi_comm())
+        self.temphelp = dl.Vector(self.C.mpi_comm())
+        self.C.init_vector(self.temp,0)
+        self.C.init_vector(self.temphelp,0)
+        
+        self.Bhelp = dl.Vector(self.C.mpi_comm())
         self.B.init_vector(self.Bhelp,0)
 
 
     def mult(self,x,y):
-        self.M.mult(x, self.temp)
+        self.C.mult(x, self.temp)
         self.Asolver.solve(self.temphelp,self.temp)
         self.B.mult(self.temphelp,self.Bhelp)
         self.B.transpmult(self.Bhelp,self.temp)
         self.Asolver.solve(self.temphelp,self.temp)
-        self.M.transpmult(self.temphelp,y)
+        self.C.transpmult(self.temphelp,y)
         
     def mpi_comm(self):
-        return self.M.mpi_comm()
+        return self.C.mpi_comm()
 
     def init_vector(self,x,dim):
-        self.M.init_vector(x,1)
+        self.C.init_vector(x,1)
 
 
 
@@ -88,18 +89,19 @@ class TestRandomizedEigensolver(unittest.TestCase):
         Asolver.parameters["maximum_iterations"] = 100
         Asolver.parameters["relative_tolerance"] = 1e-12
 
-        ## Set up M
+        ## Set up C
         varfC = dl.inner(mh,vh)*dl.dx
         C = dl.assemble(varfC)
 
         self.Hop = Hop(B, Asolver, C)
 
-        varfG = dl.inner(mh,test_mh)*dl.dx
-        self.rhs_G = dl.assemble(varfG)
-        self.rhs_Ginv = dl.PETScKrylovSolver(self.rhs_G.mpi_comm(), "cg", amg_method())
-        self.rhs_Ginv.set_operator(self.rhs_G)
-        self.rhs_Ginv.parameters["maximum_iterations"] = 100
-        self.rhs_Ginv.parameters["relative_tolerance"] = 1e-12
+        ## Set up RHS Matrix M.
+        varfM = dl.inner(mh,test_mh)*dl.dx
+        self.M = dl.assemble(varfM)
+        self.Minv = dl.PETScKrylovSolver(self.M.mpi_comm(), "cg", amg_method())
+        self.Minv.set_operator(self.M)
+        self.Minv.parameters["maximum_iterations"] = 100
+        self.Minv.parameters["relative_tolerance"] = 1e-12
 
         myRandom = Random(self.mpi_rank, self.mpi_size)
 
@@ -171,12 +173,12 @@ class TestRandomizedEigensolver(unittest.TestCase):
             assert np.all(res_norms < 1e-4)
 
     def testSinglePassG(self):
-        d,U = singlePassG(self.Hop,self.rhs_G,self.rhs_Ginv,self.Omega,self.k_evec,s=2)
+        d,U = singlePassG(self.Hop,self.M,self.Minv,self.Omega,self.k_evec,s=2)
         nvec  = U.nvec()
         AU = MultiVector(U[0], nvec)
         BU = MultiVector(U[0],nvec)
         MatMvMult(self.Hop, U, AU)
-        MatMvMult(self.rhs_G,U,BU)
+        MatMvMult(self.M,U,BU)
 
         # Residual checks
         diff = MultiVector(AU)
@@ -201,12 +203,12 @@ class TestRandomizedEigensolver(unittest.TestCase):
             assert np.all(res_norms < 1e-4)
 
     def testDoublePassG(self):
-        d,U = doublePassG(self.Hop,self.rhs_G,self.rhs_Ginv,self.Omega,self.k_evec,s=2)
+        d,U = doublePassG(self.Hop,self.M,self.Minv,self.Omega,self.k_evec,s=2)
         nvec  = U.nvec()
         AU = MultiVector(U[0], nvec)
         BU = MultiVector(U[0],nvec)
         MatMvMult(self.Hop, U, AU)
-        MatMvMult(self.rhs_G,U,BU)
+        MatMvMult(self.M,U,BU)
 
         # Residual checks
         diff = MultiVector(AU)

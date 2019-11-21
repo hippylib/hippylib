@@ -39,7 +39,7 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
     
     Inputs:
 
-    - :code:`A`: the m x n rectangular operator for which we need to estimate the dominant left-right singular vector pairs.
+    - :code:`A`: the m x n rectangular operator for which we need to estimate the dominant left-right singular vector / value triplets.
     - :code:`Omega`: a random gassian matrix with :math:`m \\geq k` columns.
     - :code:`k`: the number of eigenpairs to extract.
     
@@ -101,7 +101,7 @@ def singlePassSVD(A,Omega_c,Omega_r,k,check=False):
     
     Inputs:
 
-    - :code:`A`: the m x n rectangular operator for which we need to estimate the dominant left-right singular vector pairs.
+    - :code:`A`: the m x n rectangular operator for which we need to estimate the dominant left-right singular vector / value triplets.
     - :code:`Omega_c`: an n x (k +p) random gassian matrix with :math:`n \\geq k` columns.
     - :code:`Omega_r`: an m x (k +p) random gassian matrix with :math:`m \\geq k` columns.
     - :code:`k`: the number of eigenpairs to extract.

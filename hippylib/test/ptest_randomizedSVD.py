@@ -101,12 +101,12 @@ class TestRandomizedSVD(unittest.TestCase):
 
         x_vec = dl.Vector(C.mpi_comm())
         C.init_vector(x_vec,1)
-        self.Omega = MultiVector(x_vec,k_evec+p_evec)
+        self.Omega = MultiVector(x_vec,self.k_evec+p_evec)
         myRandom.normal(1.,self.Omega)
         
         y_vec = dl.Vector(C.mpi_comm())
         B.init_vector(y_vec,0)
-        self.Omega_adj = MultiVector(y_vec,k_evec+p_evec)
+        self.Omega_adj = MultiVector(y_vec,self.k_evec+p_evec)
         myRandom.normal(1.,self.Omega_adj)
 
     def testAccuracyEnhancedSVD(self):

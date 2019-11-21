@@ -25,22 +25,22 @@ from hippylib import *
 
 class J_op:
     """
-    J_op implements action of BA^-1M. A s.p.d.
+    J_op implements action of BA^-1C. A s.p.d.
     """
-    def __init__(self, B, Asolver, M):
+    def __init__(self, B, Asolver, C):
         self.Asolver = Asolver
         self.B = B
-        self.M = M 
-        self.temp0 = dl.Vector(self.M.mpi_comm())
-        self.temp1 = dl.Vector(self.M.mpi_comm())
-        self.temp1help = dl.Vector(self.M.mpi_comm())
+        self.C = C
+        self.temp0 = dl.Vector(self.C.mpi_comm())
+        self.temp1 = dl.Vector(self.C.mpi_comm())
+        self.temp1help = dl.Vector(self.C.mpi_comm())
         self.B.init_vector(self.temp0,0)
         self.B.init_vector(self.temp1,1)
         self.B.init_vector(self.temp1help,1)
         
     def init_vector(self, x, dim):
         if dim == 1:
-            self.M.init_vector(x, 1)
+            self.C.init_vector(x, 1)
         elif dim == 0:
             self.B.init_vector(x,0)
         else:
@@ -50,14 +50,14 @@ class J_op:
         return self.B.mpi_comm()
 
     def mult(self, x, y):
-        self.M.mult(x,self.temp1)
+        self.C.mult(x,self.temp1)
         self.Asolver.solve(self.temp1help, self.temp1)
         self.B.mult(self.temp1help,y)
         
     def transpmult(self, x, y):
         self.B.transpmult(x,self.temp1)
         self.Asolver.solve(self.temp1help, self.temp1)
-        self.M.transpmult(self.temp1help, y)
+        self.C.transpmult(self.temp1help, y)
         
         
 class TestRandomizedSVD(unittest.TestCase):
@@ -98,17 +98,18 @@ class TestRandomizedSVD(unittest.TestCase):
         x_vec = dl.Vector(C.mpi_comm())
         C.init_vector(x_vec,1)
 
-        k_evec = 10
+        self.k_evec = 10
         p_evec = 50
-        Omega = MultiVector(x_vec,k_evec+p_evec)
+        self.Omega = MultiVector(x_vec,k_evec+p_evec)
 
-        myRandom.normal(1.,Omega)
-        # The way that this spectrum clusters power iteration makes the algorithm worse
-        # Bringing the orthogonalization inside of the power iteration could fix this
-        self.U,self.d,self.V = accuracyEnhancedSVD(self.J,Omega,k_evec,s=1)
-        assert np.all(self.d>0)
+        myRandom.normal(1.,self.Omega)
+
 
     def testAccuracyEnhancedSVD(self):
+        
+        self.U,self.d,self.V = accuracyEnhancedSVD(self.J,self.Omega,self.k_evec,s=1)
+        assert np.all(self.d>0)
+        
         UtU = self.U.dot_mv(self.U)
         err = UtU - np.eye(UtU.shape[0], dtype=UtU.dtype)
         err_Uortho = np.linalg.norm(err, 'fro')

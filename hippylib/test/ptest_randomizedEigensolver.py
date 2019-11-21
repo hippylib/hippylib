@@ -139,10 +139,9 @@ class TestRandomizedEigensolver(unittest.TestCase):
         err = VtAV - np.diag(np.sign(d))
         err_Aortho = np.linalg.norm(err, 'fro')
 
-        if self.mpi_rank == 0:
-            assert err_Bortho < 1e-8
-            assert err_Aortho < 1e-4
-            assert np.all(res_norms < 1e-4)
+        assert err_Bortho < 1e-8
+        assert err_Aortho < 1e-4
+        assert np.all(res_norms < 1e-4)
 
     def testDoublePass(self):
         d,U = doublePass(self.Hop,self.Omega,self.k_evec,s=2)
@@ -167,10 +166,9 @@ class TestRandomizedEigensolver(unittest.TestCase):
         err = VtAV - np.diag(np.sign(d))
         err_Aortho = np.linalg.norm(err, 'fro')
 
-        if self.mpi_rank == 0:
-            assert err_Bortho < 1e-8
-            assert err_Aortho < 1e-4
-            assert np.all(res_norms < 1e-4)
+        assert err_Bortho < 1e-8
+        assert err_Aortho < 1e-4
+        assert np.all(res_norms < 1e-4)
 
     def testSinglePassG(self):
         d,U = singlePassG(self.Hop,self.M,self.Minv,self.Omega,self.k_evec,s=2)
@@ -197,10 +195,9 @@ class TestRandomizedEigensolver(unittest.TestCase):
         err = VtAV - np.diag(np.sign(d))
         err_Aortho = np.linalg.norm(err, 'fro')
 
-        if self.mpi_rank == 0:
-            assert err_Bortho < 1e-8
-            assert err_Aortho < 1e-4
-            assert np.all(res_norms < 1e-4)
+        assert err_Bortho < 1e-8
+        assert err_Aortho < 1e-4
+        assert np.all(res_norms < 1e-4)
 
     def testDoublePassG(self):
         d,U = doublePassG(self.Hop,self.M,self.Minv,self.Omega,self.k_evec,s=2)
@@ -227,14 +224,10 @@ class TestRandomizedEigensolver(unittest.TestCase):
         err = VtAV - np.diag(np.sign(d))
         err_Aortho = np.linalg.norm(err, 'fro')
 
-        if self.mpi_rank == 0:
-            assert err_Bortho < 1e-8
-            assert err_Aortho < 1e-4
-            assert np.all(res_norms < 1e-4)
-
-
-
-        
+        assert err_Bortho < 1e-8
+        assert err_Aortho < 1e-4
+        assert np.all(res_norms < 1e-4)
+ 
 
 if __name__ == '__main__':
     unittest.main()

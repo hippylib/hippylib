@@ -23,13 +23,13 @@ warnings.filterwarnings(os.environ.get("hIPPYlibExperimentalWarning", "once"), c
 
 def experimental(name=None, version=None, msg=""):
     """
-    A decorator to designate functions as deprecated. A warning is given
+    A decorator to designate functions as experimental. A warning is given
     when the function is called. By default, warnings are only given once
     per python session.
     
     Keyword args:
       name (str): name of the function or function call that is deprecated (optional)
-      version (str): the version the function was deprecated (required)
+      version (str): the version the function was introduced first or updated (required)
       msg (str): message to the user, typically providing alternative function calls 
                  and/or notice of version for removal of deprecated function (optional)
     """

@@ -13,10 +13,11 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
-from dolfin import Vector, MPI
+import dolfin as dl
 from .multivector import MultiVector, MatMvMult, MatMvTranspmult, MvDSmatMult
+from ..utils import experimental
 import numpy as np
-
+from scipy.linalg import solve_sylvester
 """
 Randomized algorithms for the solution of singular value decomposition problem (SVD)
 
@@ -57,7 +58,7 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
 
     Z = MultiVector(Omega)
 
-    y_vec = Vector(A.mpi_comm())
+    y_vec = dl.Vector(A.mpi_comm())
     A.init_vector(y_vec,0)
     Y = MultiVector(y_vec,nvec)
     MatMvMult(A,Omega,Y)
@@ -93,8 +94,73 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
 
     return U, d, V
 
+@experimental(name = 'singlePassSVD',version='3.0.0', msg='Accuracy of these computations cannot be guaranteed.')
+def singlePassSVD(A,Omega_c,Omega_r,k,check=False):
+    """
+    The single pass randomized singular value decomposition from  [2].
+    
+    Inputs:
 
+    - :code:`A`: the rectangular operator for which we need to estimate the dominant left-right singular vector pairs.
+    - :code:`Omega`: a random gassian matrix with :math:`m \\geq k` columns.
+    - :code:`k`: the number of eigenpairs to extract.
+    
+    Outputs:
+    - :code:`U`: the estimate of the :math:`k` dominant left singular vectors of of :math:`A,\\, U^T U = I_k`.
+    - :code:`d`: the estimate of the :math:`k` dominant singular values of :math:`A`.
+    - :code:`V`: the estimate of the :math:`k` dominant right singular vectors of :math:`A,\\, V^T V = I_k`.
+    
+    """
 
+    # Check compatibility of operator A
+    assert hasattr(A,'transpmult'), 'Operator A must have member function transpmult'
+
+    nvec  = Omega_c.nvec()
+    assert(nvec >= k )
+    assert Omega_r.nvec() == nvec
+
+    Y_c = MultiVector(Omega_r)
+    Y_r = MultiVector(Omega_c)
+
+    MatMvMult(A,Omega_c,Y_c)
+    MatMvTranspmult(A,Omega_r,Y_r)
+
+    # Orthogonalize 
+    Q_c = MultiVector(Y_c)
+    Q_c.orthogonalize()
+    Q_r = MultiVector(Y_r)
+    Q_r.orthogonalize()
+
+    # Need to solve the system of equations for C: (Omega_rT Q_c)C = Y_rT Q_r
+    #                                              C(Q_rT Omega_c) = Q_cTY_c
+    Omega_rTQ_c = Q_c.dot_mv(Omega_r)
+    Y_rTQ_r = Q_r.dot_mv(Y_r)
+    Q_rTOmega_c = Omega_c.dot_mv(Q_r)
+    Q_cTY_c = Y_c.dot_mv(Q_c)
+    # Sylvester solution to the least squares problem
+    sylvester_lead = Omega_rTQ_c.T@Omega_rTQ_c
+    sylvester_trail = Q_rTOmega_c@(Q_rTOmega_c.T)
+    sylvester_rhs = ((Omega_rTQ_c.T)@Y_rTQ_r) + (Q_cTY_c@(Q_rTOmega_c.T))
+    C = solve_sylvester(sylvester_lead,sylvester_trail,sylvester_rhs)
+    sylvester_error = np.linalg.norm(sylvester_lead@C + C@sylvester_trail - sylvester_rhs)
+    assert sylvester_error < 1e-4, 'Issue with sylvester solver'
+
+    U_hat,d,V_hat = np.linalg.svd(C,full_matrices = False) 
+
+    # Select the first k columns
+    U_hat = U_hat[:,:k]
+    d = d[:k]
+    V_hat = V_hat[:,:k]
+
+    U = MultiVector(Omega_r[0], k)
+    MvDSmatMult(Q_c, U_hat, U)   
+    V = MultiVector(Omega_c[0],k)
+    MvDSmatMult(Q_r, V_hat, V)
+
+    if check:
+        check_SVD(A,U,d,V)
+
+    return U, d, V
 
 
 def check_SVD(A, U, d,V,tol = 1e-1):
@@ -119,14 +185,14 @@ def check_SVD(A, U, d,V,tol = 1e-1):
     UtAV = np.diag(AV.dot_mv(U))
     r_1 = np.zeros_like(d)
     for i,d_i in enumerate(d):
-        r_1[i] = min(np.abs(UtAV[i] + d_i),np.abs(UtAV[i] - d_i))
+        r_1[i] = np.abs(UtAV[i] - d_i)
     # r_1 = Ut_AV - d
     
     VtAtU = np.diag(AtU.dot_mv(V))
     # r_2 = VtAtU - d
     r_2 = np.zeros_like(d)
     for i,d_i in enumerate(d):
-        r_2[i] = min(np.abs(VtAtU[i] + d_i),np.abs(VtAtU[i] - d_i))
+        r_2[i] = np.abs(VtAtU[i] - d_i)
     
     # Orthogonality checks check
     UtU = U.dot_mv(U)
@@ -138,7 +204,7 @@ def check_SVD(A, U, d,V,tol = 1e-1):
     err_Vortho = np.linalg.norm(err, 'fro')
     
     mpi_comm = U[0].mpi_comm()
-    rank = MPI.rank(mpi_comm)
+    rank = dl.MPI.rank(mpi_comm)
     if rank == 0:
         print( "|| UtU - I ||_F = ", err_Uortho)
         print( "|| VtV - I ||_F = ", err_Vortho)

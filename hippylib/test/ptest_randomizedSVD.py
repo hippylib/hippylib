@@ -89,14 +89,14 @@ class TestRandomizedSVD(unittest.TestCase):
         Asolver.parameters["relative_tolerance"] = 1e-12
 
         # Define M
-        varfM = dl.inner(mh,vh)*dl.dx
-        M = dl.assemble(varfM)
+        varfC = dl.inner(mh,vh)*dl.dx
+        C = dl.assemble(varfC)
 
-        self.J = J_op(B,Asolver,M)
+        self.J = J_op(B,Asolver,C)
         myRandom = Random(self.mpi_rank, self.mpi_size)
 
-        x_vec = dl.Vector(M.mpi_comm())
-        M.init_vector(x_vec,1)
+        x_vec = dl.Vector(C.mpi_comm())
+        C.init_vector(x_vec,1)
 
         k_evec = 10
         p_evec = 50
@@ -129,8 +129,8 @@ class TestRandomizedSVD(unittest.TestCase):
         r_2 = np.zeros_like(self.d)
 
         for i,d_i in enumerate(self.d):
-            r_1[i] = min(np.abs(UtAV[i] + d_i),np.abs(UtAV[i] - d_i))
-            r_2[i] = min(np.abs(VtAtU[i] + d_i),np.abs(VtAtU[i] - d_i))
+            r_1[i] = np.abs(UtAV[i] - d_i)
+            r_2[i] = np.abs(VtAtU[i] - d_i)
 
         if self.mpi_rank == 0:
             assert err_Uortho < 1e-8

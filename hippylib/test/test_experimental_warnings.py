@@ -18,33 +18,33 @@ import warnings
 
 import sys
 sys.path.append('../../')
-from hippylib import deprecated
+from hippylib import experimental
 
-@deprecated(version='2.2.0', msg='Blah')
+@experimental(version='2.2.0', msg='Blah')
 def blabla(a):
     print(a)
 
-@deprecated(name='blu', version='2.2.0', msg='Blu')
+@experimental(name='blu', version='2.2.0', msg='Blu')
 def blu1(a):
     print('blu:', a)
     
 
-class TestDeprecationWarnings(unittest.TestCase):
+class TestExperimentalWarnings(unittest.TestCase):
     """
     Test suite for deprecation warnings
     """
-    def test_deprecated_no_name(self):
+    def test_experimental_no_name(self):
         with warnings.catch_warnings(record=True) as w:
             blabla(1)
             self.assertTrue(len(w) == 1)
-            expected = "WARNING: {0} DEPRECATED since v{1}. {2}".format('blabla', '2.2.0', 'Blah')
+            expected = "WARNING: {0}  is an experimental function in v{1}. {2}".format('blabla', '2.2.0', 'Blah')
             self.assertTrue(expected in str(w[0].message) )
             
     def test_deprecated_with_name(self):
         with warnings.catch_warnings(record=True) as w:
             blu1(1)
             self.assertTrue(len(w) == 1)
-            expected = "WARNING: {0} DEPRECATED since v{1}. {2}".format('blu', '2.2.0', 'Blu')
+            expected = "WARNING: {0}  is an experimental function in v{1}. {2}".format('blu', '2.2.0', 'Blu')
             self.assertTrue(expected in str(w[0].message))
             
 if __name__ == '__main__':

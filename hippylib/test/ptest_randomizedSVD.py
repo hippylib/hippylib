@@ -105,8 +105,8 @@ class TestRandomizedSVD(unittest.TestCase):
         myRandom.normal(1.,Omega)
         # The way that this spectrum clusters power iteration makes the algorithm worse
         # Bringing the orthogonalization inside of the power iteration could fix this
-        self.U,self.d,self.V = accuracyEnhancedSVD(self.J,Omega,k_evec,s=1)
-        assert np.all(self.d>0)
+        self.U,self.sigma,self.V = accuracyEnhancedSVD(self.J,Omega,k_evec,s=1)
+        assert np.all(self.sigma>0)
 
     def testAccuracyEnhancedSVD(self):
         UtU = self.U.dot_mv(self.U)
@@ -121,22 +121,22 @@ class TestRandomizedSVD(unittest.TestCase):
         AV = MultiVector(self.U[0], nvec)
         MatMvMult(self.J, self.V, AV)
         UtAV = np.diag(AV.dot_mv(self.U))
-        r_1 = np.zeros_like(self.d)
+        r_1 = np.zeros_like(self.sigma)
 
         AtU = MultiVector(self.V[0], nvec)
         MatMvTranspmult(self.J, self.U, AtU)
         VtAtU = np.diag(AtU.dot_mv(self.V))
-        r_2 = np.zeros_like(self.d)
+        r_2 = np.zeros_like(self.sigma)
 
-        for i,d_i in enumerate(self.d):
-            r_1[i] = np.abs(UtAV[i] - d_i)
-            r_2[i] = np.abs(VtAtU[i] - d_i)
+        for i,sigma_i in enumerate(self.sigma):
+            r_1[i] = np.abs(UtAV[i] - sigma_i)
+            r_2[i] = np.abs(VtAtU[i] - sigma_i)
 
         if self.mpi_rank == 0:
             assert err_Uortho < 1e-8
             assert err_Vortho < 1e-8
-            assert np.all(r_1 < np.maximum( 5e-2,0.1*self.d))
-            assert np.all(r_2 < np.maximum( 5e-2,0.1*self.d))
+            assert np.all(r_1 < np.maximum( 5e-2,0.1*self.sigma))
+            assert np.all(r_2 < np.maximum( 5e-2,0.1*self.sigma))
 
         
 

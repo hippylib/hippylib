@@ -45,7 +45,7 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
     
     Outputs:
     - :code:`U`: the estimate of the :math:`k` dominant left singular vectors of of :math:`A,\\, U^T U = I_k`.
-    - :code:`d`: the estimate of the :math:`k` dominant singular values of :math:`A`.
+    - :code:`sigma`: the estimate of the :math:`k` dominant singular values of :math:`A`.
     - :code:`V`: the estimate of the :math:`k` dominant right singular vectors of :math:`A,\\, V^T V = I_k`.
     
     """
@@ -77,11 +77,11 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
     MatMvTranspmult(A,Q,Q_Bt)
     R_Bt = Q_Bt.orthogonalize()
 
-    V_hat,d,U_hat = np.linalg.svd(R_Bt,full_matrices = False) 
+    V_hat,sigma,U_hat = np.linalg.svd(R_Bt,full_matrices = False) 
 
     # Select the first k columns
     U_hat = U_hat[:,:k]
-    d = d[:k]
+    sigma = sigma[:k]
     V_hat = V_hat[:,:k]
 
     U = MultiVector(y_vec, k)
@@ -90,9 +90,9 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
     MvDSmatMult(Q_Bt, V_hat, V)
 
     if check:
-        check_SVD(A,U,d,V)
+        check_SVD(A,U,sigma,V)
 
-    return U, d, V
+    return U, sigma, V
 
 @experimental(name = 'singlePassSVD',version='3.0.0', msg='Accuracy of these computations cannot be guaranteed.')
 def singlePassSVD(A,Omega_c,Omega_r,k,check=False):
@@ -101,13 +101,14 @@ def singlePassSVD(A,Omega_c,Omega_r,k,check=False):
     
     Inputs:
 
-    - :code:`A`: the rectangular operator for which we need to estimate the dominant left-right singular vector pairs.
-    - :code:`Omega`: a random gassian matrix with :math:`m \\geq k` columns.
+    - :code:`A`: the m x n rectangular operator for which we need to estimate the dominant left-right singular vector pairs.
+    - :code:`Omega_c`: an n x (k +p) random gassian matrix with :math:`n \\geq k` columns.
+    - :code:`Omega_r`: an m x (k +p) random gassian matrix with :math:`m \\geq k` columns.
     - :code:`k`: the number of eigenpairs to extract.
     
     Outputs:
     - :code:`U`: the estimate of the :math:`k` dominant left singular vectors of of :math:`A,\\, U^T U = I_k`.
-    - :code:`d`: the estimate of the :math:`k` dominant singular values of :math:`A`.
+    - :code:`sigma`: the estimate of the :math:`k` dominant singular values of :math:`A`.
     - :code:`V`: the estimate of the :math:`k` dominant right singular vectors of :math:`A,\\, V^T V = I_k`.
     
     """
@@ -145,11 +146,11 @@ def singlePassSVD(A,Omega_c,Omega_r,k,check=False):
     sylvester_error = np.linalg.norm(sylvester_lead@C + C@sylvester_trail - sylvester_rhs)
     assert sylvester_error < 1e-4, 'Issue with sylvester solver'
 
-    U_hat,d,V_hat = np.linalg.svd(C,full_matrices = False) 
+    U_hat,sigma,V_hat = np.linalg.svd(C,full_matrices = False) 
 
     # Select the first k columns
     U_hat = U_hat[:,:k]
-    d = d[:k]
+    sigma = sigma[:k]
     V_hat = V_hat[:,:k]
 
     U = MultiVector(Omega_r[0], k)
@@ -158,20 +159,20 @@ def singlePassSVD(A,Omega_c,Omega_r,k,check=False):
     MvDSmatMult(Q_r, V_hat, V)
 
     if check:
-        check_SVD(A,U,d,V)
+        check_SVD(A,U,sigma,V)
 
-    return U, d, V
+    return U, sigma, V
 
 
-def check_SVD(A, U, d,V,tol = 1e-1):
+def check_SVD(A, U, sigma,V,tol = 1e-1):
     """
     Test the frobenious norm of  :math:`U^TU - I_k`.
 
     Test the frobenious norm of  :math:`(V^TV) - I_k`.
     
-    Test the :math:`l_2` norm of the residual: :math:`r_1[i] = U[i]^T A V[i] - d[i]`.
+    Test the :math:`l_2` norm of the residual: :math:`r_1[i] = U[i]^T A V[i] - sigma[i]`.
 
-    Test the :math:`l_2` norm of the residual: :math:`r_2[i] = V[i]^TA^T U[i] -  d[i]`.
+    Test the :math:`l_2` norm of the residual: :math:`r_2[i] = V[i]^TA^T U[i] -  sigma[i]`.
     """
     assert U.nvec() == V.nvec(), "U and V second dimension need to agree"
 
@@ -183,16 +184,16 @@ def check_SVD(A, U, d,V,tol = 1e-1):
 
     # # Residual checks
     UtAV = np.diag(AV.dot_mv(U))
-    r_1 = np.zeros_like(d)
-    for i,d_i in enumerate(d):
-        r_1[i] = np.abs(UtAV[i] - d_i)
+    r_1 = np.zeros_like(sigma)
+    for i,sigma_i in enumerate(sigma):
+        r_1[i] = np.abs(UtAV[i] - sigma_i)
     # r_1 = Ut_AV - d
     
     VtAtU = np.diag(AtU.dot_mv(V))
     # r_2 = VtAtU - d
-    r_2 = np.zeros_like(d)
-    for i,d_i in enumerate(d):
-        r_2[i] = np.abs(VtAtU[i] - d_i)
+    r_2 = np.zeros_like(sigma)
+    for i,sigma_i in enumerate(sigma):
+        r_2[i] = np.abs(VtAtU[i] - sigma_i)
     
     # Orthogonality checks check
     UtU = U.dot_mv(U)

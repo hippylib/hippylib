@@ -108,6 +108,8 @@ def doublePass(A,Omega,k,s,check = False):
     
     Q = MultiVector(Omega)
     Y = MultiVector(Omega[0], nvec)
+
+    # Bringing the orthogonalization inside of the power iteration could improve accuracy
     for i in range(s):
         MatMvMult(A, Q, Y)
         Q.swap(Y)
@@ -210,6 +212,7 @@ def doublePassG(A, B, Binv, Omega, k, s = 1, check = False):
     
     Ybar = MultiVector(Omega[0], nvec)
     Q = MultiVector(Omega)
+    # Bringing the orthogonalization inside of the power iteration could improve accuracy
     for i in range(s):
         MatMvMult(A, Q, Ybar)
         MatMvMult(Solver2Operator(Binv), Ybar, Q)

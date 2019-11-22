@@ -141,8 +141,8 @@ class TestRandomizedSVD(unittest.TestCase):
 
         assert err_Uortho < 1e-8
         assert err_Vortho < 1e-8
-        assert np.all(r_1 < np.maximum( 5e-2,0.1*self.d))
-        assert np.all(r_2 < np.maximum( 5e-2,0.1*self.d))
+        assert np.all(r_1 < np.maximum( 5e-2,0.1*self.sigma))
+        assert np.all(r_2 < np.maximum( 5e-2,0.1*self.sigma))
             
     def testSinglePassSVD(self):
         # Only check execution at this time

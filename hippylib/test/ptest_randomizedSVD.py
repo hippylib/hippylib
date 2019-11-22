@@ -113,8 +113,8 @@ class TestRandomizedSVD(unittest.TestCase):
 
     def testAccuracyEnhancedSVD(self):
         
-        self.U,self.d,self.V = accuracyEnhancedSVD(self.J,self.Omega,self.k_evec,s=1)
-        assert np.all(self.d>0)
+        self.U,self.sigma,self.V = accuracyEnhancedSVD(self.J,self.Omega,self.k_evec,s=1)
+        assert np.all(self.sigma>0)
         
         UtU = self.U.dot_mv(self.U)
         err = UtU - np.eye(UtU.shape[0], dtype=UtU.dtype)
@@ -146,7 +146,7 @@ class TestRandomizedSVD(unittest.TestCase):
             
     def testSinglePassSVD(self):
         # Only check execution at this time
-        U, s, V = singlePassSVD(self.J,self.Omega,self.Omega_adj,self.k_evec)
+        U, sigma, V = singlePassSVD(self.J,self.Omega,self.Omega_adj,self.k_evec)
 
         
 

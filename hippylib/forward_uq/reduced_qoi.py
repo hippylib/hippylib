@@ -375,7 +375,7 @@ class ReducedQOI:
         self.setLinearizationPoint(x)
         return ReducedHessianQOI(self)
         
-def reducedQOIVerify(rQOI, m0, h=None, eps=None, plotting = True):
+def reducedQOIVerify(rQOI, m0, h=None, eps=None, plotting = True,verbose = True):
     """
     Verify the gradient and the Hessian of a parameter-to-qoi map.
     It will produce two loglog plots of the finite difference checks
@@ -443,21 +443,26 @@ def reducedQOIVerify(rQOI, m0, h=None, eps=None, plotting = True):
         
         err_H[i] = err.norm('linf')
 
-        if rank == 0:
+        if rank == 0 and verbose:
             print( "{0:1.7e} {1:1.7e} {2:1.7e} {3:1.7e}".format(eps[i], qois[i], err_grad[i], err_H[i]))
     
     if plotting and (rank == 0):
         reducedQOIVerifyVerifyPlotErrors(eps, err_grad, err_H) 
 
-    out = np.zeros((eps.shape[0], 4))
-    out[:,0] = eps
-    out[:,1] = qois
-    out[:,2] = err_grad
-    out[:,3] = err_H
+    fd_check = np.zeros((eps.shape[0], 4))
+    fd_check[:,0] = eps
+    fd_check[:,1] = qois
+    fd_check[:,2] = err_grad
+    fd_check[:,3] = err_H
     
     if rank == 0:
-        np.savetxt('fd_check.txt', out)
-      
+        np.savetxt('fd_check.txt', fd_check)
+
+    out = {}
+    out['err_grad'] = err_grad
+    out['err_H'] = err_H
+
+    # Compute symmetry error  
     xx = rQOI.generate_vector(PARAMETER)
     parRandom.normal(1., xx)
     yy = rQOI.generate_vector(PARAMETER)
@@ -465,10 +470,11 @@ def reducedQOIVerify(rQOI, m0, h=None, eps=None, plotting = True):
     
     ytHx = H.inner(yy,xx)
     xtHy = H.inner(xx,yy)
-    rel_symm_error = 2*abs(ytHx - xtHy)/(ytHx + xtHy)
-    if rank == 0:
-        print( "(yy, H xx) - (xx, H yy) = ", rel_symm_error)
-        if(rel_symm_error > 1e-10):
+    rel_sym_error = 2*abs(ytHx - xtHy)/(ytHx + xtHy)
+    out['rel_sym_error'] = rel_sym_error
+    if rank ==  0 and verbose:
+        print( "(yy, H xx) - (xx, H yy) = ", rel_sym_error)
+        if(rel_sym_error > 1e-10):
             print( "HESSIAN IS NOT SYMMETRIC!!")
         
     return out

@@ -56,7 +56,6 @@ if __name__ == "__main__":
     mesh = dl.UnitSquareMesh(nx, ny)
     
     rank = dl.MPI.rank(mesh.mpi_comm())
-    nproc = dl.MPI.size(mesh.mpi_comm())
         
     Vh2 = dl.FunctionSpace(mesh, 'Lagrange', 2)
     Vh1 = dl.FunctionSpace(mesh, 'Lagrange', 1)

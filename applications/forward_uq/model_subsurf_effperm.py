@@ -175,7 +175,7 @@ if __name__ == "__main__":
         print( "Prior regularization: (delta_x - gamma*Laplacian)^order: delta={0}, gamma={1}, order={2}".format(delta, gamma,2) )
         
     GC = GammaCenter()
-    marker = dl.FacetFunction("size_t", mesh)
+    marker = dl.MeshFunction("size_t", mesh, mesh.topology().dim()-1)
     marker.set_all(0)
     GC.mark(marker, 1)
     dss = dl.Measure("dS", domain=mesh, subdomain_data=marker)

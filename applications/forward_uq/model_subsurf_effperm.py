@@ -30,70 +30,6 @@ except:
 class GammaCenter(dl.SubDomain):
     def inside(self, x, on_boundary):
         return ( abs(x[1]-.5) < dl.DOLFIN_EPS )
-    
-class FluxQOI(QOI):
-    def __init__(self, Vh, dsGamma):
-        self.Vh = Vh
-        self.dsGamma = dsGamma
-        self.n = dl.Constant((0.,1.))#dl.FacetNormal(Vh[STATE].mesh())
-        
-        self.u = None
-        self.m = None
-        self.L = {}
-        
-    def form(self, x):
-        return dl.avg(dl.exp(x[PARAMETER])*dl.dot( dl.grad(x[STATE]), self.n) )*self.dsGamma
-    
-    def eval(self, x):
-        """
-        Given x evaluate the cost functional.
-        Only the state u and (possibly) the parameter a are accessed.
-        """
-        u = vector2Function(x[STATE], self.Vh[STATE])
-        m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
-        return dl.assemble(self.form([u,m]))
-    
-    def grad(self, i, x, g):
-        if i == STATE:
-            self.grad_state(x, g)
-        elif i==PARAMETER:
-            self.grad_param(x, g)
-        else:
-            raise i
-                
-    def grad_state(self,x,g):
-        """Evaluate the gradient with respect to the state.
-        Only the state u and (possibly) the parameter m are accessed. """
-        u = vector2Function(x[STATE], self.Vh[STATE])
-        m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
-        form = self.form([u,m])
-        g.zero()
-        dl.assemble(dl.derivative(form, u), tensor=g)
-        
-    def grad_param(self,x,g):
-        """Evaluate the gradient with respect to the state.
-        Only the state u and (possibly) the parameter m are accessed. """
-        u = vector2Function(x[STATE], self.Vh[STATE])
-        m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
-        form = self.form([u,m])
-        g.zero()
-        dl.assemble(dl.derivative(form, m), tensor=g)
-                
-    def apply_ij(self,i,j, dir, out):
-        """Apply the second variation \delta_ij (i,j = STATE,PARAMETER) of the cost in direction dir."""
-        self.L[i,j].mult(dir, out)
-
-    def setLinearizationPoint(self, x):
-        self.u = vector2Function(x[STATE], self.Vh[STATE])
-        self.m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
-        x = [self.u,self.m]
-        form = self.form(x)
-        for i in range(2):
-            di_form = dl.derivative(form, x[i])
-            for j in range(2):
-                dij_form = dl.derivative(di_form,x[j] )
-                self.L[i,j] = dl.assemble(dij_form)
-
 
 def u_boundary(x, on_boundary):
     return on_boundary and ( x[1] < dl.DOLFIN_EPS or x[1] > 1.0 - dl.DOLFIN_EPS)
@@ -179,7 +115,12 @@ if __name__ == "__main__":
     marker.set_all(0)
     GC.mark(marker, 1)
     dss = dl.Measure("dS", domain=mesh, subdomain_data=marker)
-    qoi = FluxQOI(Vh,dss(1)) 
+    n = dl.Constant((0.,1.))#dl.FacetNormal(Vh[STATE].mesh())
+
+    def qoi_varf( x):
+        return dl.avg(dl.exp(x[PARAMETER])*dl.dot( dl.grad(x[STATE]), n) )*dss
+
+    qoi = VariationalQOI(Vh,qoi_varf) 
     rqoi = ReducedQOI(pde, qoi)
     
     if 1:

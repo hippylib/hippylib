@@ -17,4 +17,5 @@ from .qoi import QOI, qoiVerify
 from .reduced_qoi import ReducedQOI, ReducedHessianQOI, reducedQOIVerify
 from .taylor_approx_qoi import TaylorApproximationQOI, plotEigenvalues
 from .varianceReductionMC import varianceReductionMC
+from .variational_qoi import VariationalQOI
 

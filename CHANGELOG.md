@@ -26,6 +26,7 @@ Development version
 - Use `dl.XDMFFile` to export solutions for visualization in Paraview in all application drivers
 - Implement accuracy enhanced SVD algorithm in `randomizedSVD.py`
 - Increase coverage of unit testing in CI
+- Migrated forward_uq/ sans rare_events/, implemented reduced_qoi unit test
 
 
 Version 2.3.0, released on Sept 6, 2019

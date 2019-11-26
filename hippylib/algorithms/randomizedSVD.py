@@ -54,7 +54,8 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
     assert hasattr(A,'transpmult'), 'Operator A must have member function transpmult'
 
     nvec  = Omega.nvec()
-    assert(nvec >= k )
+    assert nvec >= k, 'Omega must have at least k columns' 
+
 
     Z = MultiVector(Omega)
 
@@ -118,8 +119,8 @@ def singlePassSVD(A,Omega_c,Omega_r,k,check=False):
     assert hasattr(A,'transpmult'), 'Operator A must have member function transpmult'
 
     nvec  = Omega_c.nvec()
-    assert(nvec >= k )
-    assert Omega_r.nvec() == nvec
+    assert nvec >= k, 'Omega_c must have at least k columns' 
+    assert Omega_r.nvec() == nvec, 'Omega_c and Omega_r must have the same number of columns' 
 
     Y_c = MultiVector(Omega_r)
     Y_r = MultiVector(Omega_c)

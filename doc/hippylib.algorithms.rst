@@ -70,6 +70,14 @@ hippylib.algorithms.randomizedEigensolver module
     :members:
     :undoc-members:
     :show-inheritance:
+    
+hippylib.algorithms.randomizedSVD module
+------------------------------------------------
+
+.. automodule:: hippylib.algorithms.randomizedSVD
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 
 hippylib.algorithms.steepestDescent module

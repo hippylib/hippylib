@@ -12,8 +12,7 @@
 # hIPPYlib is free software; you can redistribute it and/or modify it under the
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
-
-from dolfin import Vector, MPI
+import dolfin as dl
 from .linalg import Solver2Operator
 from .multivector import MultiVector, MatMvMult, MvDSmatMult
 import numpy as np
@@ -109,6 +108,8 @@ def doublePass(A,Omega,k,s,check = False):
     
     Q = MultiVector(Omega)
     Y = MultiVector(Omega[0], nvec)
+
+    # Bringing the orthogonalization inside of the power iteration could improve accuracy
     for i in range(s):
         MatMvMult(A, Q, Y)
         Q.swap(Y)
@@ -211,6 +212,7 @@ def doublePassG(A, B, Binv, Omega, k, s = 1, check = False):
     
     Ybar = MultiVector(Omega[0], nvec)
     Q = MultiVector(Omega)
+    # Bringing the orthogonalization inside of the power iteration could improve accuracy
     for i in range(s):
         MatMvMult(A, Q, Ybar)
         MatMvMult(Solver2Operator(Binv), Ybar, Q)
@@ -268,7 +270,7 @@ def check_std(A, U, d):
     err_Aortho = np.linalg.norm(err, 'fro')
     
     mpi_comm = U[0].mpi_comm()
-    rank = MPI.rank(mpi_comm)
+    rank = dl.MPI.rank(mpi_comm)
     if rank == 0:
         print( "|| UtU - I ||_F = ", err_Bortho)
         print( "|| VtAV - I ||_F = ", err_Aortho, " with V = U D^{-1/2}")
@@ -311,7 +313,7 @@ def check_g(A,B, U, d):
     err_Aortho = np.linalg.norm(err, 'fro')
     
     mpi_comm = U[0].mpi_comm()
-    rank = MPI.rank(mpi_comm)
+    rank = dl.MPI.rank(mpi_comm)
     if rank == 0:
         print( "|| UtBU - I ||_F = ", err_Bortho)
         print( "|| VtAV - I ||_F = ", err_Aortho, " with V = U D^{-1/2}")

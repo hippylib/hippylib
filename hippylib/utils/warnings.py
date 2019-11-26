@@ -16,3 +16,5 @@
 class hIPPYlibDeprecationWarning(DeprecationWarning):
     pass
 
+class hIPPYlibExperimentalWarning(UserWarning):
+	pass

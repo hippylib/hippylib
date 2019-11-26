@@ -13,9 +13,9 @@
 
 from __future__ import absolute_import, division, print_function
 
-from .qoi import QOI, qoiVerify
-from .reduced_qoi import ReducedQOI, ReducedHessianQOI, reducedQOIVerify
-from .taylor_approx_qoi import TaylorApproximationQOI, plotEigenvalues
+from .qoi import Qoi, qoiVerify
+from .parameter2QoiMap import Parameter2QoiMap, Parameter2QoiHessian, parameter2QoiMapVerify
+from .taylorApproximationQoi import TaylorApproximationQoi, plotEigenvalues
 from .varianceReductionMC import varianceReductionMC
-from .variational_qoi import VariationalQOI
+from .variationalQoi import VariationalQoi
 

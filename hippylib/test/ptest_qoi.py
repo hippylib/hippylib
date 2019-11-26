@@ -68,17 +68,17 @@ class TestPointwiseObservation(unittest.TestCase):
         dss = dl.Measure("dS", domain=self.mesh, subdomain_data=marker)
         n = dl.Constant((0.,1.))#dl.FacetNormal(Vh[STATE].mesh())
 
-        def qoi_varf( x):
-            return dl.avg(dl.exp(x[PARAMETER])*dl.dot( dl.grad(x[STATE]), n) )*dss
+        def qoi_varf(u,m):
+            return dl.avg(dl.exp(m)*dl.dot( dl.grad(u), n) )*dss
 
-        self.qoi = VariationalQOI(self.Vh,qoi_varf) 
+        self.qoi = VariationalQoi(self.Vh,qoi_varf) 
 
         
     def testVariationalQOI(self):
 
-        rqoi = ReducedQOI(self.pde, self.qoi)
+        p2qoimap = Parameter2QoiMap(self.pde, self.qoi)
         
-        out = reducedQOIVerify(rqoi, self.prior.mean, eps=np.power(.5, np.arange(20,0,-1)),\
+        out = parameter2QoiMapVerify(p2qoimap, self.prior.mean, eps=np.power(.5, np.arange(20,0,-1)),\
                                                                  plotting = False, verbose = False )
 
         assert np.all(out['err_grad'] < 1.)

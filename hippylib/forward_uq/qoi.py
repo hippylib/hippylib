@@ -19,7 +19,7 @@ from ..modeling.variables import STATE, PARAMETER, ADJOINT
 from ..utils.random import parRandom
 
 
-class QOI(object):
+class Qoi(object):
     """
     Abstract class to model the Quantity of Interest.
     In the following :code:`x` will denote the variable :code:`[u, m, p]`, denoting respectively

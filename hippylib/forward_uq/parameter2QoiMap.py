@@ -19,26 +19,26 @@ from ..modeling.variables import STATE, PARAMETER, ADJOINT
 from ..utils.random import parRandom
 
 
-class ReducedHessianQOI:
+class Parameter2QoiHessian:
     """
     This class implements matrix free application of the reduced hessian operator.
     
     The constructor takes the following parameters:
-        - :code:`reduced_qoi` - the object that describes the parameter-to-qoi map
+        - :code:`p2qoimap` - the object that describes the parameter-to-qoi map
     """
-    def __init__(self, reduced_qoi):
+    def __init__(self, p2qoimap):
         """
         Construct the Hessian Operator of the parameter-to-qoi map
         """
-        self.reduced_qoi = reduced_qoi
+        self.p2qoimap = p2qoimap
         self.ncalls = 0
         
-        self.rhs_fwd = reduced_qoi.generate_vector(STATE)
-        self.rhs_adj = reduced_qoi.generate_vector(ADJOINT)
-        self.rhs_adj2 = reduced_qoi.generate_vector(ADJOINT)
-        self.uhat    = reduced_qoi.generate_vector(STATE)
-        self.phat    = reduced_qoi.generate_vector(ADJOINT)
-        self.yhelp = reduced_qoi.generate_vector(PARAMETER)
+        self.rhs_fwd = p2qoimap.generate_vector(STATE)
+        self.rhs_adj = p2qoimap.generate_vector(ADJOINT)
+        self.rhs_adj2 = p2qoimap.generate_vector(ADJOINT)
+        self.uhat    = p2qoimap.generate_vector(STATE)
+        self.phat    = p2qoimap.generate_vector(ADJOINT)
+        self.yhelp = p2qoimap.generate_vector(PARAMETER)
     
     def init_vector(self, x, dim):
         """
@@ -56,23 +56,23 @@ class ReducedHessianQOI:
         the domain is the same. Either way, we chose to add the parameter \
         :code:`dim` for consistency with the interface of :code:`dolfin.Matrix`.
         """
-        self.reduced_qoi.init_parameter(x)
+        self.p2qoimap.init_parameter(x)
         
     def mult(self,x,y):
         """
         Apply the Hessian of the parameter-to-qoi map to the vector :code:`x`
         Return the result in :code:`y`.
         """
-        self.reduced_qoi.applyC(x, self.rhs_fwd)
-        self.reduced_qoi.solveFwdIncremental(self.uhat, self.rhs_fwd)
-        self.reduced_qoi.applyWuu(self.uhat, self.rhs_adj)
-        self.reduced_qoi.applyWum(x, self.rhs_adj2)
+        self.p2qoimap.applyC(x, self.rhs_fwd)
+        self.p2qoimap.solveFwdIncremental(self.uhat, self.rhs_fwd)
+        self.p2qoimap.applyWuu(self.uhat, self.rhs_adj)
+        self.p2qoimap.applyWum(x, self.rhs_adj2)
         self.rhs_adj.axpy(-1., self.rhs_adj2)
-        self.reduced_qoi.solveAdjIncremental(self.phat, self.rhs_adj)
-        self.reduced_qoi.applyWmm(x, y)
-        self.reduced_qoi.applyCt(self.phat, self.yhelp)
+        self.p2qoimap.solveAdjIncremental(self.phat, self.rhs_adj)
+        self.p2qoimap.applyWmm(x, y)
+        self.p2qoimap.applyCt(self.phat, self.yhelp)
         y.axpy(1., self.yhelp)
-        self.reduced_qoi.applyWmu(self.uhat, self.yhelp)
+        self.p2qoimap.applyWmu(self.uhat, self.yhelp)
         y.axpy(-1., self.yhelp)
 
         
@@ -83,13 +83,13 @@ class ReducedHessianQOI:
         Perform the inner product between :code:`x` and :code:`y` in the norm induced by the Hessian :math:`H`, i.e.
         :math:`(x, y)_H = x^T H y`
         """
-        Ay = self.reduced_qoi.generate_vector(PARAMETER)
+        Ay = self.p2qoimap.generate_vector(PARAMETER)
         Ay.zero()
         self.mult(y,Ay)
         return x.inner(Ay)
 
 
-class ReducedQOI:
+class Parameter2QoiMap:
     def __init__(self, problem, qoi):
         """
         Create a parameter-to-qoi map given:
@@ -351,7 +351,7 @@ class ReducedQOI:
         self.evalGradientParameter(self, [u, m, p], g)
         return [u, m, p]
     
-    def reduced_hessian(self, m=None, x=None):
+    def hessian(self, m=None, x=None):
         """
         Evaluate the Hessian of parameter-to-qoi map.
         
@@ -373,9 +373,9 @@ class ReducedQOI:
             assert x is not None
             
         self.setLinearizationPoint(x)
-        return ReducedHessianQOI(self)
+        return Parameter2QoiHessian(self)
         
-def reducedQOIVerify(rQOI, m0, h=None, eps=None, plotting = True,verbose = True):
+def parameter2QoiMapVerify(rQOI, m0, h=None, eps=None, plotting = True,verbose = True):
     """
     Verify the gradient and the Hessian of a parameter-to-qoi map.
     It will produce two loglog plots of the finite difference checks
@@ -402,7 +402,7 @@ def reducedQOIVerify(rQOI, m0, h=None, eps=None, plotting = True,verbose = True)
     rQOI.evalGradientParameter(x, grad_x)
     grad_xh = grad_x.inner( h )
     
-    H = rQOI.reduced_hessian(x=x)
+    H = rQOI.hessian(x=x)
     Hh = rQOI.generate_vector(PARAMETER)
     H.mult(h, Hh)
     
@@ -447,7 +447,7 @@ def reducedQOIVerify(rQOI, m0, h=None, eps=None, plotting = True,verbose = True)
             print( "{0:1.7e} {1:1.7e} {2:1.7e} {3:1.7e}".format(eps[i], qois[i], err_grad[i], err_H[i]))
     
     if plotting and (rank == 0):
-        reducedQOIVerifyVerifyPlotErrors(eps, err_grad, err_H) 
+        parameter2QoiMapVerifyPlotErrors(eps, err_grad, err_H) 
 
     fd_check = np.zeros((eps.shape[0], 4))
     fd_check[:,0] = eps
@@ -479,7 +479,7 @@ def reducedQOIVerify(rQOI, m0, h=None, eps=None, plotting = True,verbose = True)
         
     return out
 
-def reducedQOIVerifyVerifyPlotErrors(eps, err_grad, err_H):
+def parameter2QoiMapVerifyPlotErrors(eps, err_grad, err_H):
     try:
         import matplotlib.pyplot as plt
     except:

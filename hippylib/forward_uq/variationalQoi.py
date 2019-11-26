@@ -17,16 +17,14 @@ import dolfin as dl
 import numpy as np
 from ..modeling.variables import STATE, PARAMETER, ADJOINT
 from ..utils.vector2function import vector2Function
-from .qoi import QOI
+from .qoi import Qoi
 
 
-class VariationalQOI(QOI):
+class VariationalQoi(Qoi):
     def __init__(self, Vh, qoi_varf):
         self.Vh = Vh
         self.qoi_varf = qoi_varf
         
-        self.u = None
-        self.m = None
         self.L = {}
 
     def eval(self, x):
@@ -36,7 +34,7 @@ class VariationalQOI(QOI):
         """
         u = vector2Function(x[STATE], self.Vh[STATE])
         m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
-        return dl.assemble(self.qoi_varf([u,m]))
+        return dl.assemble(self.qoi_varf(u,m))
     
     def grad(self, i, x, g):
         if i == STATE:
@@ -52,7 +50,7 @@ class VariationalQOI(QOI):
         u = vector2Function(x[STATE], self.Vh[STATE])
         m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
         g.zero()
-        dl.assemble(dl.derivative(self.qoi_varf([u,m]), u), tensor=g)
+        dl.assemble(dl.derivative(self.qoi_varf(u,m), u), tensor=g)
         
     def grad_param(self,x,g):
         """Evaluate the gradient with respect to the state.
@@ -60,18 +58,18 @@ class VariationalQOI(QOI):
         u = vector2Function(x[STATE], self.Vh[STATE])
         m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
         g.zero()
-        dl.assemble(dl.derivative(self.qoi_varf([u,m]), m), tensor=g)
+        dl.assemble(dl.derivative(self.qoi_varf(u,m), m), tensor=g)
                 
     def apply_ij(self,i,j, dir, out):
         """Apply the second variation \delta_ij (i,j = STATE,PARAMETER) of the cost in direction dir."""
         self.L[i,j].mult(dir, out)
 
     def setLinearizationPoint(self, x):
-        self.u = vector2Function(x[STATE], self.Vh[STATE])
-        self.m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
-        x = [self.u,self.m]
+        u = vector2Function(x[STATE], self.Vh[STATE])
+        m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
+        x = [u,m]
         for i in range(2):
-            di_form = dl.derivative(self.qoi_varf(x), x[i])
+            di_form = dl.derivative(self.qoi_varf(*x), x[i])
             for j in range(2):
                 dij_form = dl.derivative(di_form,x[j] )
                 self.L[i,j] = dl.assemble(dij_form)

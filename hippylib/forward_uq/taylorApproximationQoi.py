@@ -17,31 +17,31 @@ import numpy as np
 from ..modeling.variables import STATE, PARAMETER, ADJOINT
 from ..algorithms.randomizedEigensolver import doublePassG
 
-class TaylorApproximationQOI:
+class TaylorApproximationQoi:
     """
     This class computes the first and second order Taylor approximation of the parameter-to-qoi map.
     It provides methods to evaluate the Taylor approximation for a specific realization of the parameter
     and to analytically compute Expectation and Variance of the Taylor approximation
     with respect to a Gaussian propability distribution.
     """
-    def __init__(self, rqoi, distribution):
+    def __init__(self, p2qoimap, distribution):
         """
         Constructor:
 
-            - :code:`rqoi` - an object of type :code:`ReducedQOI` that describes the parameter-to-qoi map
+            - :code:`p2qoimap` - an object of type :code:`ReducedQOI` that describes the parameter-to-qoi map
             - :code:`distribution` - an object of type :code:`hIPPYlib._Prior` that describes the prior Gaussian distribution.
         """
-        self.rqoi = rqoi
+        self.p2qoimap = p2qoimap
         self.distribution = distribution
         
-        self.x_bar = self.rqoi.generate_vector()
+        self.x_bar = self.p2qoimap.generate_vector()
         self.x_bar[PARAMETER].axpy(1., distribution.mean)
         
-        if hasattr(self.rqoi.problem, "initial_guess"):
-            self.x_bar[STATE].axpy(1., self.rqoi.problem.initial_guess)   
+        if hasattr(self.p2qoimap.problem, "initial_guess"):
+            self.x_bar[STATE].axpy(1., self.p2qoimap.problem.initial_guess)   
         
         self.q_bar = 0.
-        self.g_bar =  self.rqoi.generate_vector(PARAMETER)
+        self.g_bar =  self.p2qoimap.generate_vector(PARAMETER)
         
         self.d = None
         self.U = None
@@ -64,13 +64,13 @@ class TaylorApproximationQOI:
             - :code:`k` - the number of eigenpairs to be retained in the LowRank factorization of the prior-preconditioned Hessian.
         """
         
-        self.rqoi.solveFwd(self.x_bar[STATE], self.x_bar)
-        self.rqoi.solveAdj(self.x_bar[ADJOINT], self.x_bar)
+        self.p2qoimap.solveFwd(self.x_bar[STATE], self.x_bar)
+        self.p2qoimap.solveAdj(self.x_bar[ADJOINT], self.x_bar)
         
-        self.q_bar = self.rqoi.eval(self.x_bar)
-        self.rqoi.evalGradientParameter(self.x_bar, self.g_bar)
+        self.q_bar = self.p2qoimap.eval(self.x_bar)
+        self.p2qoimap.evalGradientParameter(self.x_bar, self.g_bar)
         
-        self.H = self.rqoi.reduced_hessian(x=self.x_bar)
+        self.H = self.p2qoimap.hessian(x=self.x_bar)
         if hasattr(self.distribution, "R"):
             self.d, self.U = doublePassG(self.H, self.distribution.R, self.distribution.Rsolver, Omega, Omega.nvec())
         else:
@@ -104,7 +104,7 @@ class TaylorApproximationQOI:
 
             - :code:`order` - is the order of the Taylor approximation, currently 1 (linear) or 2 (quadratic)
         """
-        Rinv_g = self.rqoi.generate_vector(PARAMETER)
+        Rinv_g = self.p2qoimap.generate_vector(PARAMETER)
         
         if hasattr(self.distribution, "R"):
             self.distribution.Rsolver.solve(Rinv_g, self.g_bar)

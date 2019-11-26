@@ -116,20 +116,20 @@ if __name__ == "__main__":
     dss = dl.Measure("dS", domain=mesh, subdomain_data=marker)
     n = dl.Constant((0.,1.))#dl.FacetNormal(Vh[STATE].mesh())
 
-    def qoi_varf( x):
-        return dl.avg(dl.exp(x[PARAMETER])*dl.dot( dl.grad(x[STATE]), n) )*dss
+    def qoi_varf(u,m):
+        return dl.avg(dl.exp(m)*dl.dot( dl.grad(u), n) )*dss
 
-    qoi = VariationalQOI(Vh,qoi_varf) 
-    rqoi = ReducedQOI(pde, qoi)
+    qoi = VariationalQoi(Vh,qoi_varf) 
+    p2qoimap = Parameter2QoiMap(pde, qoi)
     
     if 1:
-        reducedQOIVerify(rqoi, prior.mean, eps=np.power(.5, np.arange(20,0,-1)), plotting = True )
+        parameter2QoiMapVerify(p2qoimap, prior.mean, eps=np.power(.5, np.arange(20,0,-1)), plotting = True )
     
     k = 100    
     Omega = MultiVector(prior.mean, k)
     parRandom.normal(1., Omega)
     
-    q_taylor = TaylorApproximationQOI(rqoi, prior)
+    q_taylor = TaylorApproximationQoi(p2qoimap, prior)
     q_taylor.computeLowRankFactorization(Omega)
     
     if rank == 0:
@@ -143,7 +143,7 @@ if __name__ == "__main__":
         print( "E[Q_lin] = {0:7e}, E[Q_quad] = {1:7e}".format(e_lin, e_quad))
         print( "Var[Q_lin] = {0:7e}, Var[Q_quad] = {1:7e}".format(v_lin, v_quad) )
     
-    varianceReductionMC(prior, rqoi, q_taylor,  nsamples=100)
+    varianceReductionMC(prior, p2qoimap, q_taylor,  nsamples=100)
     
     if rank == 0 and has_plt:
         plt.show()

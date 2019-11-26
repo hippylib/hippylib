@@ -80,10 +80,10 @@ class TestPointwiseObservation(unittest.TestCase):
         
         out = reducedQOIVerify(rqoi, self.prior.mean, eps=np.power(.5, np.arange(20,0,-1)),\
                                                                  plotting = False, verbose = False )
-        if self.rank == 0:
-            assert np.all(out['err_grad'] < 1.)
-            assert np.all(out['err_H']< 1.)
-            assert out['rel_sym_error'] < 1e-10
+
+        assert np.all(out['err_grad'] < 1.)
+        assert np.all(out['err_H']< 1.)
+        assert out['rel_sym_error'] < 1e-10
 
 
 if __name__ == '__main__':

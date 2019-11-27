@@ -103,8 +103,8 @@ class TestPointwiseObservation(unittest.TestCase):
         print('within_tolerance_g = ', within_tolerance_g)
         print('within_tolerance_H = ', within_tolerance_H)
 
-        assert within_tolerance_g > 0.
-        assert within_tolerance_H > 0.75
+        assert within_tolerance_g > 0.7
+        assert within_tolerance_H > 0.7
         assert out['rel_sym_error'] < 1e-10
 
 

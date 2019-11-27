@@ -100,6 +100,9 @@ class TestPointwiseObservation(unittest.TestCase):
         within_tolerance_g = np.sum(slope_error_g)/len_slopes
         within_tolerance_H = np.sum(slope_error_H)/len_slopes
 
+        print('within_tolerance_g = ', within_tolerance_g)
+        print('within_tolerance_H = ', within_tolerance_H)
+
         assert within_tolerance_g > 0.75
         assert within_tolerance_H > 0.75
         assert out['rel_sym_error'] < 1e-10

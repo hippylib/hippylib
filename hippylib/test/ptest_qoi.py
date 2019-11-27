@@ -33,6 +33,7 @@ def v_boundary(x, on_boundary):
 
 class TestPointwiseObservation(unittest.TestCase):
     def setUp(self):
+        dl.parameters["ghost_mode"] = "shared_facet"
         ndim = 2
         nx = 10
         ny = 10
@@ -69,7 +70,7 @@ class TestPointwiseObservation(unittest.TestCase):
         n = dl.Constant((0.,1.))#dl.FacetNormal(Vh[STATE].mesh())
 
         def qoi_varf(u,m):
-            return dl.avg(dl.exp(m)*dl.dot( dl.grad(u), n) )*dss
+            return dl.avg(dl.exp(m)*dl.dot( dl.grad(u), n) )*dss(1)
 
         self.qoi = VariationalQoi(self.Vh,qoi_varf) 
 
@@ -77,14 +78,33 @@ class TestPointwiseObservation(unittest.TestCase):
     def testVariationalQOI(self):
 
         p2qoimap = Parameter2QoiMap(self.pde, self.qoi)
-        
-        out = parameter2QoiMapVerify(p2qoimap, self.prior.mean, eps=np.power(.5, np.arange(20,0,-1)),\
+        eps = np.power(.5, np.arange(20,0,-1))
+        out = parameter2QoiMapVerify(p2qoimap, self.prior.mean, eps=eps,\
                                                                  plotting = False, verbose = False )
+        err_g = out['err_grad']
+        err_H = out['err_H']
+        slope_g = []
+        slope_H = []
+        for i in range(1,len(eps)):
+            rise_g = np.log(err_g[i]) - np.log(err_g[i-1])
+            rise_H = np.log(err_H[i]) - np.log(err_H[i-1])
+            run = np.log(eps[i]) - np.log(eps[i-1])
+            slope_g.append(rise_g/run)
+            slope_H.append(rise_H/run)
 
-        assert np.all(out['err_grad'] < 1.)
-        assert np.all(out['err_H']< 1.)
+        len_slopes = len(slope_g)
+
+        slope_error_g = np.abs(slope_g - np.ones_like(slope_g)) < 1e-1
+        slope_error_H = np.abs(slope_H - np.ones_like(slope_H)) < 1e-1
+
+        within_tolerance_g = np.sum(slope_error_g)/len_slopes
+        within_tolerance_H = np.sum(slope_error_H)/len_slopes
+
+        assert within_tolerance_g > 0.75
+        assert within_tolerance_H > 0.75
         assert out['rel_sym_error'] < 1e-10
 
 
 if __name__ == '__main__':
+    dl.parameters["ghost_mode"] = "shared_facet"
     unittest.main()

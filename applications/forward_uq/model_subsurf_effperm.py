@@ -117,12 +117,12 @@ if __name__ == "__main__":
     n = dl.Constant((0.,1.))#dl.FacetNormal(Vh[STATE].mesh())
 
     def qoi_varf(u,m):
-        return dl.avg(dl.exp(m)*dl.dot( dl.grad(u), n) )*dss
+        return dl.avg(dl.exp(m)*dl.dot( dl.grad(u), n) )*dss(1)
 
     qoi = VariationalQoi(Vh,qoi_varf) 
     p2qoimap = Parameter2QoiMap(pde, qoi)
     
-    if 1:
+    if True:
         parameter2QoiMapVerify(p2qoimap, prior.mean, eps=np.power(.5, np.arange(20,0,-1)), plotting = True )
     
     k = 100    

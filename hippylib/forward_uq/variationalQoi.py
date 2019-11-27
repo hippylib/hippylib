@@ -16,10 +16,11 @@ from __future__ import absolute_import, division, print_function
 import dolfin as dl
 import numpy as np
 from ..modeling.variables import STATE, PARAMETER, ADJOINT
+from ..utils import experimental
 from ..utils.vector2function import vector2Function
 from .qoi import Qoi
 
-
+@experimental(name = 'VariationalQoi',version='3.0.0', msg='Still need to work on handling Dirichlet boundary conditions for x[STATE]')
 class VariationalQoi(Qoi):
     def __init__(self, Vh, qoi_varf):
         self.Vh = Vh
@@ -62,7 +63,11 @@ class VariationalQoi(Qoi):
                 
     def apply_ij(self,i,j, dir, out):
         """Apply the second variation \delta_ij (i,j = STATE,PARAMETER) of the cost in direction dir."""
-        self.L[i,j].mult(dir, out)
+        if (i,j) in self.L:
+            self.L[i,j].mult(dir, out)
+        else:
+            self.L[j,i].transpmult(dir,out)
+
 
     def setLinearizationPoint(self, x):
         u = vector2Function(x[STATE], self.Vh[STATE])
@@ -70,6 +75,6 @@ class VariationalQoi(Qoi):
         x = [u,m]
         for i in range(2):
             di_form = dl.derivative(self.qoi_varf(*x), x[i])
-            for j in range(2):
+            for j in range(i,2):
                 dij_form = dl.derivative(di_form,x[j] )
                 self.L[i,j] = dl.assemble(dij_form)

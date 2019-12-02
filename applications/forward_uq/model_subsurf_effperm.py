@@ -66,6 +66,8 @@ if __name__ == "__main__":
     ndim = 2
     nx = args.nx
     ny = args.ny
+    
+    dl.parameters["ghost_mode"] = "shared_facet"
     mesh = dl.UnitSquareMesh(nx, ny)
     
     rank = dl.MPI.rank(mesh.mpi_comm())

@@ -31,7 +31,7 @@ def u_boundary(x, on_boundary):
 def v_boundary(x, on_boundary):
     return on_boundary and ( x[0] < dl.DOLFIN_EPS or x[0] > 1.0 - dl.DOLFIN_EPS)
 
-class TestPointwiseObservation(unittest.TestCase):
+class TestVariationalQoi(unittest.TestCase):
     def setUp(self):
         dl.parameters["ghost_mode"] = "shared_facet"
         ndim = 2

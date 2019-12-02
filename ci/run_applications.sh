@@ -4,7 +4,7 @@ set -ev
 
 ls
 PYTHON=python3
-PYTHON_PREPROC="export MPLBACKEND=agg; export hIPPYlibDeprecationWarning=error; "
+PYTHON_PREPROC="export MPLBACKEND=agg; export hIPPYlibDeprecationWarning=error; cd /home/fenics/hippylib; $PYTHON -c 'import hippylib'; cd -;"
 
 IMAGE=hippylib/fenics:latest
 

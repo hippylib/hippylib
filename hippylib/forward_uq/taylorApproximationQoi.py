@@ -11,8 +11,6 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.1 dated February 1999.
 
-from __future__ import absolute_import, division, print_function
-
 import numpy as np
 from ..modeling.variables import STATE, PARAMETER, ADJOINT
 from ..algorithms.randomizedEigensolver import doublePassG

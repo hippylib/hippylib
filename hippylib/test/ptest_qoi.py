@@ -74,7 +74,7 @@ class TestPointwiseObservation(unittest.TestCase):
 
         p2qoimap = Parameter2QoiMap(self.pde, self.qoi)
         eps = np.power(.5, np.arange(20,0,-1))
-        m0 = dl.interpolate(dl.Constant(0.), self.Vh[STATE]).vector()
+        m0 = dl.interpolate(dl.Constant(0.), self.Vh[PARAMETER]).vector()
         out = parameter2QoiMapVerify(p2qoimap, m0, eps=eps,\
                                                     plotting = False, verbose = False )
         err_g = out['err_grad']

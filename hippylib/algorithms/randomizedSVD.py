@@ -56,7 +56,6 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
     nvec  = Omega.nvec()
     assert nvec >= k, 'Omega must have at least k columns' 
 
-
     Z = MultiVector(Omega)
 
     y_vec = dl.Vector(A.mpi_comm())

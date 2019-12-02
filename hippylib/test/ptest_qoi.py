@@ -56,12 +56,7 @@ class TestPointwiseObservation(unittest.TestCase):
             return dl.exp(m)*dl.inner(dl.nabla_grad(u), dl.nabla_grad(p))*dl.dx - f*p*dl.dx
 
         self.pde = PDEVariationalProblem(self.Vh, pde_varf, bc, bc0, is_fwd_linear=True)
-         
-        gamma = .1
-        delta = .5
-
-        self.prior = BiLaplacianPrior(self.Vh[PARAMETER], gamma, delta)
-        
+                 
         GC = GammaCenter()
         marker = dl.MeshFunction("size_t", self.mesh, self.mesh.topology().dim()-1)
         marker.set_all(0)
@@ -79,8 +74,9 @@ class TestPointwiseObservation(unittest.TestCase):
 
         p2qoimap = Parameter2QoiMap(self.pde, self.qoi)
         eps = np.power(.5, np.arange(20,0,-1))
-        out = parameter2QoiMapVerify(p2qoimap, self.prior.mean, eps=eps,\
-                                                                 plotting = False, verbose = False )
+        m0 = dl.interpolate(dl.Constant(0.), self.Vh[STATE]).vector()
+        out = parameter2QoiMapVerify(p2qoimap, m0, eps=eps,\
+                                                    plotting = False, verbose = False )
         err_g = out['err_grad']
         err_H = out['err_H']
         slope_g = []

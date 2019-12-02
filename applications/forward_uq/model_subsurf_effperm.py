@@ -11,9 +11,8 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
-from __future__ import absolute_import, division, print_function
-
 import math
+import argparse
 import dolfin as dl
 import sys
 import os
@@ -48,11 +47,25 @@ def true_model(Vh, gamma, delta, anis_diff):
     return mtrue
             
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Model Subsurface')
+    parser.add_argument('--nx',
+                        default=32,
+                        type=int,
+                        help="Number of elements in x-direction")
+    parser.add_argument('--ny',
+                        default=64,
+                        type=int,
+                        help="Number of elements in y-direction")
+    parser.add_argument('--nsamples',
+                        default=500,
+                        type=int,
+                        help="Number of MC samples")
+    args = parser.parse_args()
     dl.set_log_active(False)
     sep = "\n"+"#"*80+"\n"
     ndim = 2
-    nx = 32
-    ny = 64
+    nx = args.nx
+    ny = args.ny
     mesh = dl.UnitSquareMesh(nx, ny)
     
     rank = dl.MPI.rank(mesh.mpi_comm())
@@ -77,14 +90,9 @@ if __name__ == "__main__":
         return dl.exp(m)*dl.inner(dl.nabla_grad(u), dl.nabla_grad(p))*dl.dx - f*p*dl.dx
     
     pde = PDEVariationalProblem(Vh, pde_varf, bc, bc0, is_fwd_linear=True)
-    if dlversion() <= (1,6,0):
-        pde.solver = dl.PETScKrylovSolver("cg", amg_method())
-        pde.solver_fwd_inc = dl.PETScKrylovSolver("cg", amg_method())
-        pde.solver_adj_inc = dl.PETScKrylovSolver("cg", amg_method())
-    else:
-        pde.solver = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
-        pde.solver_fwd_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
-        pde.solver_adj_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+    pde.solver = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+    pde.solver_fwd_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+    pde.solver_adj_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
     pde.solver.parameters["relative_tolerance"] = 1e-15
     pde.solver.parameters["absolute_tolerance"] = 1e-20
     pde.solver_fwd_inc.parameters = pde.solver.parameters
@@ -143,7 +151,7 @@ if __name__ == "__main__":
         print( "E[Q_lin] = {0:7e}, E[Q_quad] = {1:7e}".format(e_lin, e_quad))
         print( "Var[Q_lin] = {0:7e}, Var[Q_quad] = {1:7e}".format(v_lin, v_quad) )
     
-    varianceReductionMC(prior, p2qoimap, q_taylor,  nsamples=100)
+    varianceReductionMC(prior, p2qoimap, q_taylor,  nsamples=args.nsamples)
     
     if rank == 0 and has_plt:
         plt.show()

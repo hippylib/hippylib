@@ -43,5 +43,8 @@ from .modeling import *
 # hIPPYlib algorithms
 from .algorithms import *
 
-#MCMC:
+# MCMC:
 from .mcmc import *
+
+# Forward uncertainty quantification
+from .forward_uq import *

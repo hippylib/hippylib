@@ -25,6 +25,7 @@ Development version
 - Use `argparse` to set parameters in application drivers from command line
 - Use `dl.XDMFFile` to export solutions for visualization in Paraview in all application drivers
 - Implement accuracy enhanced SVD algorithm in `randomizedSVD.py`
+- Add forward UQ capabilities, using Taylor approximations as control variates
 - Increase coverage of unit testing in CI
 
 

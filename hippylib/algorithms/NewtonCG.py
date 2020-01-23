@@ -383,7 +383,6 @@ class ReducedSpaceNewtonCG:
             if self.callback:
                 self.callback(self.it, x)
                 
-                            
             if(print_level >= 0) and (self.it == 1):
                 print( "\n{0:3} {1:3} {2:15} {3:15} {4:15} {5:15} {6:14} {7:14} {8:14} {9:11} {10:14}".format(
                       "It", "cg_it", "cost", "misfit", "reg", "(g,dm)", "||g||L2", "TR Radius", "rho_TR", "Accept Step","tolcg") )

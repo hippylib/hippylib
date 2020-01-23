@@ -127,7 +127,7 @@ class FDHessian:
     
     Type :code:`help(Template)` for more information on which methods model should implement.
     """
-    def __init__(self, model, m0, h,  misfit_only=False):
+    def __init__(self, model, m0, h, misfit_only=False):
         """
         Construct the reduced Hessian Operator
         """

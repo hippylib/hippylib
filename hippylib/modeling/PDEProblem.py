@@ -47,7 +47,7 @@ class PDEProblem(object):
         """
         raise NotImplementedError("Child class should implement method solveFwd")
 
-    def solveAdj(self, state, x, adj_rhs):
+    def solveAdj(self, adj, x, adj_rhs):
         """ Solve the linear adjoint problem: 
             Given :math:`m`, :math:`u`; find :math:`p` such that
             

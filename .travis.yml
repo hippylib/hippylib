@@ -3,7 +3,7 @@ sudo: required
 services:
     - docker
     
-envs:
+env:
     - IMAGE=hippylib/fenics:latest
     - IMAGE=quay.io/fenicsproject/stable:2019.1.0.r3
     - IMAGE=quay.io/fenicsproject/stable:master

@@ -117,9 +117,9 @@ if __name__ == "__main__":
     
     pde = PDEVariationalProblem(Vh, pde_varf, bc, bc0, is_fwd_linear=True)
 
-    pde.solver = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
-    pde.solver_fwd_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
-    pde.solver_adj_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+    pde.solver = PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+    pde.solver_fwd_inc = PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+    pde.solver_adj_inc = PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
     pde.solver.parameters["relative_tolerance"] = 1e-15
     pde.solver.parameters["absolute_tolerance"] = 1e-20
     pde.solver_fwd_inc.parameters = pde.solver.parameters

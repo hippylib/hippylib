@@ -17,6 +17,9 @@
 from .linalg import MatMatMult, MatPtAP, MatAtB, Transpose, \
                    to_dense, trace, get_diagonal, estimate_diagonal_inv2,  \
                    amg_method, DiagonalOperator, Solver2Operator, Operator2Solver
+                   
+from .linSolvers import PETScKrylovSolver, PETScLUSolver
+
 from .multivector import MultiVector, MatMvMult, MatMvTranspmult, MvDSmatMult
 
 # hIPPYlib algorithms

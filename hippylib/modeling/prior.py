@@ -19,6 +19,7 @@ import scipy.linalg as scila
 import math
 
 from ..algorithms.linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2, Solver2Operator, Operator2Solver
+from ..algorithms.linSolvers import PETScKrylovSolver
 from ..algorithms.traceEstimator import TraceEstimator
 from ..algorithms.multivector import MultiVector
 from ..algorithms.randomizedEigensolver import doublePass, doublePassG
@@ -185,7 +186,7 @@ class LaplacianPrior(_Prior):
         self.R = dl.assemble(gamma*varfL + delta*varfM)
         
 
-        self.Rsolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+        self.Rsolver = PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
         self.Rsolver.set_operator(self.R)
         self.Rsolver.parameters["maximum_iterations"] = max_iter
         self.Rsolver.parameters["relative_tolerance"] = rel_tol
@@ -193,7 +194,7 @@ class LaplacianPrior(_Prior):
         self.Rsolver.parameters["nonzero_initial_guess"] = False
         
 
-        self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
+        self.Msolver = PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
         self.Msolver.set_operator(self.M)
         self.Msolver.parameters["maximum_iterations"] = max_iter
         self.Msolver.parameters["relative_tolerance"] = rel_tol
@@ -344,7 +345,7 @@ class SqrtPrecisionPDE_Prior(_Prior):
         
         varfM = dl.inner(trial,test)*dl.dx       
         self.M = dl.assemble(varfM)
-        self.Msolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
+        self.Msolver = PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
         self.Msolver.set_operator(self.M)
         self.Msolver.parameters["maximum_iterations"] = max_iter
         self.Msolver.parameters["relative_tolerance"] = rel_tol
@@ -352,7 +353,7 @@ class SqrtPrecisionPDE_Prior(_Prior):
         self.Msolver.parameters["nonzero_initial_guess"] = False
         
         self.A = dl.assemble( sqrt_precision_varf_handler(trial, test) )        
-        self.Asolver = dl.PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+        self.Asolver = PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
         self.Asolver.set_operator(self.A)
         self.Asolver.parameters["maximum_iterations"] = max_iter
         self.Asolver.parameters["relative_tolerance"] = rel_tol

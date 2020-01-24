@@ -17,12 +17,10 @@ import unittest
 import dolfin as dl
 import numpy as np
 
-from numpy.testing import assert_allclose
-
 import sys
 sys.path.append('../../')
 from hippylib import (MultiVector, Random, assemblePointwiseObservation, amg_method,
-                      singlePass, singlePassG, doublePass, doublePassG, MatMvMult)
+                      singlePass, singlePassG, doublePass, doublePassG, MatMvMult, PETScKrylovSolver)
                       
 
 
@@ -84,7 +82,7 @@ class TestRandomizedEigensolver(unittest.TestCase):
         varfA = dl.inner(dl.grad(uh), dl.grad(vh))*dl.dx +\
                     alpha*dl.inner(uh,vh)*dl.dx
         A = dl.assemble(varfA)
-        Asolver = dl.PETScKrylovSolver(A.mpi_comm(), "cg", amg_method())
+        Asolver = PETScKrylovSolver(A.mpi_comm(), "cg", amg_method())
         Asolver.set_operator(A)
         Asolver.parameters["maximum_iterations"] = 100
         Asolver.parameters["relative_tolerance"] = 1e-12
@@ -98,7 +96,7 @@ class TestRandomizedEigensolver(unittest.TestCase):
         ## Set up RHS Matrix M.
         varfM = dl.inner(mh,test_mh)*dl.dx
         self.M = dl.assemble(varfM)
-        self.Minv = dl.PETScKrylovSolver(self.M.mpi_comm(), "cg", amg_method())
+        self.Minv = PETScKrylovSolver(self.M.mpi_comm(), "cg", amg_method())
         self.Minv.set_operator(self.M)
         self.Minv.parameters["maximum_iterations"] = 100
         self.Minv.parameters["relative_tolerance"] = 1e-12

@@ -16,6 +16,7 @@
 import dolfin as dl
 from .variables import STATE, PARAMETER, ADJOINT
 from ..algorithms.linalg import Transpose 
+from ..algorithms.linSolvers import PETScLUSolver
 from ..utils.vector2function import vector2Function
 
 class PDEProblem(object):
@@ -301,6 +302,6 @@ class PDEVariationalProblem(PDEProblem):
             [bc.apply(out) for bc in self.bc0]
                    
     def _createLUSolver(self):   
-        return dl.PETScLUSolver(self.Vh[STATE].mesh().mpi_comm() )
+        return PETScLUSolver(self.Vh[STATE].mesh().mpi_comm() )
 
         

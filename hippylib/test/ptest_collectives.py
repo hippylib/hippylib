@@ -84,7 +84,7 @@ class TestCollectives(unittest.TestCase):
         assert_allclose( [diff2.norm("l2")], [0.])
         
         x     = dl.interpolate(dl.Constant(1.), Vh).vector()
-        x_avg = self.collective.allReduce(x,'sum')
+        x_avg = self.collective.allReduce(x,'avg')
         
         diff1 = x_avg - x_ref
         assert_allclose( [diff1.norm("l2")], [0.])

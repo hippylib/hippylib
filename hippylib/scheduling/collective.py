@@ -73,16 +73,15 @@ class MultipleSerialPDEsCollective:
                 return receive[0]//self.size()
             else:
                 raise NotImplementedError(err_msg)
-        if type(v) is np.array:
+        if (type(v) is np.array) or (type(v) is np.ndarray):
             receive = np.zeros_like(v)
             self.comm.Allreduce([v, MPI.DOUBLE], [receive, MPI.DOUBLE], op = MPI.SUM)
             if op == "sum":
-                v[:] = receive
+                return receive
             elif op == "avg":
-                v[:] == (1./float(self.size()))*receive
+                return (1./float(self.size()))*receive
             else:
                 raise NotImplementedError(err_msg)                
-            return v
         elif hasattr(v, "mpi_comm") and hasattr(v, "get_local"):
             # v is most likely a dl.Vector
             assert v.mpi_comm().Get_size() == 1

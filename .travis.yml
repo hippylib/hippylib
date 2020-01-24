@@ -11,8 +11,6 @@ env:
     - IMAGE=quay.io/fenicsproject/stable:master
 
 
-before_install: ./ci/run_before_install.sh
-
 jobs:
     include:
         - stage: unittest

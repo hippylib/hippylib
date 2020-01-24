@@ -32,7 +32,7 @@ class TestCollectives(unittest.TestCase):
         if self.mpi_size > 1:
             self.collective = cl.MultipleSerialPDEsCollective(dl.MPI.comm_world)
         else:
-            self.collective = cl.NullCollective(dl.MPI.comm_world)
+            self.collective = cl.NullCollective()
         
 
     def testfloat(self):

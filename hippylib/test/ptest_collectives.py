@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California--Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -26,48 +26,72 @@ from hippylib import scheduling as cl
 
 class TestCollectives(unittest.TestCase):
     def setUp(self):
-        self.collective = cl.MultipleSerialPDEsCollective(dl.MPI.comm_world)
         self.mpi_rank = dl.MPI.rank(dl.MPI.comm_world)
         self.mpi_size = dl.MPI.size(dl.MPI.comm_world)
+
+        if self.mpi_size > 1:
+            self.collective = cl.MultipleSerialPDEsCollective(dl.MPI.comm_world)
+        else:
+            self.collective = cl.NullCollective(dl.MPI.comm_world)
         
 
     def testfloat(self):
         a = 1.
         a_sum = self.collective.allReduce(a,'sum')
         a_avg = self.collective.allReduce(a,'avg')
-        if self.mpi_rank == 0:
-            assert a_sum == float(self.mpi_size)
-            assert a_avg == 1.
+
+        assert_allclose( [a_sum], [float(self.mpi_size)])
+        assert_allclose( [a_avg], [1.] )
 
     def testint(self):
         a = 1
         a_sum = self.collective.allReduce(a,'sum')
         a_avg = self.collective.allReduce(a,'avg')
-        if self.mpi_rank == 0:
-            assert a_sum == self.mpi_size
-            assert a_avg == 1
+
+        assert_allclose( [a_sum], self.mpi_size)
+        assert_allclose( [a_avg], [1.] )
 
 
     def testndarray(self):
         a = np.ones(10)
         a_sum = self.collective.allReduce(a,'sum')
+        
+        assert_allclose(a_sum, self.mpi_size*np.ones(10) )
+        # `a` must be overwritten
+        assert_allclose(a   , self.mpi_size*np.ones(10) )
+        
         a = np.ones(10)
         a_avg = self.collective.allReduce(a,'avg')
-        if self.mpi_rank == 0:
-            assert (a_sum == float(self.mpi_size)*np.ones(10)).all()
-            assert (a_avg == np.ones(10)).all()
+        
+        assert_allclose(a_avg, np.ones(10) )
+        # `a` must be overwritten
+        assert_allclose(a   , np.ones(10) )
 
 
     def testdlVector(self):
         mesh = dl.UnitSquareMesh(dl.MPI.comm_self,10, 10)
         Vh = dl.FunctionSpace(mesh, 'Lagrange', 1)
-        x = dl.interpolate(dl.Constant(1.), Vh).vector()
-        x_sum = self.collective.allReduce(x,'sum')
-        x = dl.interpolate(dl.Constant(1.), Vh).vector()
-        diff = x_sum - self.mpi_size*x
-        if self.mpi_rank == 0:
-            assert np.linalg.norm(diff.get_local()) < 1e-10
 
+        x_ref = dl.interpolate(dl.Constant(1.), Vh).vector()
+        
+        x     = dl.interpolate(dl.Constant(1.), Vh).vector()
+        x_sum = self.collective.allReduce(x,'sum')
+        
+        diff1 = x_sum - float(self.mpi_size)*x_ref
+        assert_allclose( [diff1.norm("l2")], [0.])
+        # x must be overwritten
+        diff2 = x - float(self.mpi_size)*x_ref
+        assert_allclose( [diff2.norm("l2")], [0.])
+        
+        x     = dl.interpolate(dl.Constant(1.), Vh).vector()
+        x_avg = self.collective.allReduce(x,'sum')
+        
+        diff1 = x_avg - x_ref
+        assert_allclose( [diff1.norm("l2")], [0.])
+        # x must be overwritten
+        diff2 = x - x_ref
+        assert_allclose( [diff2.norm("l2")], [0.])
+        
 
 
 if __name__ == '__main__':

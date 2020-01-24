@@ -1,5 +1,7 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California, Merced.
+# Copyright (c) 2019-2020, The University of Texas at Austin 
+# University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
 # See file COPYRIGHT for details.
@@ -16,6 +18,9 @@ import numpy as np
 from mpi4py import MPI
 
 class NullCollective:
+    """
+    No-overhead "Parallel" reduction utilities when a serial system of PDEs is solved on 1 process.
+    """
     def __init__(self):
         pass
     
@@ -34,6 +39,9 @@ class NullCollective:
         return v
     
 class MultipleSerialPDEsCollective:
+    """
+    Parallel reduction utilities when several serial systems of PDEs (one per process) are solved concurrently.
+    """
     def __init__(self, comm):
         """
         :code:`comm` is :code:`mpi4py.MPI` comm
@@ -48,11 +56,15 @@ class MultipleSerialPDEsCollective:
     
     def allReduce(self, v, op):
         """
-        Case handled: :code:`v` is either a scalar or :code:`dolfin.Vector`.
-        Operation: :code:`op = "Sum"` or `"Avg"`
+        Case handled:
+        - :code:`v` is a scalar (:code:`float`, :code:`int`);
+        - :code:`v` is a numpy array (NOTE: :code:`v` will be overwritten)
+        - :code:`v` is a  :code:`dolfin.Vector` (NOTE: :code:`v` will be overwritten)
+        Operation: :code:`op = "Sum"` or `"Avg"` (case insentive).
         """
         op = op.lower()
         err_msg = "Unknown operation *{0}* in MultipleSerialPDEsCollective.allReduce".format(op)
+        
         if type(v) in [float, np.float64]:
             send = np.array([v], dtype=np.float64)
             receive = np.zeros_like(send)
@@ -63,6 +75,7 @@ class MultipleSerialPDEsCollective:
                 return receive[0]/float(self.size())
             else:
                 raise NotImplementedError(err_msg)
+                
         if type(v) in [int, np.int, np.int32]:
             send = np.array([v], dtype=np.int32)
             receive = np.zeros_like(send)
@@ -73,15 +86,19 @@ class MultipleSerialPDEsCollective:
                 return receive[0]//self.size()
             else:
                 raise NotImplementedError(err_msg)
+        
         if (type(v) is np.array) or (type(v) is np.ndarray):
             receive = np.zeros_like(v)
             self.comm.Allreduce([v, MPI.DOUBLE], [receive, MPI.DOUBLE], op = MPI.SUM)
             if op == "sum":
-                return receive
+                v[:] = receive
             elif op == "avg":
-                return (1./float(self.size()))*receive
+                v[:] == (1./float(self.size()))*receive
             else:
-                raise NotImplementedError(err_msg)                
+                raise NotImplementedError(err_msg)
+                
+            return v
+              
         elif hasattr(v, "mpi_comm") and hasattr(v, "get_local"):
             # v is most likely a dl.Vector
             assert v.mpi_comm().Get_size() == 1

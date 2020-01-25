@@ -27,6 +27,7 @@ Development version
 - Implement accuracy enhanced SVD algorithm in `randomizedSVD.py`
 - Add forward UQ capabilities, using Taylor approximations as control variates
 - Introduce hIPPYlib's wrappers to `petcs4py.PETSc.KSP`
+- Add reduction operations useful when solving different PDEs concurrently on each process
 - Increase coverage of unit testing in CI
 
 

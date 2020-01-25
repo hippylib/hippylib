@@ -10,14 +10,9 @@ env:
     - IMAGE=quay.io/fenicsproject/stable:2019.1.0.r3
     - IMAGE=quay.io/fenicsproject/stable:master
 
-
-jobs:
-    include:
-        - stage: unittest
-          script: ./ci/run_unittest.sh
-        - stage: applications
-          script: ./ci/run_applications.sh
-        - stage: notebooks
-          script: ./ci/run_notebooks.sh 
+script:
+    - ./ci/run_unittest.sh
+    - ./ci/run_applications.sh
+    - ./ci/run_notebooks.sh 
 
 

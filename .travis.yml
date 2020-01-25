@@ -23,4 +23,4 @@ jobs:
       env: IMAGE=hippylib/fenics:latest
     - stage: Notebooks II
       script: ./ci/run_notebooks.sh
-      env: IMAGE= quay.io/fenicsproject/stable:2019.1.0.r3
+      env: IMAGE=quay.io/fenicsproject/stable:2019.1.0.r3

@@ -36,3 +36,5 @@ def PETScLUSolver(comm, method='default'):
     
     if not hasattr(out, 'set_operator'):
         out.set_operator = _PETScLUSolver_set_operator
+        
+    return out

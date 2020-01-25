@@ -32,9 +32,8 @@ def _PETScLUSolver_set_operator(self, A):
     
 
 def PETScLUSolver(comm, method='default'):
-    out = dl.PETScLUSolver(comm, method)
-    
-    if not hasattr(out, 'set_operator'):
-        out.set_operator = _PETScLUSolver_set_operator
-        
-    return out
+    if not hasattr(dl.PETScLUSolver, 'set_operator'):
+        dl.PETScLUSolver.set_operator = _PETScLUSolver_set_operator
+
+    return dl.PETScLUSolver(comm, method)
+

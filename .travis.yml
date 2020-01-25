@@ -11,8 +11,10 @@ env:
 script: ./ci/run_unittest.sh
 
 jobs:
-    include:
+    exclude:
     - stage: Applications
       script: ./ci/run_applications.sh
+      env: IMAGE=none
     - stage: Notebook
       script: ./ci/run_notebooks.sh
+      env: IMAGE=none

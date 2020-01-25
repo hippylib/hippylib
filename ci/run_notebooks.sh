@@ -1,5 +1,4 @@
 PYTHON=python3
-IMAGE=hippylib/fenics:latest
 
 DOCKER="docker run --rm -v $(pwd):/home/fenics/hippylib -w"
 

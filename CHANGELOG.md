@@ -26,6 +26,7 @@ Development version
 - Use `dl.XDMFFile` to export solutions for visualization in Paraview in all application drivers
 - Implement accuracy enhanced SVD algorithm in `randomizedSVD.py`
 - Add forward UQ capabilities, using Taylor approximations as control variates
+- Add reduction operations useful when solving different PDEs concurrently on each process
 - Increase coverage of unit testing in CI
 
 

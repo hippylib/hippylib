@@ -142,8 +142,10 @@ class TimeDependentAD:
         self.L = self.M + dt*self.N + stab
         self.Lt = self.M + dt*self.Nt + stab
         
-        self.solver  = dl.PETScLUSolver( dl.as_backend_type(self.L) )
-        self.solvert = dl.PETScLUSolver( dl.as_backend_type(self.Lt) )
+        self.solver  = PETScLUSolver( self.mesh.mpi_comm() )
+        self.solver.set_operator( dl.as_backend_type(self.L) )
+        self.solvert = PETScLUSolver( self.mesh.mpi_comm() ) 
+        self.solvert.set_operator(dl.as_backend_type(self.Lt) )
                         
         # Part of model public API
         self.gauss_newton_approx = False

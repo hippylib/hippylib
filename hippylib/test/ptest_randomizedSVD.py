@@ -17,8 +17,6 @@ import unittest
 import dolfin as dl
 import numpy as np
 
-from numpy.testing import assert_allclose
-
 import sys
 sys.path.append('../../')
 from hippylib import *
@@ -83,7 +81,7 @@ class TestRandomizedSVD(unittest.TestCase):
         varfA = dl.inner(dl.nabla_grad(uh), dl.nabla_grad(vh))*dl.dx +\
                     alpha*dl.inner(uh,vh)*dl.dx
         A = dl.assemble(varfA)
-        Asolver = dl.PETScKrylovSolver(A.mpi_comm(), "cg", amg_method())
+        Asolver = PETScKrylovSolver(A.mpi_comm(), "cg", amg_method())
         Asolver.set_operator(A)
         Asolver.parameters["maximum_iterations"] = 100
         Asolver.parameters["relative_tolerance"] = 1e-12

@@ -2,4 +2,4 @@
 
 set -ev
 
-docker pull hippylib/fenics
+docker pull $IMAGE

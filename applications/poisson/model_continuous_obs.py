@@ -65,9 +65,9 @@ class Poisson:
         
         self.gauss_newton_approx=False
         
-        self.solver = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
-        self.solver_fwd_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
-        self.solver_adj_inc = dl.PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+        self.solver = PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+        self.solver_fwd_inc = PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
+        self.solver_adj_inc = PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
        
         self.solver.parameters["relative_tolerance"] = 1e-15
         self.solver.parameters["absolute_tolerance"] = 1e-20

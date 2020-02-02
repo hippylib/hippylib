@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California--Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -14,6 +14,7 @@
 # Software Foundation) version 2.0 dated June 1991.
 
 import dolfin as dl
+import ufl
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
@@ -114,16 +115,16 @@ class Poisson:
         trial = dl.TrialFunction(self.Vh[STATE])
         test = dl.TestFunction(self.Vh[STATE])
         m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
-        Avarf = dl.inner(dl.exp(m)*dl.grad(trial), dl.grad(test))*dl.dx
+        Avarf = ufl.inner(ufl.exp(m)*ufl.grad(trial), ufl.grad(test))*ufl.dx
         if not assemble_adjoint:
-            bform = dl.inner(self.f, test)*dl.dx
+            bform = ufl.inner(self.f, test)*ufl.dx
             Matrix, rhs = dl.assemble_system(Avarf, bform, self.bc)
         else:
             # Assemble the adjoint of A (i.e. the transpose of A)
             u = vector2Function(x[STATE], self.Vh[STATE])
             obs = vector2Function(self.u_o, self.Vh[STATE])
-            bform = dl.inner(obs - u, test)*dl.dx
-            Matrix, rhs = dl.assemble_system(dl.adjoint(Avarf), bform, self.bc0)
+            bform = ufl.inner(obs - u, test)*ufl.dx
+            Matrix, rhs = dl.assemble_system(ufl.adjoint(Avarf), bform, self.bc0)
             
         if assemble_rhs:
             return Matrix, rhs
@@ -138,7 +139,7 @@ class Poisson:
         test = dl.TestFunction(self.Vh[STATE])
         u = vector2Function(x[STATE], Vh[STATE])
         m = vector2Function(x[PARAMETER], Vh[PARAMETER])
-        Cvarf = dl.inner(dl.exp(m) * trial * dl.grad(u), dl.grad(test)) * dl.dx
+        Cvarf = ufl.inner(ufl.exp(m) * trial * ufl.grad(u), ufl.grad(test)) * ufl.dx
         C = dl.assemble(Cvarf)
 #        print ( "||m||", x[PARAMETER].norm("l2"), "||u||", x[STATE].norm("l2"), "||C||", C.norm("linf") )
         self.bc0.zero(C)
@@ -150,7 +151,7 @@ class Poisson:
         """
         trial = dl.TrialFunction(self.Vh[STATE])
         test = dl.TestFunction(self.Vh[STATE])
-        varf = dl.inner(trial, test)*dl.dx
+        varf = ufl.inner(trial, test)*ufl.dx
         Wuu = dl.assemble(varf)
         Wuu_t = Transpose(Wuu)
         self.bc0.zero(Wuu_t)
@@ -166,7 +167,7 @@ class Poisson:
         test  = dl.TestFunction(self.Vh[PARAMETER])
         p = vector2Function(x[ADJOINT], self.Vh[ADJOINT])
         m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
-        varf = dl.inner(dl.exp(m)*dl.grad(trial),dl.grad(p))*test*dl.dx
+        varf = ufl.inner(ufl.exp(m)*ufl.grad(trial),ufl.grad(p))*test*ufl.dx
         Wmu = dl.assemble(varf)
         Wmu_t = Transpose(Wmu)
         self.bc0.zero(Wmu_t)
@@ -182,7 +183,7 @@ class Poisson:
         u = vector2Function(x[STATE], self.Vh[STATE])
         m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
         p = vector2Function(x[ADJOINT], self.Vh[ADJOINT])
-        varf = dl.inner(dl.grad(p),dl.exp(m)*dl.grad(u))*trial*test*dl.dx
+        varf = ufl.inner(ufl.grad(p),ufl.exp(m)*ufl.grad(u))*trial*test*ufl.dx
         return dl.assemble(varf)
 
         

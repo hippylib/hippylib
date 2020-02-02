@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California, Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -14,8 +14,8 @@
 # Software Foundation) version 2.1 dated February 1999.
 
 import dolfin as dl
-import numpy as np
-from ..modeling.variables import STATE, PARAMETER, ADJOINT
+import ufl
+from ..modeling.variables import STATE, PARAMETER
 from ..utils import experimental
 from ..utils.vector2function import vector2Function
 from .qoi import Qoi
@@ -51,7 +51,7 @@ class VariationalQoi(Qoi):
         u = vector2Function(x[STATE], self.Vh[STATE])
         m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
         g.zero()
-        dl.assemble(dl.derivative(self.qoi_varf(u,m), u), tensor=g)
+        dl.assemble(ufl.derivative(self.qoi_varf(u,m), u), tensor=g)
         
     def grad_param(self,x,g):
         """Evaluate the gradient with respect to the state.
@@ -59,7 +59,7 @@ class VariationalQoi(Qoi):
         u = vector2Function(x[STATE], self.Vh[STATE])
         m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
         g.zero()
-        dl.assemble(dl.derivative(self.qoi_varf(u,m), m), tensor=g)
+        dl.assemble(ufl.derivative(self.qoi_varf(u,m), m), tensor=g)
                 
     def apply_ij(self,i,j, dir, out):
         """Apply the second variation \delta_ij (i,j = STATE,PARAMETER) of the cost in direction dir."""
@@ -74,7 +74,7 @@ class VariationalQoi(Qoi):
         m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
         x = [u,m]
         for i in range(2):
-            di_form = dl.derivative(self.qoi_varf(*x), x[i])
+            di_form = ufl.derivative(self.qoi_varf(*x), x[i])
             for j in range(i,2):
-                dij_form = dl.derivative(di_form,x[j] )
+                dij_form = ufl.derivative(di_form,x[j] )
                 self.L[i,j] = dl.assemble(dij_form)

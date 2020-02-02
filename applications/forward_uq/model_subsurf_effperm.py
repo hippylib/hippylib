@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California, Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -16,6 +16,7 @@
 import math
 import argparse
 import dolfin as dl
+import ufl
 import sys
 import os
 sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
@@ -91,7 +92,7 @@ if __name__ == "__main__":
     bc0 = dl.DirichletBC(Vh[STATE], u_bdr0, u_boundary)
     
     def pde_varf(u,m,p):
-        return dl.exp(m)*dl.inner(dl.nabla_grad(u), dl.nabla_grad(p))*dl.dx - f*p*dl.dx
+        return ufl.exp(m)*ufl.inner(ufl.grad(u), ufl.grad(p))*ufl.dx - f*p*ufl.dx
     
     pde = PDEVariationalProblem(Vh, pde_varf, bc, bc0, is_fwd_linear=True)
     pde.solver = PETScKrylovSolver(mesh.mpi_comm(), "cg", amg_method())
@@ -129,7 +130,7 @@ if __name__ == "__main__":
     n = dl.Constant((0.,1.))#dl.FacetNormal(Vh[STATE].mesh())
 
     def qoi_varf(u,m):
-        return dl.avg(dl.exp(m)*dl.dot( dl.grad(u), n) )*dss(1)
+        return ufl.avg(ufl.exp(m)*ufl.dot( ufl.grad(u), n) )*dss(1)
 
     qoi = VariationalQoi(Vh,qoi_varf) 
     p2qoimap = Parameter2QoiMap(pde, qoi)

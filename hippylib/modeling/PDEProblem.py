@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California--Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -14,6 +14,7 @@
 # Software Foundation) version 2.0 dated June 1991.
 
 import dolfin as dl
+import ufl
 from .variables import STATE, PARAMETER, ADJOINT
 from ..algorithms.linalg import Transpose 
 from ..algorithms.linSolvers import PETScLUSolver
@@ -154,8 +155,8 @@ class PDEVariationalProblem(PDEProblem):
             m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
             p = dl.TestFunction(self.Vh[ADJOINT])
             res_form = self.varf_handler(u, m, p)
-            A_form = dl.lhs(res_form)
-            b_form = dl.rhs(res_form)
+            A_form = ufl.lhs(res_form)
+            b_form = ufl.rhs(res_form)
             A, b = dl.assemble_system(A_form, b_form, bcs=self.bc)
             self.solver.set_operator(A)
             self.solver.solve(state, b)
@@ -183,8 +184,8 @@ class PDEVariationalProblem(PDEProblem):
         du = dl.TestFunction(self.Vh[STATE])
         dp = dl.TrialFunction(self.Vh[ADJOINT])
         varf = self.varf_handler(u, m, p)
-        adj_form = dl.derivative( dl.derivative(varf, u, du), p, dp )
-        Aadj, dummy = dl.assemble_system(adj_form, dl.inner(u,du)*dl.dx, self.bc0)
+        adj_form = ufl.derivative( ufl.derivative(varf, u, du), p, dp )
+        Aadj, dummy = dl.assemble_system(adj_form, ufl.inner(u,du)*ufl.dx, self.bc0)
         self.solver.set_operator(Aadj)
         self.solver.solve(adj, adj_rhs)
      
@@ -196,7 +197,7 @@ class PDEVariationalProblem(PDEProblem):
         dm = dl.TestFunction(self.Vh[PARAMETER])
         res_form = self.varf_handler(u, m, p)
         out.zero()
-        dl.assemble( dl.derivative(res_form, m, dm), tensor=out)
+        dl.assemble( ufl.derivative(res_form, m, dm), tensor=out)
          
     def setLinearizationPoint(self,x, gauss_newton_approx):
         """ Set the values of the state and parameter
@@ -208,11 +209,11 @@ class PDEVariationalProblem(PDEProblem):
         
         g_form = [None,None,None]
         for i in range(3):
-            g_form[i] = dl.derivative(f_form, x_fun[i])
+            g_form[i] = ufl.derivative(f_form, x_fun[i])
             
-        self.A, dummy = dl.assemble_system(dl.derivative(g_form[ADJOINT],x_fun[STATE]), g_form[ADJOINT], self.bc0)
-        self.At, dummy = dl.assemble_system(dl.derivative(g_form[STATE],x_fun[ADJOINT]),  g_form[STATE], self.bc0)
-        self.C = dl.assemble(dl.derivative(g_form[ADJOINT],x_fun[PARAMETER]))
+        self.A, dummy = dl.assemble_system(ufl.derivative(g_form[ADJOINT],x_fun[STATE]), g_form[ADJOINT], self.bc0)
+        self.At, dummy = dl.assemble_system(ufl.derivative(g_form[STATE],x_fun[ADJOINT]),  g_form[STATE], self.bc0)
+        self.C = dl.assemble(ufl.derivative(g_form[ADJOINT],x_fun[PARAMETER]))
         [bc.zero(self.C) for bc in self.bc0]
                 
         if self.solver_fwd_inc is None:
@@ -227,16 +228,16 @@ class PDEVariationalProblem(PDEProblem):
             self.Wmu = None
             self.Wmm = None
         else:
-            self.Wuu = dl.assemble(dl.derivative(g_form[STATE],x_fun[STATE]))
+            self.Wuu = dl.assemble(ufl.derivative(g_form[STATE],x_fun[STATE]))
             [bc.zero(self.Wuu) for bc in self.bc0]
             Wuu_t = Transpose(self.Wuu)
             [bc.zero(Wuu_t) for bc in self.bc0]
             self.Wuu = Transpose(Wuu_t)
-            self.Wmu = dl.assemble(dl.derivative(g_form[PARAMETER],x_fun[STATE]))
+            self.Wmu = dl.assemble(ufl.derivative(g_form[PARAMETER],x_fun[STATE]))
             Wmu_t = Transpose(self.Wmu)
             [bc.zero(Wmu_t) for bc in self.bc0]
             self.Wmu = Transpose(Wmu_t)
-            self.Wmm = dl.assemble(dl.derivative(g_form[PARAMETER],x_fun[PARAMETER]))
+            self.Wmm = dl.assemble(ufl.derivative(g_form[PARAMETER],x_fun[PARAMETER]))
         
     def solveIncremental(self, out, rhs, is_adj):
         """ If :code:`is_adj == False`:
@@ -289,9 +290,9 @@ class PDEVariationalProblem(PDEProblem):
         kdir_fun = vector2Function(kdir, self.Vh[k])
         
         res_form = self.varf_handler(*x_fun)
-        form = dl.derivative(
-               dl.derivative(
-               dl.derivative(res_form, x_fun[i], idir_fun),
+        form = ufl.derivative(
+               ufl.derivative(
+               ufl.derivative(res_form, x_fun[i], idir_fun),
                x_fun[j], jdir_fun),
                x_fun[k], kdir_fun)
         

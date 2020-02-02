@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California--Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -15,9 +15,9 @@
 
 import unittest 
 import dolfin as dl
+import ufl
 import numpy as np
 
-from numpy.testing import assert_allclose
 
 import sys
 sys.path.append('../../')
@@ -32,7 +32,7 @@ class TestMultiVector(unittest.TestCase):
         Vh = dl.FunctionSpace(mesh, 'Lagrange', 1)
         uh,vh = dl.TrialFunction(Vh),dl.TestFunction(Vh)
         
-        varfM = dl.inner(uh,vh)*dl.dx
+        varfM = ufl.inner(uh,vh)*ufl.dx
         self.M = dl.assemble(varfM)
         x = dl.Vector( mesh.mpi_comm() )
         self.M.init_vector(x,0)

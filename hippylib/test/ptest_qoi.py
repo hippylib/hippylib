@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California--Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -15,6 +15,7 @@
 
 import unittest 
 import dolfin as dl
+import ufl
 import numpy as np
 
 import sys
@@ -53,7 +54,7 @@ class TestVariationalQoi(unittest.TestCase):
         bc0 = dl.DirichletBC(self.Vh[STATE], u_bdr0, u_boundary)
         
         def pde_varf(u,m,p):
-            return dl.exp(m)*dl.inner(dl.nabla_grad(u), dl.nabla_grad(p))*dl.dx - f*p*dl.dx
+            return ufl.exp(m)*ufl.inner(ufl.grad(u), ufl.grad(p))*ufl.dx - f*p*ufl.dx
 
         self.pde = PDEVariationalProblem(self.Vh, pde_varf, bc, bc0, is_fwd_linear=True)
                  
@@ -65,7 +66,7 @@ class TestVariationalQoi(unittest.TestCase):
         n = dl.Constant((0.,1.))#dl.FacetNormal(Vh[STATE].mesh())
 
         def qoi_varf(u,m):
-            return dl.avg(dl.exp(m)*dl.dot( dl.grad(u), n) )*dss(1)
+            return ufl.avg(ufl.exp(m)*ufl.dot( ufl.grad(u), n) )*dss(1)
 
         self.qoi = VariationalQoi(self.Vh,qoi_varf) 
 

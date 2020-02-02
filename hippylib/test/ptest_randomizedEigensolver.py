@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California--Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -15,6 +15,7 @@
 
 import unittest 
 import dolfin as dl
+import ufl
 import numpy as np
 
 import sys
@@ -79,8 +80,8 @@ class TestRandomizedEigensolver(unittest.TestCase):
 
         ## Set up Asolver
         alpha = dl.Constant(1.0)
-        varfA = dl.inner(dl.grad(uh), dl.grad(vh))*dl.dx +\
-                    alpha*dl.inner(uh,vh)*dl.dx
+        varfA = ufl.inner(ufl.grad(uh), ufl.grad(vh))*ufl.dx +\
+                    alpha*ufl.inner(uh,vh)*ufl.dx
         A = dl.assemble(varfA)
         Asolver = PETScKrylovSolver(A.mpi_comm(), "cg", amg_method())
         Asolver.set_operator(A)
@@ -88,13 +89,13 @@ class TestRandomizedEigensolver(unittest.TestCase):
         Asolver.parameters["relative_tolerance"] = 1e-12
 
         ## Set up C
-        varfC = dl.inner(mh,vh)*dl.dx
+        varfC = ufl.inner(mh,vh)*ufl.dx
         C = dl.assemble(varfC)
 
         self.Hop = Hop(B, Asolver, C)
 
         ## Set up RHS Matrix M.
-        varfM = dl.inner(mh,test_mh)*dl.dx
+        varfM = ufl.inner(mh,test_mh)*ufl.dx
         self.M = dl.assemble(varfM)
         self.Minv = PETScKrylovSolver(self.M.mpi_comm(), "cg", amg_method())
         self.Minv.set_operator(self.M)

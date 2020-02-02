@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California--Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -14,6 +14,7 @@
 # Software Foundation) version 2.0 dated June 1991.
 
 import dolfin as dl
+import ufl
 from .pointwiseObservation import assemblePointwiseObservation
 from .variables import STATE, PARAMETER
 from ..algorithms.linalg import Transpose
@@ -132,7 +133,7 @@ class ContinuousStateObservation(Misfit):
             :code:`Vh`: the finite element space for the state variable.
             
             :code:`dX`: the integrator on subdomain `X` where observation are presents. \
-            E.g. :code:`dX = dl.dx` means observation on all :math:`\Omega` and :code:`dX = dl.ds` means observations on all :math:`\partial \Omega`.
+            E.g. :code:`dX = ufl.dx` means observation on all :math:`\Omega` and :code:`dX = ufl.ds` means observations on all :math:`\partial \Omega`.
             
             :code:`bcs`: If the forward problem imposes Dirichlet boundary conditions :math:`u = u_D \mbox{ on } \Gamma_D`;  \
             :code:`bcs` is a list of :code:`dolfin.DirichletBC` object that prescribes homogeneuos Dirichlet conditions :math:`u = 0 \mbox{ on } \Gamma_D`.
@@ -142,7 +143,7 @@ class ContinuousStateObservation(Misfit):
         """
         if form is None:
             u, v = dl.TrialFunction(Vh), dl.TestFunction(Vh)
-            self.W = dl.assemble(dl.inner(u,v)*dX)
+            self.W = dl.assemble(ufl.inner(u,v)*dX)
         else:
             self.W = dl.assemble( form )
            

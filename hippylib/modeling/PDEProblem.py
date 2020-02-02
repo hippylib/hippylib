@@ -184,7 +184,7 @@ class PDEVariationalProblem(PDEProblem):
         du = dl.TestFunction(self.Vh[STATE])
         dp = dl.TrialFunction(self.Vh[ADJOINT])
         varf = self.varf_handler(u, m, p)
-        adj_form = ufl.derivative( ufl.derivative(varf, u, du), p, dp )
+        adj_form = dl.derivative( dl.derivative(varf, u, du), p, dp )
         Aadj, dummy = dl.assemble_system(adj_form, ufl.inner(u,du)*ufl.dx, self.bc0)
         self.solver.set_operator(Aadj)
         self.solver.solve(adj, adj_rhs)
@@ -197,7 +197,7 @@ class PDEVariationalProblem(PDEProblem):
         dm = dl.TestFunction(self.Vh[PARAMETER])
         res_form = self.varf_handler(u, m, p)
         out.zero()
-        dl.assemble( ufl.derivative(res_form, m, dm), tensor=out)
+        dl.assemble( dl.derivative(res_form, m, dm), tensor=out)
          
     def setLinearizationPoint(self,x, gauss_newton_approx):
         """ Set the values of the state and parameter
@@ -209,11 +209,11 @@ class PDEVariationalProblem(PDEProblem):
         
         g_form = [None,None,None]
         for i in range(3):
-            g_form[i] = ufl.derivative(f_form, x_fun[i])
+            g_form[i] = dl.derivative(f_form, x_fun[i])
             
-        self.A, dummy = dl.assemble_system(ufl.derivative(g_form[ADJOINT],x_fun[STATE]), g_form[ADJOINT], self.bc0)
-        self.At, dummy = dl.assemble_system(ufl.derivative(g_form[STATE],x_fun[ADJOINT]),  g_form[STATE], self.bc0)
-        self.C = dl.assemble(ufl.derivative(g_form[ADJOINT],x_fun[PARAMETER]))
+        self.A, dummy = dl.assemble_system(dl.derivative(g_form[ADJOINT],x_fun[STATE]), g_form[ADJOINT], self.bc0)
+        self.At, dummy = dl.assemble_system(dl.derivative(g_form[STATE],x_fun[ADJOINT]),  g_form[STATE], self.bc0)
+        self.C = dl.assemble(dl.derivative(g_form[ADJOINT],x_fun[PARAMETER]))
         [bc.zero(self.C) for bc in self.bc0]
                 
         if self.solver_fwd_inc is None:
@@ -228,16 +228,16 @@ class PDEVariationalProblem(PDEProblem):
             self.Wmu = None
             self.Wmm = None
         else:
-            self.Wuu = dl.assemble(ufl.derivative(g_form[STATE],x_fun[STATE]))
+            self.Wuu = dl.assemble(dl.derivative(g_form[STATE],x_fun[STATE]))
             [bc.zero(self.Wuu) for bc in self.bc0]
             Wuu_t = Transpose(self.Wuu)
             [bc.zero(Wuu_t) for bc in self.bc0]
             self.Wuu = Transpose(Wuu_t)
-            self.Wmu = dl.assemble(ufl.derivative(g_form[PARAMETER],x_fun[STATE]))
+            self.Wmu = dl.assemble(dl.derivative(g_form[PARAMETER],x_fun[STATE]))
             Wmu_t = Transpose(self.Wmu)
             [bc.zero(Wmu_t) for bc in self.bc0]
             self.Wmu = Transpose(Wmu_t)
-            self.Wmm = dl.assemble(ufl.derivative(g_form[PARAMETER],x_fun[PARAMETER]))
+            self.Wmm = dl.assemble(dl.derivative(g_form[PARAMETER],x_fun[PARAMETER]))
         
     def solveIncremental(self, out, rhs, is_adj):
         """ If :code:`is_adj == False`:
@@ -290,9 +290,9 @@ class PDEVariationalProblem(PDEProblem):
         kdir_fun = vector2Function(kdir, self.Vh[k])
         
         res_form = self.varf_handler(*x_fun)
-        form = ufl.derivative(
-               ufl.derivative(
-               ufl.derivative(res_form, x_fun[i], idir_fun),
+        form = dl.derivative(
+               dl.derivative(
+               dl.derivative(res_form, x_fun[i], idir_fun),
                x_fun[j], jdir_fun),
                x_fun[k], kdir_fun)
         

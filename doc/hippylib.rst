@@ -8,7 +8,9 @@ Subpackages
 
     hippylib.modeling
     hippylib.algorithms
+    hippylib.forward_uq
     hippylib.mcmc
+    hippylib.scheduling
     hippylib.utils
 
 Module contents

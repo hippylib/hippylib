@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California--Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -14,6 +14,7 @@
 # Software Foundation) version 2.0 dated June 1991.
 
 import dolfin as dl
+import ufl
 import numpy as np
 import scipy.linalg as scila
 import math
@@ -179,8 +180,8 @@ class LaplacianPrior(_Prior):
         trial = dl.TrialFunction(Vh)
         test  = dl.TestFunction(Vh)
         
-        varfL = dl.inner(dl.nabla_grad(trial), dl.nabla_grad(test))*dl.dx
-        varfM = dl.inner(trial,test)*dl.dx
+        varfL = ufl.inner(ufl.grad(trial), ufl.grad(test))*ufl.dx
+        varfM = ufl.inner(trial,test)*ufl.dx
         
         self.M = dl.assemble(varfM)
         self.R = dl.assemble(gamma*varfL + delta*varfM)
@@ -211,16 +212,16 @@ class LaplacianPrior(_Prior):
         representation_old = dl.parameters["form_compiler"]["representation"]
         dl.parameters["form_compiler"]["representation"] = "quadrature"
             
-        element = dl.VectorElement("Quadrature", Vh.mesh().ufl_cell(),
+        element = ufl.VectorElement("Quadrature", Vh.mesh().ufl_cell(),
                                     qdegree, dim=(ndim+1), quad_scheme="default")
         Qh = dl.FunctionSpace(Vh.mesh(), element)
             
         ph = dl.TrialFunction(Qh)
         qh = dl.TestFunction(Qh)
         
-        pph = dl.split(ph)
+        pph = ufl.split(ph)
         
-        Mqh = dl.assemble(dl.inner(ph, qh)*dl.dx(metadata = metadata))
+        Mqh = dl.assemble(ufl.inner(ph, qh)*ufl.dx(metadata = metadata))
         ones = dl.Vector(self.R.mpi_comm())
         Mqh.init_vector(ones,0)
         ones.set_local( np.ones(ones.get_local().shape, dtype =ones.get_local().dtype ) )
@@ -231,9 +232,9 @@ class LaplacianPrior(_Prior):
         
         sqrtdelta = math.sqrt(delta)
         sqrtgamma = math.sqrt(gamma)
-        varfGG = sqrtdelta*pph[0]*test*dl.dx(metadata = metadata)
+        varfGG = sqrtdelta*pph[0]*test*ufl.dx(metadata = metadata)
         for i in range(ndim):
-            varfGG = varfGG + sqrtgamma*pph[i+1]*test.dx(i)*dl.dx(metadata = metadata)
+            varfGG = varfGG + sqrtgamma*pph[i+1]*test.dx(i)*ufl.dx(metadata = metadata)
             
         GG = dl.assemble(varfGG)
         self.sqrtR = MatMatMult(GG, Mqh)
@@ -343,7 +344,7 @@ class SqrtPrecisionPDE_Prior(_Prior):
         trial = dl.TrialFunction(Vh)
         test  = dl.TestFunction(Vh)
         
-        varfM = dl.inner(trial,test)*dl.dx       
+        varfM = ufl.inner(trial,test)*ufl.dx       
         self.M = dl.assemble(varfM)
         self.Msolver = PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
         self.Msolver.set_operator(self.M)
@@ -371,15 +372,15 @@ class SqrtPrecisionPDE_Prior(_Prior):
             
         num_sub_spaces = Vh.num_sub_spaces()
         if num_sub_spaces <= 1: #SCALAR PARAMETER
-            element = dl.FiniteElement("Quadrature", Vh.mesh().ufl_cell(), qdegree, quad_scheme="default")
+            element = ufl.FiniteElement("Quadrature", Vh.mesh().ufl_cell(), qdegree, quad_scheme="default")
         else: #Vector FIELD PARAMETER
-            element = dl.VectorElement("Quadrature", Vh.mesh().ufl_cell(),
+            element = ufl.VectorElement("Quadrature", Vh.mesh().ufl_cell(),
                                        qdegree, dim=num_sub_spaces, quad_scheme="default")
         Qh = dl.FunctionSpace(Vh.mesh(), element)
             
         ph = dl.TrialFunction(Qh)
         qh = dl.TestFunction(Qh)
-        Mqh = dl.assemble(dl.inner(ph,qh)*dl.dx(metadata=metadata))
+        Mqh = dl.assemble(ufl.inner(ph,qh)*ufl.dx(metadata=metadata))
         if num_sub_spaces <= 1:
             one_constant = dl.Constant(1.)
         else:
@@ -389,7 +390,7 @@ class SqrtPrecisionPDE_Prior(_Prior):
         Mqh.zero()
         dMqh.set_local( ones.get_local() / np.sqrt(dMqh.get_local() ) )
         Mqh.set_diagonal(dMqh)
-        MixedM = dl.assemble(dl.inner(ph,test)*dl.dx(metadata=metadata))
+        MixedM = dl.assemble(ufl.inner(ph,test)*ufl.dx(metadata=metadata))
         self.sqrtM = MatMatMult(MixedM, Mqh)
 
         dl.parameters["form_compiler"]["quadrature_degree"] = old_qr
@@ -453,13 +454,13 @@ def BiLaplacianPrior(Vh, gamma, delta, Theta = None, mean=None, rel_tol=1e-12, m
     
     def sqrt_precision_varf_handler(trial, test): 
         if Theta == None:
-            varfL = dl.inner(dl.grad(trial), dl.grad(test))*dl.dx
+            varfL = ufl.inner(ufl.grad(trial), ufl.grad(test))*ufl.dx
         else:
-            varfL = dl.inner( Theta*dl.grad(trial), dl.grad(test))*dl.dx
+            varfL = ufl.inner( Theta*ufl.grad(trial), ufl.grad(test))*ufl.dx
         
-        varfM = dl.inner(trial,test)*dl.dx
+        varfM = ufl.inner(trial,test)*ufl.dx
         
-        varf_robin = dl.inner(trial,test)*dl.ds
+        varf_robin = ufl.inner(trial,test)*ufl.ds
         
         if robin_bc:
             robin_coeff = gamma*np.sqrt(delta/gamma)/1.42
@@ -510,11 +511,11 @@ def MollifiedBiLaplacianPrior(Vh, gamma, delta, locations, m_true, Theta = None,
        
     def sqrt_precision_varf_handler(trial, test): 
         if Theta == None:
-            varfL = dl.inner(dl.nabla_grad(trial), dl.nabla_grad(test))*dl.dx
+            varfL = ufl.inner(ufl.grad(trial), ufl.grad(test))*ufl.dx
         else:
-            varfL = dl.inner(Theta*dl.grad(trial), dl.grad(test))*dl.dx
-        varfM = dl.inner(trial,test)*dl.dx
-        varfmo = mfun*dl.inner(trial,test)*dl.dx
+            varfL = ufl.inner(Theta*ufl.grad(trial), ufl.grad(test))*ufl.dx
+        varfM = ufl.inner(trial,test)*ufl.dx
+        varfmo = mfun*ufl.inner(trial,test)*ufl.dx
         return dl.Constant(gamma)*varfL+dl.Constant(delta)*varfM + dl.Constant(pen)*varfmo
     
     prior = SqrtPrecisionPDE_Prior(Vh, sqrt_precision_varf_handler, None, rel_tol, max_iter)
@@ -524,7 +525,7 @@ def MollifiedBiLaplacianPrior(Vh, gamma, delta, locations, m_true, Theta = None,
     
     test  = dl.TestFunction(Vh)
     m_true_fun = vector2Function(m_true, Vh)
-    rhs = dl.assemble(dl.Constant(pen)*mfun*dl.inner(m_true_fun,test)*dl.dx) 
+    rhs = dl.assemble(dl.Constant(pen)*mfun*ufl.inner(m_true_fun,test)*ufl.dx) 
     prior.Asolver.solve(prior.mean, rhs)
     
     return prior
@@ -577,11 +578,11 @@ class GaussianRealPrior(_Prior):
         trial = dl.TrialFunction(Vh)
         test  = dl.TestFunction(Vh)
         
-        domain_measure_inv = dl.Constant(1.0 \
-                                / dl.assemble(dl.Constant(1.) * dl.dx(Vh.mesh())))
+        domain_measure = dl.assemble(dl.Constant(1.) * ufl.dx(Vh.mesh()))
+        domain_measure_inv = dl.Constant(1.0/domain_measure)
 
         #Identity mass matrix
-        self.M = dl.assemble(domain_measure_inv * dl.inner(trial, test) * dl.dx)
+        self.M = dl.assemble(domain_measure_inv * ufl.inner(trial, test) * ufl.dx)
         self.Msolver = Operator2Solver(self.M)
 
         if mean:
@@ -593,32 +594,32 @@ class GaussianRealPrior(_Prior):
             self.mean = tmp
 
         if Vh.dim() == 1:
-            trial = dl.as_matrix([[trial]])
-            test  = dl.as_matrix([[test]])
+            trial = ufl.as_matrix([[trial]])
+            test  = ufl.as_matrix([[test]])
 
         #Create form matrices 
-        covariance_op = dl.as_matrix(list(map(list, self.covariance)))
-        precision_op  = dl.as_matrix(list(map(list, self.precision)))
-        chol_op       = dl.as_matrix(list(map(list, self.chol)))
-        chol_inv_op   = dl.as_matrix(list(map(list, self.chol_inv)))
+        covariance_op = ufl.as_matrix(list(map(list, self.covariance)))
+        precision_op  = ufl.as_matrix(list(map(list, self.precision)))
+        chol_op       = ufl.as_matrix(list(map(list, self.chol)))
+        chol_inv_op   = ufl.as_matrix(list(map(list, self.chol_inv)))
 
         #variational for the regularization operator, or the precision matrix
         var_form_R = domain_measure_inv \
-                     * dl.inner(test, dl.dot(precision_op, trial)) * dl.dx
+                     * ufl.inner(test, ufl.dot(precision_op, trial)) * ufl.dx
 
         #variational for the inverse regularization operator, or the covariance
         #matrix
         var_form_Rinv = domain_measure_inv \
-                        * dl.inner(test, dl.dot(covariance_op, trial)) * dl.dx
+                        * ufl.inner(test, ufl.dot(covariance_op, trial)) * ufl.dx
 
         #variational form for the square root of the regularization operator
         var_form_R_sqrt = domain_measure_inv \
-                          * dl.inner(test, dl.dot(chol_inv_op.T, trial)) * dl.dx
+                          * ufl.inner(test, ufl.dot(chol_inv_op.T, trial)) * ufl.dx
 
         #variational form for the square root of the inverse regularization 
         #operator
         var_form_Rinv_sqrt = domain_measure_inv \
-                             * dl.inner(test, dl.dot(chol_op, trial)) * dl.dx
+                             * ufl.inner(test, ufl.dot(chol_op, trial)) * ufl.dx
 
         self.R         = dl.assemble(var_form_R)
         self.RSolverOp = dl.assemble(var_form_Rinv)

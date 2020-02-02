@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California--Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -15,6 +15,7 @@
 
 import unittest 
 import dolfin as dl
+import ufl
 import numpy as np
 
 import sys
@@ -78,8 +79,8 @@ class TestRandomizedSVD(unittest.TestCase):
 
         # Define Asolver
         alpha = dl.Constant(0.1)
-        varfA = dl.inner(dl.nabla_grad(uh), dl.nabla_grad(vh))*dl.dx +\
-                    alpha*dl.inner(uh,vh)*dl.dx
+        varfA = ufl.inner(ufl.grad(uh), ufl.grad(vh))*ufl.dx +\
+                    alpha*ufl.inner(uh,vh)*ufl.dx
         A = dl.assemble(varfA)
         Asolver = PETScKrylovSolver(A.mpi_comm(), "cg", amg_method())
         Asolver.set_operator(A)
@@ -87,7 +88,7 @@ class TestRandomizedSVD(unittest.TestCase):
         Asolver.parameters["relative_tolerance"] = 1e-12
 
         # Define M
-        varfC = dl.inner(mh,vh)*dl.dx
+        varfC = ufl.inner(mh,vh)*ufl.dx
         C = dl.assemble(varfC)
 
         self.J = J_op(B,Asolver,C)

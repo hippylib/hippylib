@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California--Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -14,6 +14,7 @@
 # Software Foundation) version 2.0 dated June 1991.
 
 import dolfin as dl
+import ufl
 import numpy as np
 import os
     
@@ -36,7 +37,7 @@ def assemblePointwiseObservation(Vh, targets, prune_and_sort=False):
         - :code:`targets`: observation points (numpy array).
     """
     #Ensure that PetscInitialize is called
-    dummy = dl.assemble( dl.inner(dl.TrialFunction(Vh), dl.TestFunction(Vh))*dl.dx )
+    dummy = dl.assemble( ufl.inner(dl.TrialFunction(Vh), dl.TestFunction(Vh))*ufl.dx )
     #Call the cpp module to compute the pointwise observation matrix
     tmp = cpp_module.PointwiseObservation(Vh._cpp_object,targets.flatten(), prune_and_sort)
     #return the matrix

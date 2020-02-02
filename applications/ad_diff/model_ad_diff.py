@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California--Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -131,14 +131,14 @@ class TimeDependentAD:
         else:
             tau = dl.Constant(0.)
                             
-        self.M = dl.assemble( ufl.inner(u,v)*dl.dx )
-        self.M_stab = dl.assemble( ufl.inner(u, v+tau*r_test)*dl.dx )
-        self.Mt_stab = dl.assemble( ufl.inner(u+tau*r_trial,v)*dl.dx )
-        Nvarf  = (ufl.inner(kappa * ufl.grad(u), ufl.grad(v)) + ufl.inner(wind_velocity, ufl.grad(u))*v )*dl.dx
-        Ntvarf  = (ufl.inner(kappa *ufl.grad(v), ufl.grad(u)) + ufl.inner(wind_velocity, ufl.grad(v))*u )*dl.dx
+        self.M = dl.assemble( ufl.inner(u,v)*ufl.dx )
+        self.M_stab = dl.assemble( ufl.inner(u, v+tau*r_test)*ufl.dx )
+        self.Mt_stab = dl.assemble( ufl.inner(u+tau*r_trial,v)*ufl.dx )
+        Nvarf  = (ufl.inner(kappa * ufl.grad(u), ufl.grad(v)) + ufl.inner(wind_velocity, ufl.grad(u))*v )*ufl.dx
+        Ntvarf  = (ufl.inner(kappa *ufl.grad(v), ufl.grad(u)) + ufl.inner(wind_velocity, ufl.grad(v))*u )*ufl.dx
         self.N  = dl.assemble( Nvarf )
         self.Nt = dl.assemble(Ntvarf)
-        stab = dl.assemble( tau*ufl.inner(r_trial, r_test)*dl.dx)
+        stab = dl.assemble( tau*ufl.inner(r_trial, r_test)*ufl.dx)
         self.L = self.M + dt*self.N + stab
         self.Lt = self.M + dt*self.Nt + stab
         
@@ -389,7 +389,7 @@ def computeVelocityField(mesh):
         return ufl.sym(ufl.grad(v))
     
     F = ( (2./Re)*ufl.inner(strain(v),strain(v_test))+ ufl.inner (ufl.nabla_grad(v)*v, v_test)
-           - (q * ufl.div(v_test)) + ( ufl.div(v) * q_test) ) * dl.dx
+           - (q * ufl.div(v_test)) + ( ufl.div(v) * q_test) ) * ufl.dx
            
     dl.solve(F == 0, vq, bcs, solver_parameters={"newton_solver":
                                          {"relative_tolerance":1e-4, "maximum_iterations":100,

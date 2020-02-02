@@ -1,6 +1,6 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California--Merced.
-# Copyright (c) 2019, The University of Texas at Austin 
+# Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
 #
 # All Rights reserved.
@@ -14,6 +14,7 @@
 # Software Foundation) version 2.0 dated June 1991.
 
 import dolfin as dl
+import ufl
 from .variables import STATE, PARAMETER, ADJOINT
 from ..algorithms.linalg import Transpose 
 from ..algorithms.linSolvers import PETScLUSolver
@@ -154,8 +155,8 @@ class PDEVariationalProblem(PDEProblem):
             m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
             p = dl.TestFunction(self.Vh[ADJOINT])
             res_form = self.varf_handler(u, m, p)
-            A_form = dl.lhs(res_form)
-            b_form = dl.rhs(res_form)
+            A_form = ufl.lhs(res_form)
+            b_form = ufl.rhs(res_form)
             A, b = dl.assemble_system(A_form, b_form, bcs=self.bc)
             self.solver.set_operator(A)
             self.solver.solve(state, b)
@@ -184,7 +185,7 @@ class PDEVariationalProblem(PDEProblem):
         dp = dl.TrialFunction(self.Vh[ADJOINT])
         varf = self.varf_handler(u, m, p)
         adj_form = dl.derivative( dl.derivative(varf, u, du), p, dp )
-        Aadj, dummy = dl.assemble_system(adj_form, dl.inner(u,du)*dl.dx, self.bc0)
+        Aadj, dummy = dl.assemble_system(adj_form, ufl.inner(u,du)*ufl.dx, self.bc0)
         self.solver.set_operator(Aadj)
         self.solver.solve(adj, adj_rhs)
      

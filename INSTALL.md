@@ -74,9 +74,8 @@ first install [Anaconda3](https://docs.continuum.io/anaconda/install),
 then run following commands in your terminal:
 
 ```
-conda create -n fenics-2019.1 -c uvilla -c conda-forge fenics==2019.1.0 matplotlib scipy jupyter
+conda create -n fenics-2019.1 -c conda-forge fenics==2019.1.0 matplotlib scipy jupyter
 ```
-> **Note**: You need to specify the channel `-c uvilla` to used the hippylib-patched version of FEniCS 2019.1. The patch has been merged in the development version of FEniCS and it will be available in the next FEniCS release. If you encounter any issue with conda mixing packages from the `uvilla` and `conda-forge` channels, use the command `conda config --set channel_priority strict`.
 
 > **Note**: FEniCS Anaconda recipes are maintained by the FEniCS community and distributed binary packages do not have a full feature set yet, especially regarding sparse direct solvers and input/output facilities.
 

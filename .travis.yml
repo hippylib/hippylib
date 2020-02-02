@@ -4,21 +4,16 @@ services:
     - docker
         
 env:
+  jobs:
     - IMAGE=hippylib/fenics:latest
     - IMAGE=quay.io/fenicsproject/stable:2019.1.0.r3
     - IMAGE=ceciledc/fenics_mixed_dimensional
 
-script: ./ci/run_unittest.sh
-
 jobs:
     include:
+    - stage: Unit tests
+      script: ./ci/run_unittest.sh
     - stage: Applications
       script: ./ci/run_applications.sh
-      env:
-        - IMAGE=hippylib/fenics:latest
-        - IMAGE=quay.io/fenicsproject/stable:2019.1.0.r3
     - stage: Notebooks
       script: ./ci/run_notebooks.sh
-      env:
-        - IMAGE=hippylib/fenics:latest
-        - IMAGE=quay.io/fenicsproject/stable:2019.1.0.r3

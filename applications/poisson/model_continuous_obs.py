@@ -124,7 +124,7 @@ class Poisson:
             u = vector2Function(x[STATE], self.Vh[STATE])
             obs = vector2Function(self.u_o, self.Vh[STATE])
             bform = ufl.inner(obs - u, test)*ufl.dx
-            Matrix, rhs = dl.assemble_system(ufl.adjoint(Avarf), bform, self.bc0)
+            Matrix, rhs = dl.assemble_system(dl.adjoint(Avarf), bform, self.bc0)
             
         if assemble_rhs:
             return Matrix, rhs

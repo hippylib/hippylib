@@ -15,7 +15,7 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
 
-Development version
+Version 3.0.0, released on Feb 2, 2020
 ---------------------------------------- 
 - Support for `FEniCS 2019.1.0`
 - Modify `PointwiseObservation` so that ordering of observations targets is respected also in parallel.

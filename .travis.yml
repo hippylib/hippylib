@@ -14,13 +14,11 @@ jobs:
     include:
     - stage: Applications
       script: ./ci/run_applications.sh
-      env: IMAGE=hippylib/fenics:latest
-    - stage: Applications II
-      script: ./ci/run_applications.sh
-      env: IMAGE=quay.io/fenicsproject/stable:2019.1.0.r3
+      env:
+        - IMAGE=hippylib/fenics:latest
+        - IMAGE=quay.io/fenicsproject/stable:2019.1.0.r3
     - stage: Notebooks
       script: ./ci/run_notebooks.sh
-      env: IMAGE=hippylib/fenics:latest
-    - stage: Notebooks II
-      script: ./ci/run_notebooks.sh
-      env: IMAGE=quay.io/fenicsproject/stable:2019.1.0.r3
+      env:
+        - IMAGE=hippylib/fenics:latest
+        - IMAGE=quay.io/fenicsproject/stable:2019.1.0.r3

@@ -124,20 +124,7 @@ class MultipleSerialPDEsCollective:
             return v
         elif hasattr(v,'nvec'):
             for i in range(v.nvec()):
-                assert v[i].mpi_comm().Get_size() == 1
-                send = v[i].get_local()
-                receive = np.zeros_like(send)
-                self.comm.Allreduce([send, MPI.DOUBLE], [receive, MPI.DOUBLE], op = MPI.SUM)
-                if op == "sum":
-                    pass
-                elif op == "avg":
-                    receive *= (1./float(self.size()))
-                else:
-                    raise NotImplementedError(err_msg) 
-
-                v[i].set_local(receive)
-                v[i].apply("")
-
+                self.allReduce(v[i],op)
             return v
         else:
             msg = "MultipleSerialPDEsCollective.allReduce not implement for v of type {0}".format(type(v))
@@ -169,10 +156,7 @@ class MultipleSerialPDEsCollective:
             return v
         elif hasattr(v,'nvec'):
             for i in range(v.nvec()):
-                v_local = v[i].get_local()
-                v_local = self.comm.bcast(v_local, root = root)
-                v[i].set_local(v_local)
-                v[i].apply("")
+                self.bcast(v[i],root=root)
             return v
 
         else:

@@ -128,6 +128,7 @@ class TestCollectives(unittest.TestCase):
             pass
         else:
             x.set_local(np.zeros_like(x.get_local()))
+            x.apply("")
         x = self.collective.bcast(x,root = 0)
 
         x_true = dl.interpolate(dl.Constant(1.), Vh).vector()
@@ -146,13 +147,16 @@ class TestCollectives(unittest.TestCase):
         MV_ref = MultiVector(x,10)
         for i in range(MV.nvec()):
             MV[i].set_local(ones)
+            MV[i].apply("")
             MV_ref[i].set_local(ones)
+            MV_ref[i].apply("")
         MV_sum = self.collective.allReduce(MV,'sum')
 
         # MV gets overwritten in the collective
         MV = MultiVector(x,10)
         for i in range(MV.nvec()):
             MV[i].set_local(ones)
+            MV[i].apply("")
         MV_avg = self.collective.allReduce(MV,'avg')
 
         for i in range(MV.nvec()):
@@ -169,11 +173,15 @@ class TestCollectives(unittest.TestCase):
         if self.mpi_rank == 0:
             for i in range(MV.nvec()):
                 MV[i].set_local(ones)
+                MV[i].apply("")
                 MV_ref[i].set_local(ones)
+                MV_ref[i].apply("")
         else:
             for i in range(MV.nvec()):
                 MV[i].set_local(zeros)
+                MV[i].apply("")
                 MV_ref[i].set_local(ones)
+                MV_ref[i].apply("")
 
         MV = self.collective.bcast(MV,root = 0)
 

@@ -15,6 +15,10 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
 
+Version 3.1.0-dev
+---------------------------------------- 
+- Added broadcast method to collectives, as well as expanding coverage to MultiVector collectives
+
 Version 3.0.0, released on Feb 2, 2020
 ---------------------------------------- 
 - Support for `FEniCS 2019.1.0`

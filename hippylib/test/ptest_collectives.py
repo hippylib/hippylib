@@ -36,6 +36,7 @@ class TestCollectives(unittest.TestCase):
         
 
     def testfloat(self):
+        # test allReduce
         a = 1.
         a_sum = self.collective.allReduce(a,'sum')
         a_avg = self.collective.allReduce(a,'avg')
@@ -43,7 +44,17 @@ class TestCollectives(unittest.TestCase):
         assert_allclose( [a_sum], [float(self.mpi_size)])
         assert_allclose( [a_avg], [1.] )
 
+        # test bcast
+        if self.mpi_rank == 0:
+            b = 1.
+        else:
+            b = 0.
+        b = self.collective.bcast(b,root = 0)
+
+        assert_allclose([b], [1.])
+
     def testint(self):
+        # test allReduce
         a = 1
         a_sum = self.collective.allReduce(a,'sum')
         a_avg = self.collective.allReduce(a,'avg')
@@ -51,8 +62,17 @@ class TestCollectives(unittest.TestCase):
         assert_allclose( [a_sum], self.mpi_size)
         assert_allclose( [a_avg], [1.] )
 
+        # test bcast
+        if self.mpi_rank == 0:
+            b = 1
+        else:
+            b = 0
+        b = self.collective.bcast(b,root = 0)
+
+        assert_allclose([b], [1.])
 
     def testndarray(self):
+        # test allReduce 
         a = np.ones(10)
         a_sum = self.collective.allReduce(a,'sum')
         
@@ -67,8 +87,17 @@ class TestCollectives(unittest.TestCase):
         # `a` must be overwritten
         assert_allclose(a   , np.ones(10) )
 
+        # test bcast
+        if self.mpi_rank == 0:
+            b = np.ones(10)
+        else:
+            b = np.zeros(10)
+        b = self.collective.bcast(b,root = 0)
+
+        assert_allclose(b, np.ones(10) )
 
     def testdlVector(self):
+        # test allReduce
         mesh = dl.UnitSquareMesh(dl.MPI.comm_self,10, 10)
         Vh = dl.FunctionSpace(mesh, 'Lagrange', 1)
 
@@ -91,8 +120,65 @@ class TestCollectives(unittest.TestCase):
         # x must be overwritten
         diff2 = x - x_ref
         assert_allclose( [diff2.norm("l2")], [0.])
-        
 
+        # test bcast
+        x     = dl.interpolate(dl.Constant(1.), Vh).vector()
+        if self.mpi_rank == 0:
+            pass
+        else:
+            x.set_local(np.zeros_like(x.get_local()))
+        x = self.collective.bcast(x,root = 0)
+
+        x_true = dl.interpolate(dl.Constant(1.), Vh).vector()
+
+        diff = x - x_true
+        assert_allclose( [diff.norm("l2")], [0.])
+
+    def testMultiVector(self):
+        # test allReduce
+        mesh = dl.UnitSquareMesh(dl.MPI.comm_self,10, 10)
+        Vh = dl.FunctionSpace(mesh, 'Lagrange', 1)
+
+        x = dl.interpolate(dl.Constant(1.), Vh).vector()
+        ones = np.ones_like(x.get_local())
+        MV = MultiVector(x,10)
+        MV_ref = MultiVector(x,10)
+        for i in range(MV.nvec()):
+            MV[i].set_local(ones)
+            MV_ref[i].set_local(ones)
+        MV_sum = self.collective.allReduce(MV,'sum')
+
+        # MV gets overwritten in the collective
+        MV = MultiVector(x,10)
+        for i in range(MV.nvec()):
+            MV[i].set_local(ones)
+        MV_avg = self.collective.allReduce(MV,'avg')
+
+        for i in range(MV.nvec()):
+            diff1 = float(self.mpi_size)*MV_ref[i] - MV_sum[i]
+            assert_allclose( [diff1.norm("l2")], [0.])
+            diff2 = MV[i] - MV_avg[i]
+            assert_allclose( [diff2.norm("l2")], [0.])
+
+        # test MultiVector bcast
+        MV = MultiVector(x,10)
+        MV_ref = MultiVector(x,10)
+        ones = np.ones_like(x.get_local())
+        zeros = np.zeros_like(x.get_local())
+        if self.mpi_rank == 0:
+            for i in range(MV.nvec()):
+                MV[i].set_local(ones)
+                MV_ref[i].set_local(ones)
+        else:
+            for i in range(MV.nvec()):
+                MV[i].set_local(zeros)
+                MV_ref[i].set_local(ones)
+
+        MV = self.collective.bcast(MV,root = 0)
+
+        for i in range(MV.nvec()):
+            diff = MV[i] - MV_ref[i]
+            assert_allclose( [diff.norm("l2")], [0.])
 
 if __name__ == '__main__':
     unittest.main()

@@ -37,6 +37,11 @@ class NullCollective:
             raise NotImplementedError(err_msg)
         
         return v
+
+    def bcast(self, v, root=0):
+
+        return v
+
     
 class MultipleSerialPDEsCollective:
     """
@@ -117,6 +122,59 @@ class MultipleSerialPDEsCollective:
             v.apply("")
             
             return v
+        elif hasattr(v,'nvec'):
+            for i in range(v.nvec()):
+                assert v[i].mpi_comm().Get_size() == 1
+                send = v[i].get_local()
+                receive = np.zeros_like(send)
+                self.comm.Allreduce([send, MPI.DOUBLE], [receive, MPI.DOUBLE], op = MPI.SUM)
+                if op == "sum":
+                    pass
+                elif op == "avg":
+                    receive *= (1./float(self.size()))
+                else:
+                    raise NotImplementedError(err_msg) 
+
+                v[i].set_local(receive)
+                v[i].apply("")
+
+            return v
         else:
             msg = "MultipleSerialPDEsCollective.allReduce not implement for v of type {0}".format(type(v))
+            raise NotImplementedError(msg) 
+
+    def bcast(self, v, root = 0):
+        """
+        Case handled:
+        - :code:`v` is a scalar (:code:`float`, :code:`int`);
+        - :code:`v` is a numpy array (NOTE: :code:`v` will be overwritten)
+        - :code:`v` is a  :code:`dolfin.Vector` (NOTE: :code:`v` will be overwritten)
+        - :code:`root` refers to the process rank within the communicator for which the data to be
+        broadcasted lives.
+        """
+        
+        if type(v) in [float, np.float64,int, np.int, np.int32, np.array, np.ndarray]:
+            return self.comm.bcast(v,root = root)
+              
+        elif hasattr(v, "mpi_comm") and hasattr(v, "get_local"):
+            # v is most likely a dl.Vector
+            assert v.mpi_comm().Get_size() == 1
+            v_local = v.get_local()
+        
+            v_local = self.comm.bcast(v_local, root = root)
+             
+            v.set_local(v_local)
+            v.apply("")
+        
+            return v
+        elif hasattr(v,'nvec'):
+            for i in range(v.nvec()):
+                v_local = v[i].get_local()
+                v_local = self.comm.bcast(v_local, root = root)
+                v[i].set_local(v_local)
+                v[i].apply("")
+            return v
+
+        else:
+            msg = "MultipleSerialPDEsCollective.bcast not implement for v of type {0}".format(type(v))
             raise NotImplementedError(msg) 

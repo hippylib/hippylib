@@ -23,6 +23,7 @@ import sys
 sys.path.append('../../')
 
 from hippylib import scheduling as cl
+from hippylib import MultiVector
 
 class TestCollectives(unittest.TestCase):
     def setUp(self):

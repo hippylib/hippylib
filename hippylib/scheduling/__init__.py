@@ -14,3 +14,5 @@
 # Software Foundation) version 2.0 dated June 1991.
 
 from .collective import NullCollective, MultipleSerialPDEsCollective, MultipleSamePartitioningPDEsCollective
+
+from .comm_utils import splitCommunicators, checkConsistentPartitioning

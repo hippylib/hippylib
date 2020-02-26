@@ -42,8 +42,8 @@ def checkConsistentPartitioning(mesh, collective):
     CG1_v = dl.interpolate(dl.Constant(float(collective_rank)),CG1)
 
     if collective_rank == 0:
-        root_DG0_v = dl.interpolate(dl.Constant(float(collective_rank)),DG0)
-        root_CG1_v = dl.interpolate(dl.Constant(float(collective_rank)),CG1)
+        root_DG0_v = dl.interpolate(dl.Constant(float(mesh.comm.rank)),DG0)
+        root_CG1_v = dl.interpolate(dl.Constant(float(mesh.comm.rank)),CG1)
     else:
         root_DG0_v = dl.interpolate(dl.Constant(0.),DG0)
         root_CG1_v = dl.interpolate(dl.Constant(0.),CG1)

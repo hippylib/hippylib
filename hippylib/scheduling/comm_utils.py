@@ -48,8 +48,8 @@ def checkConsistentPartitioning(mesh, collective):
         root_DG0_v = dl.interpolate(dl.Constant(0.),DG0)
         root_CG1_v = dl.interpolate(dl.Constant(0.),CG1)
 
-    root_DG0_v.vector().set_local(collective.bcast(root_DG0_v.vector(),root = 0))
-    root_CG1_v.vector().set_local(collective.bcast(root_DG0_v.vector(),root = 0))
+    collective.bcast(root_DG0_v.vector(),root = 0)
+    collective.bcast(root_CG1_v.vector(),root = 0)
 
     diff_DG0 = DG0_v - root_DG0_v
     diff_CG1 = CG1_v - root_CG1_v

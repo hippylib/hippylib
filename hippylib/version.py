@@ -13,5 +13,5 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
-version_info = (3, 0, 0)
+version_info = (3, 1, 0, 'dev')
 __version__ = '.'.join([str(x) for x in version_info])

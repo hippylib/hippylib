@@ -43,15 +43,16 @@ class NullCollective:
         return v
 
     
-class MultipleSerialPDEsCollective:
+class MultipleSamePartitioningPDEsCollective:
     """
     Parallel reduction utilities when several serial systems of PDEs (one per process) are solved concurrently.
     """
-    def __init__(self, comm):
+    def __init__(self, comm, is_serial_check=False):
         """
         :code:`comm` is :code:`mpi4py.MPI` comm
         """
         self.comm = comm
+        self.is_serial_check = is_serial_check
     
     def size(self):
         return self.comm.Get_size()
@@ -106,7 +107,9 @@ class MultipleSerialPDEsCollective:
               
         elif hasattr(v, "mpi_comm") and hasattr(v, "get_local"):
             # v is most likely a dl.Vector
-            assert v.mpi_comm().Get_size() == 1
+            if self.is_serial_check:
+                assert v.mpi_comm().Get_size() == 1
+                
             send = v.get_local()
             receive = np.zeros_like(send)
         
@@ -145,7 +148,9 @@ class MultipleSerialPDEsCollective:
               
         elif hasattr(v, "mpi_comm") and hasattr(v, "get_local"):
             # v is most likely a dl.Vector
-            assert v.mpi_comm().Get_size() == 1
+            if self.is_serial_check:
+                assert v.mpi_comm().Get_size() == 1
+                
             v_local = v.get_local()
         
             v_local = self.comm.bcast(v_local, root = root)
@@ -162,3 +167,6 @@ class MultipleSerialPDEsCollective:
         else:
             msg = "MultipleSerialPDEsCollective.bcast not implement for v of type {0}".format(type(v))
             raise NotImplementedError(msg) 
+
+def MultipleSerialPDEsCollective(comm):
+    return MultipleSamePartitioningPDEsCollective(comm, is_serial_check=True)

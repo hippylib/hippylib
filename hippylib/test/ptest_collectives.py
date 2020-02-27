@@ -208,6 +208,7 @@ class TestMultipleSamePartitioningPDEsCollective(TestMultipleSerialPDEsCollectiv
         else:
             self.mpi_size = dl.MPI.comm_world.size
             self.mpi_rank = dl.MPI.comm_world.rank
+            self.mesh_constructor_comm = dl.MPI.comm_world
             self.collective = cl.NullCollective()
 
 if __name__ == '__main__':

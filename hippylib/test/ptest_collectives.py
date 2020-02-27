@@ -202,6 +202,8 @@ class TestMultipleSamePartitioningPDEsCollective(TestMultipleSerialPDEsCollectiv
             n_subdomain = 2
             n_instances = 6
             self.mesh_constructor_comm, collective_comm = splitCommunicators(comm_world, n_subdomain, n_instances)
+            self.mpi_size = collective_comm.size
+            self.mpi_rank = collective.rank
             self.collective = cl.MultipleSamePartitioningPDEsCollective(collective_comm)
         else:
             self.collective = cl.NullCollective()

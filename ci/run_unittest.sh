@@ -15,7 +15,7 @@ ${DOCKER} /home/fenics/hippylib $IMAGE "$PYTHON -c 'import hippylib' && cd hippy
 ${DOCKER} /home/fenics/hippylib $IMAGE "$PYTHON -c 'import hippylib' && cd hippylib/test/ && mpirun -n 2 $PYTHON ptest_randomizedSVD.py"
 ${DOCKER} /home/fenics/hippylib $IMAGE "$PYTHON -c 'import hippylib' && cd hippylib/test/ && mpirun -n 2 $PYTHON ptest_randomizedEigensolver.py"
 ${DOCKER} /home/fenics/hippylib $IMAGE "$PYTHON -c 'import hippylib' && cd hippylib/test/ && mpirun -n 2 $PYTHON ptest_qoi.py"
-${DOCKER} /home/fenics/hippylib $IMAGE "$PYTHON -c 'import hippylib' && cd hippylib/test/ && mpirun -n 2 $PYTHON ptest_collectives.py "
+${DOCKER} /home/fenics/hippylib $IMAGE "$PYTHON -c 'import hippylib' && cd hippylib/test/ && mpirun -n 6 $PYTHON ptest_collectives.py "
 
 
 #${DOCKER} /home/fenics/hippylib/hippylib/test $IMAGE "mpirun -n 4 $PYTHON -m unittest discover -v -p 'ptest_*' "

@@ -130,7 +130,10 @@ class MultipleSamePartitioningPDEsCollective:
                 self.allReduce(v[i],op)
             return v
         else:
-            msg = "MultipleSerialPDEsCollective.allReduce not implement for v of type {0}".format(type(v))
+            if is_serial_check:
+                msg = "MultipleSerialPDEsCollective.allReduce not implement for v of type {0}".format(type(v))
+            else:
+                msg = "MultipleSamePartitioningPDEsCollective.allReduce not implement for v of type {0}".format(type(v))
             raise NotImplementedError(msg) 
 
     def bcast(self, v, root = 0):
@@ -165,7 +168,10 @@ class MultipleSamePartitioningPDEsCollective:
             return v
 
         else:
-            msg = "MultipleSerialPDEsCollective.bcast not implement for v of type {0}".format(type(v))
+            if is_serial_check:
+                msg = "MultipleSerialPDEsCollective.bcast not implement for v of type {0}".format(type(v))
+            else:
+                msg = "MultipleSamePartitioningPDEsCollective.bcast not implement for v of type {0}".format(type(v))
             raise NotImplementedError(msg) 
 
 def MultipleSerialPDEsCollective(comm):

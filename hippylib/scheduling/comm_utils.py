@@ -27,7 +27,7 @@ def splitCommunicators(comm_world, n_subdomain, n_instances):
     # different samples. Color corresponds to row index, and key corresponds to 
     # column index as is customary. 
     color = np.floor(mpi_rank/n_instances)
-    key = np.remainder(mpi_rank) 
+    key = np.remainder(mpi_rank,n_instances) 
     mesh_constructor_comm = comm_world.Split(color = color,key = key)
     collective_comm = comm_world.Split(color = key,key = color)
     return mesh_constructor_comm, collective_comm
@@ -57,7 +57,7 @@ def checkConsistentPartitioning(mesh, collective):
     assert_allclose( [diff_DG0.norm("l2")], [0.])
     assert_allclose( [diff_CG1.norm("l2")], [0.])
 
-    if collective_rank == 0:
+    if collective_rank == 1:
         print('Yes this is a consistent parallel parititioning')
 
 

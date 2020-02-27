@@ -24,11 +24,14 @@ sys.path.append('../../')
 
 from hippylib import scheduling as cl
 from hippylib import MultiVector
+from hippylib import splitCommunicators
 
-class TestCollectives(unittest.TestCase):
+class TestMultipleSerialPDEsCollective(unittest.TestCase):
     def setUp(self):
         self.mpi_rank = dl.MPI.rank(dl.MPI.comm_world)
         self.mpi_size = dl.MPI.size(dl.MPI.comm_world)
+
+        self.mesh_constructor_comm = dl.MPI.comm_self
 
         if self.mpi_size > 1:
             self.collective = cl.MultipleSerialPDEsCollective(dl.MPI.comm_world)
@@ -99,7 +102,7 @@ class TestCollectives(unittest.TestCase):
 
     def testdlVector(self):
         # test allReduce
-        mesh = dl.UnitSquareMesh(dl.MPI.comm_self,10, 10)
+        mesh = dl.UnitSquareMesh(self.mesh_constructor_comm,10, 10)
         Vh = dl.FunctionSpace(mesh, 'Lagrange', 1)
 
         x_ref = dl.interpolate(dl.Constant(1.), Vh).vector()
@@ -138,7 +141,7 @@ class TestCollectives(unittest.TestCase):
 
     def testMultiVector(self):
         # test allReduce
-        mesh = dl.UnitSquareMesh(dl.MPI.comm_self,10, 10)
+        mesh = dl.UnitSquareMesh(self.mesh_constructor_comm,10, 10)
         Vh = dl.FunctionSpace(mesh, 'Lagrange', 1)
 
         x = dl.interpolate(dl.Constant(1.), Vh).vector()
@@ -188,6 +191,20 @@ class TestCollectives(unittest.TestCase):
         for i in range(MV.nvec()):
             diff = MV[i] - MV_ref[i]
             assert_allclose( [diff.norm("l2")], [0.])
+
+class TestMultipleSamePartitioningPDEsCollective(TestMultipleSerialPDEsCollective):
+    def setUp(self):
+        self.world_rank = dl.MPI.rank(dl.MPI.comm_world)
+        self.world_size = dl.MPI.size(dl.MPI.comm_world)
+
+        if self.world_size > 1:
+            assert self.world_size == 6
+            n_subdomain = 2
+            n_instances = 6
+            self.mesh_constructor_comm, collective_comm = splitCommunicators(comm_world, n_subdomain, n_instances)
+            self.collective = cl.MultipleSamePartitioningPDEsCollective(collective_comm)
+        else:
+            self.collective = cl.NullCollective()
 
 if __name__ == '__main__':
     unittest.main()

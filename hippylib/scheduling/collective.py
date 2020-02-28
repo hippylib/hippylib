@@ -87,11 +87,13 @@ class MultipleSamePartitioningPDEsCollective:
         
         if type(v) in [float, np.float64]:
             v_array = np.array([v], dtype=np.float64)
-            return self._allReduce_array(v_array, op)
+            self._allReduce_array(v_array, op)
+            return v_array[0]
                 
         elif type(v) in [int, np.int, np.int32]:
             v_array = np.array([v], dtype=np.int32)
-            return self._allReduce_array(v_array, op)
+            self._allReduce_array(v_array, op)
+            return v_array[0]
         
         elif (type(v) is np.array) or (type(v) is np.ndarray):               
             return self._allReduce_array(v,op)

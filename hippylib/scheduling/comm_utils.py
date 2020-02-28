@@ -54,10 +54,14 @@ def checkConsistentPartitioning(mesh, collective):
     diff_DG0 = DG0_v - root_DG0_v
     diff_CG1 = CG1_v - root_CG1_v
 
-    assert_allclose( [diff_DG0.norm("l2")], [0.])
-    assert_allclose( [diff_CG1.norm("l2")], [0.])
+    DG0_condition = (diff_DG0.norm("l2") < 1e-10)
+    CG1_condition = (diff_CG1.norm("l2") < 1e-10)
 
-    if collective_rank == 1:
-        print('Yes this is a consistent parallel parititioning')
+    tests_passed_here = DG0_condition and CG1_condition
+    tests_passed_everywhere = False
+
+    dl.MPI.comm_world.allReduce([tests_passed_here, MPI.BOOL],[tests_passed_everywhere,MPI.BOOL] , op = MPI.LAND)
+
+    return tests_passed_everywhere
 
 

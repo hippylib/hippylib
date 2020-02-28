@@ -25,7 +25,7 @@ sys.path.append('../../')
 from hippylib import scheduling as cl
 from hippylib import MultiVector
 from hippylib import splitCommunicators
-from hippylib import checkConsistentPartitioning
+from hippylib import checkMeshConsistentPartitioning
 
 class TestMultipleSerialPDEsCollective(unittest.TestCase):
     def setUp(self):
@@ -212,7 +212,7 @@ class TestMultipleSamePartitioningPDEsCollective(TestMultipleSerialPDEsCollectiv
 
     def checkConsistentPartitioning(self):
         mesh = dl.UnitSquareMesh(self.mesh_constructor_comm,10, 10)
-        assert checkConsistentPartitioning(mesh,self.collective)
+        assert checkMeshConsistentPartitioning(mesh,self.collective)
 
 
 

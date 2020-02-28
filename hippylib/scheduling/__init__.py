@@ -15,4 +15,4 @@
 
 from .collective import NullCollective, MultipleSerialPDEsCollective, MultipleSamePartitioningPDEsCollective
 
-from .comm_utils import splitCommunicators, checkConsistentPartitioning
+from .comm_utils import splitCommunicators, checkFunctionSpaceConsistentPartitioning, checkMeshConsistentPartitioning

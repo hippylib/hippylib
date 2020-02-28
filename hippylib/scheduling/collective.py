@@ -53,11 +53,6 @@ class MultipleSamePartitioningPDEsCollective:
         """
         self.comm = comm
         self.is_serial_check = is_serial_check
-        
-        self.type_map = {}
-        self.type_map[dtype('int32')  ] = MPI.INT
-        self.type_map[dtype('float32')] = MPI.FLOAT
-        self.type_map[dtype('float64')] = MPI.DOUBLE
 
     
     def size(self):
@@ -69,7 +64,7 @@ class MultipleSamePartitioningPDEsCollective:
     def _allReduce_array(self,v,op):
         err_msg = "Unknown operation *{0}* in MultipleSerialPDEsCollective.allReduce".format(op)
         receive = np.zeros_like(v)
-        self.comm.Allreduce([v, self.type_map[v.dtype]], [receive, self.type_map[receive.dtype]], op = MPI.SUM)
+        self.comm.Allreduce(v, receive, op = MPI.SUM)
         if op == "sum":
             v[:] = receive
         elif op == "avg":
@@ -132,8 +127,11 @@ class MultipleSamePartitioningPDEsCollective:
         broadcasted lives.
         """
         
-        if type(v) in [float, np.float64,int, np.int, np.int32, np.array, np.ndarray]:
+        if type(v) in [float, np.float64,int, np.int, np.int32]:
             return self.comm.bcast(v,root = root)
+        
+        if type(v) in [np.array, np.ndarray]:
+            return self.comm.Bcast(v,root = root)
               
         elif hasattr(v, "mpi_comm") and hasattr(v, "get_local"):
             # v is most likely a dl.Vector
@@ -142,7 +140,7 @@ class MultipleSamePartitioningPDEsCollective:
                 
             v_local = v.get_local()
         
-            v_local = self.comm.bcast(v_local, root = root)
+            v_local = self.comm.Bcast(v_local, root = root)
              
             v.set_local(v_local)
             v.apply("")

@@ -33,35 +33,23 @@ def splitCommunicators(comm_world, n_subdomain, n_instances):
     return mesh_constructor_comm, collective_comm
 
 
-
-def checkConsistentPartitioning(mesh, collective):
-    DG0 = dl.FunctionSpace(mesh,'DG',0)
-    CG1 = dl.FunctionSpace(mesh,'CG',1)
-    collective_rank = collective.rank
-    DG0_v = dl.interpolate(dl.Constant(float(collective_rank)),DG0)
-    CG1_v = dl.interpolate(dl.Constant(float(collective_rank)),CG1)
-
-    if collective_rank == 0:
-        root_DG0_v = dl.interpolate(dl.Constant(float(mesh.comm.rank)),DG0)
-        root_CG1_v = dl.interpolate(dl.Constant(float(mesh.comm.rank)),CG1)
+def checkFunctionSpaceConsistentPartitioning(Vh, collective):
+    v = dl.interpolate(dl.Constant(float(collective.rank)),Vh)
+    if collective.rank == 0:
+        root_v = dl.interpolate(dl.Constant(float(mesh.comm.rank)),Vh)
     else:
-        root_DG0_v = dl.interpolate(dl.Constant(0.),DG0)
-        root_CG1_v = dl.interpolate(dl.Constant(0.),CG1)
-
-    collective.bcast(root_DG0_v.vector(),root = 0)
-    collective.bcast(root_CG1_v.vector(),root = 0)
-
-    diff_DG0 = DG0_v - root_DG0_v
-    diff_CG1 = CG1_v - root_CG1_v
-
-    DG0_condition = (diff_DG0.norm("l2") < 1e-10)
-    CG1_condition = (diff_CG1.norm("l2") < 1e-10)
-
-    tests_passed_here = DG0_condition and CG1_condition
+        root_v = dl.interpolate(dl.Constant(0.),Vh)
+    collective.bcast(root_v.vector(),root = 0)
+    diff = v - root_v
+    tests_passed_here = diff.norm("l2") < 1e-10
     tests_passed_everywhere = False
-
-    dl.MPI.comm_world.allReduce([tests_passed_here, MPI.BOOL],[tests_passed_everywhere,MPI.BOOL] , op = MPI.LAND)
-
+    dl.MPI.comm_world.allReduce([tests_passed_here, MPI.BOOL], [tests_passed_everywhere,MPI.BOOL] , op = MPI.LAND)
     return tests_passed_everywhere
+
+def checkMeshConsistentPartitioning(mesh, collective):
+    t1 = checkFunctionSpaceConsistentPartitioning(dl.FunctionSpace(mesh,"DG", 0), collective)
+    t2 = checkFunctionSpaceConsistentPartitioning(dl.FunctionSpace(mesh,"CG", 1), collective)
+    return t1 and t2
+
 
 

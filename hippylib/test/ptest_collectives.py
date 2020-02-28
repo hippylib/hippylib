@@ -180,7 +180,7 @@ class TestMultipleSerialPDEsCollective(unittest.TestCase):
                 MV_ref[i].set_local(ones)
                 MV_ref[i].apply("")
         else:
-            Omega.zero()
+            MV.zero()
             for i in range(MV_ref.nvec()):
                 MV_ref[i].set_local(ones)
                 MV_ref[i].apply("")

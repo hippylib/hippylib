@@ -59,6 +59,18 @@ class MultipleSamePartitioningPDEsCollective:
     
     def rank(self):
         return self.comm.Get_rank()
+
+    def _allReduce_array(self,v,op):
+        receive = np.zeros_like(v)
+        self.comm.Allreduce([v, MPI.DOUBLE], [receive, MPI.DOUBLE], op = MPI.SUM)
+        if op == "sum":
+            v[:] = receive
+        elif op == "avg":
+            v[:] == (1./float(self.size()))*receive
+        else:
+            raise NotImplementedError(err_msg)            
+        return v
+
     
     def allReduce(self, v, op):
         """
@@ -93,34 +105,15 @@ class MultipleSamePartitioningPDEsCollective:
             else:
                 raise NotImplementedError(err_msg)
         
-        if (type(v) is np.array) or (type(v) is np.ndarray):
-            receive = np.zeros_like(v)
-            self.comm.Allreduce([v, MPI.DOUBLE], [receive, MPI.DOUBLE], op = MPI.SUM)
-            if op == "sum":
-                v[:] = receive
-            elif op == "avg":
-                v[:] == (1./float(self.size()))*receive
-            else:
-                raise NotImplementedError(err_msg)
-                
-            return v
+        if (type(v) is np.array) or (type(v) is np.ndarray):               
+            return self._allReduce_array(v,op)
               
         elif hasattr(v, "mpi_comm") and hasattr(v, "get_local"):
             # v is most likely a dl.Vector
             if self.is_serial_check:
                 assert v.mpi_comm().Get_size() == 1
-                
             send = v.get_local()
-            receive = np.zeros_like(send)
-        
-            self.comm.Allreduce([send, MPI.DOUBLE], [receive, MPI.DOUBLE], op = MPI.SUM)
-            if op == "sum":
-                pass
-            elif op == "avg":
-                receive *= (1./float(self.size()))
-            else:
-                raise NotImplementedError(err_msg) 
-             
+            receive = self._allReduce_array(send,op)
             v.set_local(receive)
             v.apply("")
             

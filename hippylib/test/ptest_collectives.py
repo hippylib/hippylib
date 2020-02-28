@@ -25,6 +25,7 @@ sys.path.append('../../')
 from hippylib import scheduling as cl
 from hippylib import MultiVector
 from hippylib import splitCommunicators
+from hippylib import checkConsistentPartitioning
 
 class TestMultipleSerialPDEsCollective(unittest.TestCase):
     def setUp(self):
@@ -172,7 +173,6 @@ class TestMultipleSerialPDEsCollective(unittest.TestCase):
         MV = MultiVector(x,10)
         MV_ref = MultiVector(x,10)
         ones = np.ones_like(x.get_local())
-        zeros = np.zeros_like(x.get_local())
         if self.mpi_rank == 0:
             for i in range(MV.nvec()):
                 MV[i].set_local(ones)
@@ -180,9 +180,8 @@ class TestMultipleSerialPDEsCollective(unittest.TestCase):
                 MV_ref[i].set_local(ones)
                 MV_ref[i].apply("")
         else:
-            for i in range(MV.nvec()):
-                MV[i].set_local(zeros)
-                MV[i].apply("")
+            Omega.zero()
+            for i in range(MV_ref.nvec()):
                 MV_ref[i].set_local(ones)
                 MV_ref[i].apply("")
 
@@ -210,6 +209,12 @@ class TestMultipleSamePartitioningPDEsCollective(TestMultipleSerialPDEsCollectiv
             self.mpi_rank = dl.MPI.comm_world.rank
             self.mesh_constructor_comm = dl.MPI.comm_world
             self.collective = cl.NullCollective()
+
+    def checkConsistentPartitioning(self):
+        mesh = dl.UnitSquareMesh(self.mesh_constructor_comm,10, 10)
+        checkConsistentPartitioning(mesh,self.collective)
+
+
 
 if __name__ == '__main__':
     unittest.main()

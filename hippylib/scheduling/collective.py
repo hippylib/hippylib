@@ -128,10 +128,13 @@ class MultipleSamePartitioningPDEsCollective:
         """
         
         if type(v) in [float, np.float64,int, np.int, np.int32]:
-            return self.comm.bcast(v,root = root)
+            v_array = np.array([v])
+            self.comm.Bcast(v_array,root = root)
+            return v_array[0]
         
         if type(v) in [np.array, np.ndarray]:
-            return self.comm.Bcast(v,root = root)
+            self.comm.Bcast(v,root = root)
+            return v
               
         elif hasattr(v, "mpi_comm") and hasattr(v, "get_local"):
             # v is most likely a dl.Vector
@@ -139,9 +142,7 @@ class MultipleSamePartitioningPDEsCollective:
                 assert v.mpi_comm().Get_size() == 1
                 
             v_local = v.get_local()
-        
-            v_local = self.comm.Bcast(v_local, root = root)
-             
+            self.comm.Bcast(v_local, root = root)
             v.set_local(v_local)
             v.apply("")
         

@@ -55,9 +55,9 @@ class MultipleSamePartitioningPDEsCollective:
         self.is_serial_check = is_serial_check
         
         self.type_map = {}
-        self.type_map[dtype('int32')]  = MPI.INT
-        self.type_map[dtype('float32') = MPI.FLOAT
-        self.type_map[dtype('float64') = MPI.DOUBLE
+        self.type_map[dtype('int32')  ] = MPI.INT
+        self.type_map[dtype('float32')] = MPI.FLOAT
+        self.type_map[dtype('float64')] = MPI.DOUBLE
 
     
     def size(self):

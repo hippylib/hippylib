@@ -78,28 +78,35 @@ class TestMultipleSerialPDEsCollective(unittest.TestCase):
 
     def testndarray(self):
         # test allReduce 
-        a = np.ones(10)
+        all_a = [np.linspace(0., 1., 10),
+                 np.exp(np.linspace(-1., 1., 10)),
+                 np.linspace(0., 1., 10)**2,
+                 np.linspace(-1., 1., 10)**3,
+                 np.linspace(4., 10., 10),
+                 np.linspace(2., 3., 10)]
+        
+        a_true_sum = sum(all_a[0:self.collective.size()])
+        a_true_avg = a_true_sum*1./float(self.collective.size())
+                 
+        a = np.copy( all_a[self.collective.rank()] )
         a_sum = self.collective.allReduce(a,'sum')
         
-        assert_allclose(a_sum, self.mpi_size*np.ones(10) )
+        assert_allclose(a_sum, a_true_sum, rtol = 1e-7, atol = 1e-12 )
         # `a` must be overwritten
-        assert_allclose(a   , self.mpi_size*np.ones(10) )
+        assert_allclose(a   ,  a_true_sum, rtol = 1e-7, atol = 1e-12 )
         
-        a = np.ones(10)
+        a = np.copy( all_a[self.collective.rank()] )
         a_avg = self.collective.allReduce(a,'avg')
         
-        assert_allclose(a_avg, np.ones(10) )
+        assert_allclose(a_avg, a_true_avg, rtol = 1e-7, atol = 1e-12)
         # `a` must be overwritten
-        assert_allclose(a   , np.ones(10) )
+        assert_allclose(a   , a_true_avg, rtol = 1e-7, atol = 1e-12 )
 
         # test bcast
-        if self.mpi_rank == 0:
-            b = np.ones(10)
-        else:
-            b = np.zeros(10)
-        b = self.collective.bcast(b,root = 0)
+        a = np.copy( all_a[self.collective.rank()] )
+        a = self.collective.bcast(a,root = 0)
 
-        assert_allclose(b, np.ones(10) )
+        assert_allclose(a, all_a[0], rtol = 1e-7, atol = 1e-12 )
 
     def testdlVector(self):
         # test allReduce

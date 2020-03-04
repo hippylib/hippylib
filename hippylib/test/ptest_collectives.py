@@ -212,7 +212,9 @@ class TestMultipleSamePartitioningPDEsCollective(TestMultipleSerialPDEsCollectiv
 
     def checkConsistentPartitioning(self):
         mesh = dl.UnitSquareMesh(self.mesh_constructor_comm,10, 10)
-        assert checkMeshConsistentPartitioning(mesh,self.collective)
+        consistent_partitioning = checkMeshConsistentPartitioning(mesh,self.collective)
+        print('consistent paritioning: ', consistent_partitioning)
+        assert consistent_partitioning
 
 
 

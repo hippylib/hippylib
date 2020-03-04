@@ -105,40 +105,48 @@ class TestMultipleSerialPDEsCollective(unittest.TestCase):
         # test allReduce
         mesh = dl.UnitSquareMesh(self.mesh_constructor_comm,10, 10)
         Vh = dl.FunctionSpace(mesh, 'Lagrange', 1)
-
-        x_ref = dl.interpolate(dl.Constant(1.), Vh).vector()
         
-        x     = dl.interpolate(dl.Constant(1.), Vh).vector()
+        x_str = ["(x[0]*x[1])", "(x[1])", "(x[0])", "(x[1]+2*x[0])", "(x[0]*x[0])", "(x[1]*x[1])"]
+        x_str_sum = "(x[0]*x[1])"
+        
+        for x_str_i in x_str[1:self.collective.size()]:
+            x_str_sum = x_str_sum + "+" + x_str_i
+            
+        x_expression = [dl.Expression(x_str_i, degree=2) for x_str_i in x_str]
+        x_expression_sum = dl.Expression(x_str_sum, degree=2)
+
+        x_true_sum = dl.interpolate(x_expression_sum, Vh).vector()
+        
+        x     = dl.interpolate(x_expression[self.collective.rank()], Vh).vector()
         x_sum = self.collective.allReduce(x,'sum')
         
-        diff1 = x_sum - float(self.mpi_size)*x_ref
-        assert_allclose( [diff1.norm("l2")], [0.])
+        diff1 = x_sum - x_true_sum
+        assert_allclose( [diff1.norm("l2")], [0.], rtol=1e-7, atol=1e-12)
         # x must be overwritten
-        diff2 = x - float(self.mpi_size)*x_ref
-        assert_allclose( [diff2.norm("l2")], [0.])
+        diff2 = x - x_true_sum
+        assert_allclose( [diff2.norm("l2")], [0.], rtol=1e-7, atol=1e-12)
         
-        x     = dl.interpolate(dl.Constant(1.), Vh).vector()
+        x     = dl.interpolate(x_expression[self.collective.rank()], Vh).vector()
         x_avg = self.collective.allReduce(x,'avg')
         
-        diff1 = x_avg - x_ref
-        assert_allclose( [diff1.norm("l2")], [0.])
+        x_true_avg = x_true_sum.copy()
+        x_true_avg *= 1./float(self.collective.size())
+        
+        diff1 = x_avg - x_true_avg
+        assert_allclose( [diff1.norm("l2")], [0.], rtol=1e-7, atol=1e-12)
         # x must be overwritten
-        diff2 = x - x_ref
-        assert_allclose( [diff2.norm("l2")], [0.])
+        diff2 = x - x_true_avg
+        assert_allclose( [diff2.norm("l2")], [0.], rtol=1e-7, atol=1e-12)
 
         # test bcast
-        x     = dl.interpolate(dl.Constant(1.), Vh).vector()
-        if self.mpi_rank == 0:
-            pass
-        else:
-            x.set_local(np.zeros_like(x.get_local()))
-            x.apply("")
+        x     = dl.interpolate(x_expression[self.collective.rank()], Vh).vector()
+
         x = self.collective.bcast(x,root = 0)
 
-        x_true = dl.interpolate(dl.Constant(1.), Vh).vector()
+        x_true = dl.interpolate(x_expression[0], Vh).vector()
 
         diff = x - x_true
-        assert_allclose( [diff.norm("l2")], [0.])
+        assert_allclose( [diff.norm("l2")], [0.], rtol=1e-7, atol=1e-12)
 
     def testMultiVector(self):
         # test allReduce
@@ -190,6 +198,9 @@ class TestMultipleSerialPDEsCollective(unittest.TestCase):
         for i in range(MV.nvec()):
             diff = MV[i] - MV_ref[i]
             assert_allclose( [diff.norm("l2")], [0.])
+            
+    def checkConsistentPartitioning(self):
+        self.assertTrue(1==1)
 
 class TestMultipleSamePartitioningPDEsCollective(TestMultipleSerialPDEsCollective):
     def setUp(self):
@@ -214,7 +225,7 @@ class TestMultipleSamePartitioningPDEsCollective(TestMultipleSerialPDEsCollectiv
         mesh = dl.UnitSquareMesh(self.mesh_constructor_comm,10, 10)
         consistent_partitioning = checkMeshConsistentPartitioning(mesh,self.collective)
         print('consistent paritioning: ', consistent_partitioning)
-        assert consistent_partitioning
+        self.assertTrue(consistent_partitioning)
 
 
 

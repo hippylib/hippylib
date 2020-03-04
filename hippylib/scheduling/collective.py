@@ -68,7 +68,7 @@ class MultipleSamePartitioningPDEsCollective:
         if op == "sum":
             v[:] = receive
         elif op == "avg":
-            v[:] == (1./float(self.size()))*receive
+            v[:] = (1./float(self.size()))*receive
         else:
             raise NotImplementedError(err_msg)            
         return v
@@ -113,7 +113,7 @@ class MultipleSamePartitioningPDEsCollective:
                 self.allReduce(v[i],op)
             return v
         else:
-            if is_serial_check:
+            if self.is_serial_check:
                 msg = "MultipleSerialPDEsCollective.allReduce not implement for v of type {0}".format(type(v))
             else:
                 msg = "MultipleSamePartitioningPDEsCollective.allReduce not implement for v of type {0}".format(type(v))

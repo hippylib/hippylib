@@ -15,7 +15,6 @@
 
 import dolfin as dl
 import numpy as np
-from numpy.testing import assert_allclose
 from mpi4py import MPI
 
 def splitCommunicators(comm_world, n_subdomain, n_instances):
@@ -34,21 +33,24 @@ def splitCommunicators(comm_world, n_subdomain, n_instances):
 
 
 def checkFunctionSpaceConsistentPartitioning(Vh, collective):
-    v = dl.interpolate(dl.Constant(float(collective.rank)),Vh)
-    if collective.rank == 0:
-        root_v = dl.interpolate(dl.Constant(float(mesh.comm.rank)),Vh)
+    v = dl.interpolate(dl.Constant(float(Vh.mesh().mpi_comm().rank)),Vh)
+    if collective.rank() == 0:
+        root_v = dl.interpolate(dl.Constant(float(Vh.mesh().mpi_comm().rank)),Vh)
     else:
         root_v = dl.interpolate(dl.Constant(0.),Vh)
     collective.bcast(root_v.vector(),root = 0)
-    diff = v - root_v
+    diff = v.vector() - root_v.vector()
     tests_passed_here = diff.norm("l2") < 1e-10
     tests_passed_everywhere = False
-    dl.MPI.comm_world.allReduce([tests_passed_here, MPI.BOOL], [tests_passed_everywhere,MPI.BOOL] , op = MPI.LAND)
+    tests_passed_everywhere = dl.MPI.comm_world.allreduce(tests_passed_here, op = MPI.LAND)
     return tests_passed_everywhere
 
 def checkMeshConsistentPartitioning(mesh, collective):
-    t1 = checkFunctionSpaceConsistentPartitioning(dl.FunctionSpace(mesh,"DG", 0), collective)
-    t2 = checkFunctionSpaceConsistentPartitioning(dl.FunctionSpace(mesh,"CG", 1), collective)
+    V1 = dl.FunctionSpace(mesh,"DG", 0)
+    t1 = checkFunctionSpaceConsistentPartitioning(V1 , collective)
+    
+    V2 = dl.FunctionSpace(mesh,"CG", 1)
+    t2 = checkFunctionSpaceConsistentPartitioning(V2, collective)
     return t1 and t2
 
 

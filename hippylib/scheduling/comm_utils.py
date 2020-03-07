@@ -25,8 +25,8 @@ def splitCommunicators(comm_world, n_subdomain, n_instances):
     # to instances and columns correspond to mesh subdomain collectives accross 
     # different samples. Color corresponds to row index, and key corresponds to 
     # column index as is customary. 
-    color = np.floor(mpi_rank/n_instances)
-    key = np.remainder(mpi_rank,n_instances) 
+    color = np.floor(mpi_rank/n_subdomain)
+    key = np.remainder(mpi_rank,n_subdomain) 
     mesh_constructor_comm = comm_world.Split(color = color,key = key)
     collective_comm = comm_world.Split(color = key,key = color)
     return mesh_constructor_comm, collective_comm

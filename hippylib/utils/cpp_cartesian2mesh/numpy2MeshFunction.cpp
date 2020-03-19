@@ -58,6 +58,7 @@ void numpy2MeshFunction2D(dl::Mesh & mesh,
 						dl::MeshFunction<std::size_t> & mfun)
 {
 	int i,j;
+
 	auto dd = data.unchecked<2>();
 
 	const int i_max = data.shape(0);

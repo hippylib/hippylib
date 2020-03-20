@@ -17,7 +17,7 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
 Development version
 -------------------
-- Introduce utilities to interpolate from cartesian data (expressed as `numpy arrays`) on a `dolfin` mesh. 
+- Introduce utilities to interpolate cartesian data (expressed as `numpy arrays`) on a `dolfin` mesh. 
 
 Version 3.0.0, released on Feb 2, 2020
 ---------------------------------------- 

@@ -188,21 +188,30 @@ def estimate_diagonal_inv2(Asolver, k, d):
         Applied Numerical Mathematics, 57 (2007), pp. 1214-1229.`
     """
     x, b = dl.Vector(d.mpi_comm()), dl.Vector(d.mpi_comm())
+    num, den = dl.Vector(d.mpi_comm()), dl.Vector(d.mpi_comm())
     
     if hasattr(Asolver, "init_vector"):
         Asolver.init_vector(x,1)
         Asolver.init_vector(b,0)
+        Asolver.init_vector(num,0)
+        Asolver.init_vector(den,0)
     else:       
         Asolver.get_operator().init_vector(x,1)
         Asolver.get_operator().init_vector(b,0)
+        Asolver.get_operator().init_vector(num,1)
+        Asolver.get_operator().init_vector(den,0)
         
-    d.zero()
     for i in range(k):
         x.zero()
         parRandom.normal(1., b)
         Asolver.solve(x,b)
         x *= b
-        d.axpy(1./float(k), x)
+        num.axpy(1./float(k), x)
+        b *= b
+        den.axpy(1./float(k), b)
+        
+    d.set_local(num.get_local()/den.get_local())
+    d.apply("")
         
 class DiagonalOperator:
     def __init__(self, d):

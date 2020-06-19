@@ -236,6 +236,10 @@ constraint on jobs.
 
 - Contact the hIPPYlib team by posting to the [GitHub issue tracker](https://github.com/hippylib/hippylib/issues).
   Please perform a search to make sure your question has not been answered already.
+  
+## Slack channel
+
+The hIPPYlib slack channel is a good resource to request and receive help with using hIPPYlib. Everyone is invited to read and take part in discussions. Discussions about development of new features in hIPPYlib also take place here. You can join our Slack community by filling in [this form](https://forms.gle/w8B7uKSXxdVCmfZ99). 
 
 ## [Developer's Certificate of Origin 1.1](https://developercertificate.org/)
 

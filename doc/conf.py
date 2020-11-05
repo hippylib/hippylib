@@ -16,7 +16,7 @@ import os
 import sys
 sys.path.insert(0, os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'hippylib'))
 sys.path.insert(0, os.path.abspath('..'))
-autodoc_mock_imports = ["dolfin", "matplotlib", "ffc", "petsc4py", "mpi4py", "scipy", "numpy"]
+autodoc_mock_imports = ["dolfin", "ufl", "matplotlib", "ffc", "petsc4py", "mpi4py", "scipy", "numpy"]
 autodoc_default_flags = ['members', 'private-members', 'undoc-members']
 autoclass_content = 'both'
 

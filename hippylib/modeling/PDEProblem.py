@@ -129,7 +129,10 @@ class PDEVariationalProblem(PDEProblem):
         self.solver_adj_inc = None
         
         self.is_fwd_linear = is_fwd_linear
-        
+        self.n_calls = {"forward": 0,
+                        "adjoint":0 ,
+                        "incremental_forward":0,
+                        "incremental_adjoint":0}
     def generate_state(self):
         """ Return a vector in the shape of the state. """
         return dl.Function(self.Vh[STATE]).vector()
@@ -148,6 +151,7 @@ class PDEVariationalProblem(PDEProblem):
         Given :math:`m`, find :math:`u` such that
         
             .. math:: \\delta_p F(u, m, p;\\hat{p}) = 0,\\quad \\forall \\hat{p}."""
+        self.n_calls["forward"] += 1
         if self.solver is None:
             self.solver = self._createLUSolver()
         if self.is_fwd_linear:
@@ -175,6 +179,7 @@ class PDEVariationalProblem(PDEProblem):
             
                 .. math:: \\delta_u F(u, m, p;\\hat{u}) = 0, \\quad \\forall \\hat{u}.
         """
+        self.n_calls["adjoint"] += 1
         if self.solver is None:
             self.solver = self._createLUSolver()
             
@@ -255,8 +260,10 @@ class PDEVariationalProblem(PDEProblem):
                 .. math:: \\delta_{up} F(u, m, p; \\hat{u}, \\tilde{p}) = \\mbox{rhs},\\quad \\forall \\hat{u}.
         """
         if is_adj:
+            self.n_calls["incremental_adjoint"] += 1
             self.solver_adj_inc.solve(out, rhs)
         else:
+            self.n_calls["incremental_forward"] += 1
             self.solver_fwd_inc.solve(out, rhs)
     
     def apply_ij(self,i,j, dir, out):   

@@ -91,7 +91,7 @@ setup(
     package_data={
         'hippylib': [
             'utils/cpp_rand/*.cpp', 'utils/cpp_rand/*.h',
-            'utils/cartesian2mesh/*.cpp',
+            'utils/cpp_cartesian2mesh/*.cpp',
             'modeling/cpp_AssemblePointwiseObservation/*.cpp', 'modeling/cpp_AssemblePointwiseObservation/*.h',
             'algorithms/cpp_multivector/*.cpp', 'algorithms/cpp_multivector/*.hpp',
         ],

@@ -26,26 +26,8 @@ sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
 from hippylib import *
 
             
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Marginal Variance Estimation')
-    parser.add_argument('--nx',
-                        default=128,
-                        type=int,
-                        help="Number of elements in x-direction")
-    parser.add_argument('--ny',
-                        default=128,
-                        type=int,
-                        help="Number of elements in y-direction")
-
-    args = parser.parse_args()
-    try:
-        dl.set_log_active(False)
-    except:
-        pass
-    sep = "\n"+"#"*80+"\n"
+def run(nx, ny, nvs):
     ndim = 2
-    nx = args.nx
-    ny = args.ny
     mesh = dl.UnitSquareMesh(nx, ny)
     
     rank = dl.MPI.rank(mesh.mpi_comm())
@@ -76,39 +58,44 @@ if __name__ == "__main__":
     
     norm = pr_pw_variance_exact.norm("l2")
     print(norm)
-    
-    nvs = np.array([int(2**i) for i in range(int( math.log2(nx*ny) ))], dtype=np.int)
-    
-    data  = np.zeros((nvs.shape[0], 4), dtype=np.float64)
-    data[:,0] = nvs
-
-    
+        
+    data  = np.zeros((nvs.shape[0],), dtype=np.float64)
+         
     for i in np.arange(nvs.shape[0]):
         nv = nvs[i]
-        pr_pw_variance_1 = prior.pointwise_variance(method="Estimator", k=nv, estimator_distribution='rademacher')
-        pr_pw_variance_1.axpy(-1., pr_pw_variance_exact)
-        err = pr_pw_variance_1.norm("l2")
-        data[i, 1] = err/norm
-            
-    for i in np.arange(nvs.shape[0]):
-        nv = nvs[i]
-        pr_pw_variance_1 = prior.pointwise_variance(method="Estimator", k=nv, estimator_distribution='normal')
-        pr_pw_variance_1.axpy(-1., pr_pw_variance_exact)
-        err = pr_pw_variance_1.norm("l2")
-        data[i, 2] = err/norm
-            
-    for i in np.arange(nvs.shape[0]):
-        nv = nvs[i]
-        pr_pw_variance_2 = prior.pointwise_variance(method="Randomized", r=nv//2)
+        pr_pw_variance_2 = prior.pointwise_variance(method="Randomized", r=nv)
         pr_pw_variance_2.axpy(-1., pr_pw_variance_exact)
         err = pr_pw_variance_2.norm("l2")
-        data[i, 3] = err/norm
+        data[i] = err/norm
+        
+    return data, ndofs
             
-    np.savetxt('data_cov_estimation.txt', data, header='nv err_rademacher err_gaussian err_ours')
+
     
-    plt.loglog(data[:,0], data[:,1], '-b', label='Rademacher')
-    plt.loglog(data[:,0], data[:,2], '-r', label='Gaussian')
-    plt.loglog(data[:,0], data[:,3], '-g', label='Our')
+if __name__ == "__main__":
+    try:
+        dl.set_log_active(False)
+    except:
+        pass
+    sep = "\n"+"#"*80+"\n"
+    
+    nvs = np.array([32, 64, 128], dtype=np.int)
+    nx  = np.array([32, 64, 128, 256], dtype=np.int)
+    
+    data = np.zeros((nx.shape[0], nvs.shape[0]+1), dtype=np.float64)
+    
+    for i in np.arange(nx.shape[0]):
+        
+        out, ndofs = run(nx[i], nx[i], nvs)
+        data[i,0] = ndofs
+        data[i, 1:] = out[:]
+        
+    
+    np.savetxt('data_cov_estimation_scaling.txt', data, header='ndofs err_32 err_64 err_128')
+    
+    plt.loglog(data[:,0], data[:,1], '-b', label='bar{r} = 32')
+    plt.loglog(data[:,0], data[:,2], '-r', label='bar{r} = 64')
+    plt.loglog(data[:,0], data[:,3], '-g', label='bar{r} = 128')
     plt.legend()
     plt.show()
     

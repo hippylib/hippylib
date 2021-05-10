@@ -104,7 +104,7 @@ class _Prior:
         else:
             raise NameError("Unknown method")
         
-    def pointwise_variance(self, method, k = 1000000, r = 200, p=10):
+    def pointwise_variance(self, method, k = 1000000, r = 200, p=10, estimator_distribution='rademacher'):
         """
         Compute/estimate the prior pointwise variance.
         
@@ -116,7 +116,7 @@ class _Prior:
         if method == "Exact":
             get_diagonal(Solver2Operator(self.Rsolver, init_vector=self.init_vector), pw_var)
         elif method == "Estimator":
-            estimate_diagonal_inv2(self.Rsolver, k, pw_var)
+            estimate_diagonal_inv2(self.Rsolver, k, pw_var, estimator_distribution)
         elif method == "Randomized":
             Omega = MultiVector(pw_var, r+p)
             parRandom.normal(1., Omega)

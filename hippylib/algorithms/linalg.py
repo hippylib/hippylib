@@ -172,7 +172,7 @@ def get_diagonal(A, d):
 
     
 
-def estimate_diagonal_inv2(Asolver, k, d):
+def estimate_diagonal_inv2(Asolver, k, d, distribution='rademacher'):
     """
     An unbiased stochastic estimator for the diagonal of :math:`A^{-1}`.
     :math:`d = [ \sum_{j=1}^k v_j .* A^{-1} v_j ] ./ [ \sum_{j=1}^k v_j .* v_j ]`
@@ -201,9 +201,16 @@ def estimate_diagonal_inv2(Asolver, k, d):
         Asolver.get_operator().init_vector(num,1)
         Asolver.get_operator().init_vector(den,0)
         
+    if distribution == 'rademacher':
+        sampler = parRandom.rademacher
+    elif distribution == 'normal':
+        sampler = lambda x: parRandom.normal(1, x)
+    else:
+        raise distribution
+        
     for i in range(k):
         x.zero()
-        parRandom.normal(1., b)
+        sampler(b)
         Asolver.solve(x,b)
         x *= b
         num.axpy(1./float(k), x)

@@ -32,9 +32,6 @@ else:
     if not has_linear_algebra_backend("PETSc"):
         raise Exception(
             'hIPPYlib requires FEniCS to be installed with PETSc support')
-    if not has_slepc():
-        raise Exception(
-            'hIPPYlib requires FEniCS to be installed with SLEPc support')
     
 
 here = path.abspath(path.dirname(__file__))

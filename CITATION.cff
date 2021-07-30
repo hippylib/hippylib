@@ -14,7 +14,7 @@ date-released: 2020-02-02
 url: "https://github.com/hippylib/hippylib"
 references:
   - type: article
-  authors:
+    authors:
     - family-names: "Villa"
       given-names: "Umberto"
     - family-names: "Petra"

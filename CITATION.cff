@@ -14,16 +14,16 @@ date-released: 2020-02-02
 url: "https://github.com/hippylib/hippylib"
 references:
   - type: article
-  authors:
-  - family-names: "Villa"
-    given-names: "Umberto"
-  - family-names: "Petra"
-    given-names: "Noemi"
-  - family-names: "Ghattas"
-    given-names: "Omar"
-  title: "hIPPYlib: An Extensible Software Framework for Large-Scale Inverse Problems Governed by PDEs; Part I: Deterministic Inversion and Linearized Bayesian Inference"
-  journal: "ACM Trans. Math. Softw."
-  volume: 47
-  issue: 2
-  year: 2021
-  doi: 10.1145/3428447
+    authors:
+    - family-names: "Villa"
+      given-names: "Umberto"
+    - family-names: "Petra"
+      given-names: "Noemi"
+    - family-names: "Ghattas"
+      given-names: "Omar"
+    title: "hIPPYlib: An Extensible Software Framework for Large-Scale Inverse Problems Governed by PDEs; Part I: Deterministic Inversion and Linearized Bayesian Inference"
+    journal: "ACM Trans. Math. Softw."
+    volume: 47
+    issue: 2
+    year: 2021
+    doi: 10.1145/3428447

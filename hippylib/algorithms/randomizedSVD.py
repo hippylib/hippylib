@@ -79,7 +79,7 @@ def accuracyEnhancedSVD(A,Omega,k,s=1,check=False):
     R_Bt = Q_Bt.orthogonalize()
 
     V_hat,sigma,U_hat = np.linalg.svd(R_Bt,full_matrices = False) 
-
+    U_hat = U_hat.T
     # Select the first k columns
     U_hat = U_hat[:,:k]
     sigma = sigma[:k]
@@ -148,7 +148,7 @@ def singlePassSVD(A,Omega_c,Omega_r,k,check=False):
     assert sylvester_error < 1e-4, 'Issue with sylvester solver'
 
     U_hat,sigma,V_hat = np.linalg.svd(C,full_matrices = False) 
-
+    V_hat = V_hat.T
     # Select the first k columns
     U_hat = U_hat[:,:k]
     sigma = sigma[:k]

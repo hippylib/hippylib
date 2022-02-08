@@ -140,12 +140,41 @@ class TestRandomizedSVD(unittest.TestCase):
 
         assert err_Uortho < 1e-8
         assert err_Vortho < 1e-8
-        assert np.all(r_1 < np.maximum( 5e-2,0.1*self.sigma))
-        assert np.all(r_2 < np.maximum( 5e-2,0.1*self.sigma))
+        assert np.all(r_1 < np.maximum( 1e-8,0.1*self.sigma))
+        assert np.all(r_2 < np.maximum( 1e-8,0.1*self.sigma))
             
     def testSinglePassSVD(self):
         # Only check execution at this time
         U, sigma, V = singlePassSVD(self.J,self.Omega,self.Omega_adj,self.k_evec)
+        assert np.all(self.sigma>0)
+        
+        UtU = self.U.dot_mv(self.U)
+        err = UtU - np.eye(UtU.shape[0], dtype=UtU.dtype)
+        err_Uortho = np.linalg.norm(err, 'fro')
+
+        VtV = self.V.dot_mv(self.V)
+        err = VtV - np.eye(VtV.shape[0], dtype=VtV.dtype)
+        err_Vortho = np.linalg.norm(err, 'fro')
+            
+        nvec  = self.U.nvec()
+        AV = MultiVector(self.U[0], nvec)
+        MatMvMult(self.J, self.V, AV)
+        UtAV = np.diag(AV.dot_mv(self.U))
+        r_1 = np.zeros_like(self.sigma)
+
+        AtU = MultiVector(self.V[0], nvec)
+        MatMvTranspmult(self.J, self.U, AtU)
+        VtAtU = np.diag(AtU.dot_mv(self.V))
+        r_2 = np.zeros_like(self.sigma)
+
+        for i,sigma_i in enumerate(self.sigma):
+            r_1[i] = np.abs(UtAV[i] - sigma_i)
+            r_2[i] = np.abs(VtAtU[i] - sigma_i)
+
+        assert err_Uortho < 1e-8
+        assert err_Vortho < 1e-8
+        assert np.all(r_1 < np.maximum( 1e-8,0.1*self.sigma))
+        assert np.all(r_2 < np.maximum( 1e-8,0.1*self.sigma))
 
         
 

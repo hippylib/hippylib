@@ -19,6 +19,8 @@ import numpy as np
 import scipy.linalg as scila
 import math
 
+import numbers
+
 from ..algorithms.linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2, Solver2Operator, Operator2Solver
 from ..algorithms.linSolvers import PETScKrylovSolver
 from ..algorithms.traceEstimator import TraceEstimator
@@ -319,7 +321,24 @@ class _BilaplacianRsolver():
         self.M.mult(self.help1, self.help2)
         nit += self.Asolver.solve(x, self.help2)
         return nit
+
+
+def BiLaplacianComputeCoefficients(sigma2, rho, ndim):
+    """
+    This class is responsible to compute the parameters gamma and delta
+    for the BiLaplacianPrior given the marginal variance sigma2 and 
+    correlation length rho. ndim is the dimension of the domain 2D or 3D
+    """
+        
+    nu = 2. - 0.5*ndim
+    kappa = np.sqrt(8*nu)/rho
     
+    s = np.sqrt(sigma2)*np.power(kappa,nu)*np.sqrt(np.power(4.*np.pi, 0.5*ndim)/math.gamma(nu) )
+    
+    gamma = 1./s
+    delta = np.power(kappa,2)/s
+    
+    return gamma, delta
     
 class SqrtPrecisionPDE_Prior(_Prior):
     """
@@ -442,14 +461,18 @@ def BiLaplacianPrior(Vh, gamma, delta, Theta = None, mean=None, rel_tol=1e-12, m
     Input:
 
     - :code:`Vh`:              the finite element space for the parameter
-    - :code:`gamma` and :code:`delta`: the coefficient in the PDE
+    - :code:`gamma` and :code:`delta`: the coefficient in the PDE (floats, dl.Constant, dl.Expression, or dl.Function)
     - :code:`Theta`:           the SPD tensor for anisotropic diffusion of the PDE
     - :code:`mean`:            the prior mean
     - :code:`rel_tol`:         relative tolerance for solving linear systems involving covariance matrix
     - :code:`max_iter`:        maximum number of iterations for solving linear systems involving covariance matrix
     - :code:`robin_bc`:        whether to use Robin boundary condition to remove boundary artifacts
     """
-    assert delta != 0., "Intrinsic Gaussian Prior are not supported"
+    if isinstance(gamma, numbers.Number):
+        gamma = dl.Constant(gamma)
+        
+    if isinstance(delta, numbers.Number):
+        delta = dl.Constant(delta)
 
     
     def sqrt_precision_varf_handler(trial, test): 
@@ -463,11 +486,11 @@ def BiLaplacianPrior(Vh, gamma, delta, Theta = None, mean=None, rel_tol=1e-12, m
         varf_robin = ufl.inner(trial,test)*ufl.ds
         
         if robin_bc:
-            robin_coeff = gamma*np.sqrt(delta/gamma)/1.42
+            robin_coeff = gamma*ufl.sqrt(delta/gamma)/dl.Constant(1.42)
         else:
-            robin_coeff = 0.
+            robin_coeff = dl.Constant(0.)
         
-        return dl.Constant(gamma)*varfL + dl.Constant(delta)*varfM + dl.Constant(robin_coeff)*varf_robin
+        return gamma*varfL + delta*varfM + robin_coeff*varf_robin
     
     return SqrtPrecisionPDE_Prior(Vh, sqrt_precision_varf_handler, mean, rel_tol, max_iter)
 

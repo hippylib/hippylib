@@ -17,6 +17,9 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
 Development version
 -------------------
+- Introduce a new function `BiLaplacianComputeCoefficients` to estimate the PDE coefficient from the
+  prescribed marginal variance and correlation length
+- Allow `BiLaplacianPrior` to take spatially varying coefficients as input
 - Introduce utilities to interpolate cartesian data (expressed as `numpy arrays`) on a `dolfin` mesh. 
 
 Version 3.0.0, released on Feb 2, 2020

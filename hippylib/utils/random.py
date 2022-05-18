@@ -96,6 +96,20 @@ class Random(cpp_module.Random):
         elif type( dl.as_backend_type(out) ) is dl.PETScVector:
             super(Random, self).normal(out, sigma, False)
             
+    def speckle(self,M, out):
+        """
+        Add a normal perturbation to a Vector/MultiVector.
+        """
+        if hasattr(out, "nvec"):  #out is MultiVector
+            for i in range(out.nvec()):
+                super(Random, self).gamma(out[i], M, 1./M, False)
+        elif hasattr(out, "nsteps"):  #out is TimeDependentVector
+            for i in range(out.nsteps):
+                super(Random, self).gamma(out.data[i], M, 1./M, False)
+            return None
+        elif type( dl.as_backend_type(out) ) is dl.PETScVector:
+            super(Random, self).gamma(out, M, 1./M, False)
+            
     def rademacher(self, out=None):
         """
         Sample from Rademacher distribution.

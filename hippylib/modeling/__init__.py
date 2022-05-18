@@ -21,7 +21,7 @@ from .timeDependentVector import TimeDependentVector
 
 from .PDEProblem import PDEProblem, PDEVariationalProblem
 from .prior import _Prior, LaplacianPrior, SqrtPrecisionPDE_Prior, BiLaplacianPrior, MollifiedBiLaplacianPrior, GaussianRealPrior
-from .misfit import Misfit, ContinuousStateObservation, PointwiseStateObservation, MultiStateMisfit
+from .misfit import Misfit, ContinuousStateObservation, PointwiseStateObservation, MultiStateMisfit, MultPointwiseStateObservation
 from .model import Model
 from .modelVerify import modelVerify
 from .reducedHessian import ReducedHessian, FDHessian

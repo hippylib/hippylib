@@ -16,6 +16,9 @@ void numpy2MeshFunction3D(dl::Mesh & mesh,
 						double h_x,
 						double h_y,
 						double h_z,
+						double o_x,
+						double o_y,
+						double o_z,
 						py::array_t<uint> & data,
 						dl::MeshFunction<std::size_t> & mfun)
 {
@@ -29,9 +32,9 @@ void numpy2MeshFunction3D(dl::Mesh & mesh,
 	for (dl::CellIterator cell(mesh); !cell.end(); ++cell)
 	{
 		dl::Point p = cell->midpoint();
-        i = int(std::floor(p.x()/h_x));
-        j = int(std::floor(p.y()/h_y));
-        k = int(std::floor(p.z()/h_z));
+        i = int(std::floor( (p.x()-o_x)/h_x));
+        j = int(std::floor( (p.y()-o_y)/h_y));
+        k = int(std::floor( (p.z()-o_z)/h_z));
 
         if(i<0)
         	i=0;
@@ -54,6 +57,8 @@ void numpy2MeshFunction3D(dl::Mesh & mesh,
 void numpy2MeshFunction2D(dl::Mesh & mesh,
 						double h_x,
 						double h_y,
+						double o_x,
+						double o_y,
 						py::array_t<uint> & data,
 						dl::MeshFunction<std::size_t> & mfun)
 {
@@ -67,8 +72,8 @@ void numpy2MeshFunction2D(dl::Mesh & mesh,
 	for (dl::CellIterator cell(mesh); !cell.end(); ++cell)
 	{
 		dl::Point p = cell->midpoint();
-        i = int(std::floor(p.x()/h_x));
-        j = int(std::floor(p.y()/h_y));
+        i = int(std::floor( (p.x()-o_x)/h_x));
+        j = int(std::floor( (p.y()-o_y)/h_y));
 
         if(i<0)
         	i=0;
@@ -85,6 +90,7 @@ void numpy2MeshFunction2D(dl::Mesh & mesh,
 
 void numpy2MeshFunction1D(dl::Mesh & mesh,
 						double h,
+						double offset,
 						py::array_t<uint> & data,
 						dl::MeshFunction<std::size_t> & mfun)
 {
@@ -95,7 +101,7 @@ void numpy2MeshFunction1D(dl::Mesh & mesh,
 	for (dl::CellIterator cell(mesh); !cell.end(); ++cell)
 	{
 		dl::Point p = cell->midpoint();
-        i = int(std::floor(p.x()/h));
+        i = int(std::floor( (p.x() - offset)/h));
 
         if(i<0)
         	i=0;
@@ -113,9 +119,25 @@ void numpy2MeshFunction(dl::Mesh & mesh,
 {
 	auto hh = h.unchecked<1>();
 	if(mesh.geometry().dim() == 3)
-		numpy2MeshFunction3D(mesh, hh(0), hh(1), hh(2), data, mfun);
+		numpy2MeshFunction3D(mesh, hh(0), hh(1), hh(2), 0., 0., 0., data, mfun);
 	else if (mesh.geometry().dim() == 2)
-		numpy2MeshFunction2D(mesh, hh(0), hh(1), data, mfun);
+		numpy2MeshFunction2D(mesh, hh(0), hh(1), 0., 0., data, mfun);
 	else
-		numpy2MeshFunction1D(mesh, hh(0), data, mfun);
+		numpy2MeshFunction1D(mesh, hh(0), 0., data, mfun);
+}
+
+void numpy2MeshFunction_with_offsets(dl::Mesh & mesh,
+						py::array_t<double> & h,
+						py::array_t<double> & offsets,
+						py::array_t<uint> & data,
+						dl::MeshFunction<std::size_t> & mfun)
+{
+	auto hh = h.unchecked<1>();
+	auto oo = offsets.unchecked<1>();
+	if(mesh.geometry().dim() == 3)
+		numpy2MeshFunction3D(mesh, hh(0), hh(1), hh(2), oo(0), oo(1), oo(2), data, mfun);
+	else if (mesh.geometry().dim() == 2)
+		numpy2MeshFunction2D(mesh, hh(0), hh(1), oo(0), oo(1), data, mfun);
+	else
+		numpy2MeshFunction1D(mesh, hh(0), oo(0), data, mfun);
 }

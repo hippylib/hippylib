@@ -24,6 +24,9 @@ class NullCollective:
     def __init__(self):
         pass
     
+    def bcast(self, v, root=0):
+        return 
+        
     def size(self):
         return 1
     

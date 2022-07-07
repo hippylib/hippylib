@@ -7,6 +7,14 @@ PYBIND11_MODULE(SIGNATURE, m)
 		  py::arg("data"),
 		  py::arg("mfun"));
 
+	m.def("numpy2MeshFunction",  &numpy2MeshFunction_with_offsets,
+		  "Convert an ND numpy array to MeshFunction",
+		  py::arg("mesh"),
+		  py::arg("h"),
+		  py::arg("offsets"),
+		  py::arg("data"),
+		  py::arg("mfun"));
+
     py::class_<NumpyScalarExpression3D, std::shared_ptr<NumpyScalarExpression3D>, dolfin::Expression>
     (m, "NumpyScalarExpression3D")
     .def(py::init<>(),"Interpolate a 3D numpy array on the mesh - trilinear interpolation")

@@ -47,6 +47,16 @@ double Random::normal(double mu, double sigma)
 	return mu + sigma*z;
 }
 
+double Random::gamma(double alpha, double beta)
+{
+	/*
+	 * The Gamma distribution can be interpreted as the aggregation of alpha exponential distributions,
+	 * each with beta as parameter.
+	 */
+	std::gamma_distribution<double> d_gamma(alpha,beta);
+	return d_gamma(eng);
+}
+
 double Random::rademacher()
 {
 	bool val = d_bernoulli( eng );
@@ -93,6 +103,33 @@ void Random::normal(dolfin::GenericVector & v, double sigma, bool zero_out)
 	VecRestoreArray(vv, &data);
 }
 
+void Random::gamma(dolfin::GenericVector & v, double alpha, double beta, bool dont_speckle)
+{
+	dolfin::PETScVector* vec = &dolfin::as_type<dolfin::PETScVector>(v);
+	Vec vv = vec->vec();
+
+	PetscInt local_size;
+	VecGetLocalSize(vv, &local_size);
+
+	PetscScalar *data = NULL;
+	VecGetArray(vv, &data);
+
+	std::gamma_distribution<double> d_gamma(alpha,beta);
+
+	if(dont_speckle)
+	{
+	for(PetscInt i = 0; i < local_size; ++i)
+		data[i] = d_gamma( eng );
+	}
+	else
+	{
+	for(PetscInt i = 0; i < local_size; ++i)
+		data[i] *= d_gamma( eng );
+	}
+
+	VecRestoreArray(vv, &data);
+}
+
 void Random::rademacher(dolfin::GenericVector & v)
 {
 	dolfin::PETScVector* vec = &dolfin::as_type<dolfin::PETScVector>(v);
@@ -135,6 +172,14 @@ PYBIND11_MODULE(SIGNATURE, m) {
 		.def("normal", (void (hippylib::Random::*)(dolfin::GenericVector &, double, bool)) &hippylib::Random::normal,
 			"Generate a random vector from N(0, sigma2)",
 			py::arg("out"), py::arg("sigma"), py::arg("zero_out"))
+		.def("gamma", (double (hippylib::Random::*)(double, double)) &hippylib::Random::gamma,
+			 "Generate a sample from Gamma(alpha, beta). The Gamma distribution can be interpreted as"
+			 "the aggregation of alpha exponential distributions, each with beta as parameter.",
+			 py::arg("alpha"), py::arg("beta"))
+		.def("gamma", (void (hippylib::Random::*)(dolfin::GenericVector &, double, double, bool)) &hippylib::Random::gamma,
+			 "Generate a random vector from Gamma(alpha, beta). The Gamma distribution can be interpreted as"
+			 "the aggregation of alpha exponential distributions, each with beta as parameter.",
+			 py::arg("out"), py::arg("alpha"), py::arg("beta"), py::arg("dont_speckle"))
 		.def("rademacher", (double (hippylib::Random::*)(void)) &hippylib::Random::rademacher,
 			"Generate a sample from Rademacher distribution")
 		.def("rademacher", (void (hippylib::Random::*)(dolfin::GenericVector &)) &hippylib::Random::rademacher,

@@ -129,10 +129,12 @@ public:
 	void split(int _rank, int _nproc, int _block_size);
 	double uniform(double a, double b);
 	double normal(double mu, double sigma);
+	double gamma(double alpha, double beta);
 	double rademacher();
 
 	void uniform(dolfin::GenericVector & v, double a, double b);
 	void normal(dolfin::GenericVector & v, double sigma, bool zero_out);
+	void gamma(dolfin::GenericVector & v, double alpha, double beta, bool dont_speckle);
 	void rademacher(dolfin::GenericVector & v);
 
 private:

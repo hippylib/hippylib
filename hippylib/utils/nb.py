@@ -174,7 +174,7 @@ def show_solution(Vh, ic, state, same_colorbar=True, colorbar=True, mytitle=None
     """
     state.store(ic, 0)
     assert len(times) % 3 == 0
-    nrows = len(times) / 3
+    nrows = int(len(times) / 3)
     subplot_loc = nrows*100 + 30
     plt.figure(figsize=(18,4*nrows))
     
@@ -268,7 +268,7 @@ def plot_eigenvectors(Vh, U, mytitle, which = [0,1,2,5,10,15], cmap = None):
     Plot specified vectors in a :code:MultiVector
     """
     assert len(which) % 3 == 0
-    nrows = len(which) / 3
+    nrows = int(len(which) / 3)
     subplot_loc = nrows*100 + 30
     plt.figure(figsize=(18,4*nrows))
     

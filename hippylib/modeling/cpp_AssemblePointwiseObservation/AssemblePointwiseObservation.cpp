@@ -48,7 +48,7 @@ PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 	 points.reserve(nTargets);
 	 LG.reserve(nTargets);
 	 std::vector<int> tmp(nTargets);
-	 for(int i = 0; i < nTargets; ++i)
+	 for(std::size_t i = 0; i < nTargets; ++i)
 	 {
 		 dolfin::Point p(gdim, targets.data()+i*gdim);
 		 if(bbt->collides_entity(p))
@@ -60,19 +60,21 @@ PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 	 std::vector<int> owner(nTargets);
 	 MPI_Allreduce(tmp.data(), owner.data(), nTargets, MPI_INT, MPI_MIN, comm);
 
-	 for(int i = 0; i < nTargets; ++i)
+	 for(std::size_t i = 0; i < nTargets; ++i)
+	 {
 		 if( owner[i] == rank )
 		 {
 			 LG.push_back(i);
 			 points.push_back( dolfin::Point(gdim, targets.data()+i*gdim) );
 		 }
+	 }
 
 	 PetscInt global_rows;
 	 if(prune_and_sort)
 	 {
 		 std::vector<PetscInt> proc_offset(nprocs+1);
 		 std::fill(proc_offset.begin(), proc_offset.end(), 0);
-		 for(int i = 0; i < nTargets; ++i)
+		 for(std::size_t i = 0; i < nTargets; ++i)
 			 if (owner[i] < nprocs)
 				 ++proc_offset[owner[i]+1];
 
@@ -80,18 +82,27 @@ PetscInt PointwiseObservation::computeLGtargets(MPI_Comm comm,
 		 global_rows = proc_offset[nprocs];
 
 		 old_new.resize(nTargets);
-		 for(int i = 0; i < nTargets; ++i)
+		 for(std::size_t i = 0; i < nTargets; ++i)
 		 {
 			 old_new[i] = proc_offset[owner[i]];
 			 ++proc_offset[owner[i]];
 		 }
 
-		 for(int jj = 0; jj < LG.size(); ++jj)
+		 for(std::size_t jj = 0; jj < LG.size(); ++jj)
 			 LG[jj] = old_new[LG[jj]];
 	 }
 	 else
 	 {
-		 global_rows = nTargets;
+		//If not pruning, points that are not found are assigned to processor 0
+	 	for(std::size_t i = 0; i < nTargets; ++i)
+	 	{
+		 	if( owner[i] == nprocs )
+		 	{
+				if(rank==0)
+					LG.push_back(i);
+		 	}
+	 	}
+		global_rows = nTargets;
 	 }
 
 	 return global_rows;
@@ -134,10 +145,10 @@ PointwiseObservation::PointwiseObservation(const dolfin::FunctionSpace & Vh,
 	 std::vector<dolfin::la_index> LGdofs = dofmap->dofs();
 
 	 PetscInt global_nrows = global_ntargets*value_dim;
-	 PetscInt local_nrows = local_ntargets*value_dim;
+	 PetscInt local_nrows = LGtargets.size()*value_dim;
 	 std::vector<PetscInt> LGrows(local_nrows);
 	 int counter = 0;
-	 for(int lt = 0; lt < local_ntargets; ++lt)
+	 for(int lt = 0; lt < LGtargets.size(); ++lt)
 		 for(int ival = 0; ival < value_dim; ++ival, ++ counter)
 			 LGrows[counter] = LGtargets[lt]*value_dim + ival;
 
@@ -181,7 +192,7 @@ PointwiseObservation::PointwiseObservation(const dolfin::FunctionSpace & Vh,
 		 auto it_col = cols.begin();
 		 for(auto it = cell_dofs.data(); it != cell_dofs.data()+cell_dofs.size(); ++it, ++it_col)
 			 *it_col = dofmap->local_to_global_index(*it);
-		 for(int i = 0; i < sdim; ++i)
+		 for(std::size_t i = 0; i < sdim; ++i)
 			 for(int j = 0; j < value_dim; ++j)
 				 basis_matrix_row_major[i+j*sdim] = basis_matrix[value_dim*i+j];
 

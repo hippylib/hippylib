@@ -15,8 +15,9 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
 
-Development version
+Version 3.1.0, released on Dec 21, 2022
 -------------------
+- Switch to GitHub Actions for CI
 - Introduce a new function `BiLaplacianComputeCoefficients` to estimate the PDE coefficient based on a
   prescribed marginal variance and correlation length
 - Allow `BiLaplacianPrior` to take spatially varying coefficients as input

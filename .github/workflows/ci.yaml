@@ -22,11 +22,11 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v2
         - name: Import hippylib
-          run: python3 -c 'import hippylib' && pwd
+          run: python3 -c 'import hippylib' && pwd && ls
         - name: Unit test
-          run: ./github/workflow/run_unittest.sh
+          run: source ./github/workflow/run_unittest.sh
         - name: Test applications
-          run:  ./github/workflow/run_applications.sh
+          run:  source ./github/workflow/run_applications.sh
         - name: Run notebooks
-          run: ./github/workflow/run_notebooks.sh
+          run: source ./github/workflow/run_notebooks.sh
 

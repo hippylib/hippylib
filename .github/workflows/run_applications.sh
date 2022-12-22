@@ -5,10 +5,9 @@ set -ev
 PYTHON=python3
 export MPLBACKEND=agg
 export hIPPYlibDeprecationWarning=error
-cd /__w/hippylib/hippylib/applications 
 $PYTHON -c 'import hippylib'
 
-cd poisson  && mpirun -n 2 $PYTHON model_continuous_obs.py --nx 32 --ny 32
+cd applications/poisson  && mpirun -n 2 $PYTHON model_continuous_obs.py --nx 32 --ny 32
 cd ../poisson  && mpirun -n 2 $PYTHON model_subsurf.py --nx 32 --ny 32 --nsamples 5
 cd ../ad_diff  && mpirun -n 2 $PYTHON model_ad_diff.py --mesh ad_20.xml
 cd ../mcmc     && mpirun -n 2 $PYTHON model_subsurf.py --nx 32 --ny 32 --nsamples 30

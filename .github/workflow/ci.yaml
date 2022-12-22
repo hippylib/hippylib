@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+   style:
+     runs-on: ubuntu-20.04
+     container:
+       image: quay.io/fenicsproject/stable:2019.1.0.r3
+       options: --user 1001 --privileged
+     name: Hippylib test
+
+     steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+        - name: Import hippylib
+          run: python3 -c 'import hippylib' && pwd
+        - name: Unit test
+          run: ./github/workflow/run_unittest.sh
+        - name: Test applications
+          run:  ./github/workflow/run_applications.sh
+        - name: Run notebooks
+          run: ./github/workflow/run_notebooks.sh
+

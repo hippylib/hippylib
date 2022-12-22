@@ -5,7 +5,7 @@ set -ev
 
 PYTHON=python3
 
-cd /home/fenics/hippylib/hippylib/test
+cd /__w/hippylib/hippylib/hippylib/test
 $PYTHON -m unittest discover -v
 $PYTHON -m unittest discover -v -p 'ptest_*'
 

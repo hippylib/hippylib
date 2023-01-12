@@ -173,8 +173,7 @@ def show_solution(Vh, ic, state, same_colorbar=True, colorbar=True, mytitle=None
     Plot a :code:TimeDependentVector at specified time steps
     """
     state.store(ic, 0)
-    assert len(times) % 3 == 0
-    nrows = int(len(times) / 3)
+    nrows = int(np.ceil(len(times) / 3.))
     subplot_loc = nrows*100 + 30
     plt.figure(figsize=(18,4*nrows))
     
@@ -202,12 +201,11 @@ def show_solution(Vh, ic, state, same_colorbar=True, colorbar=True, mytitle=None
     for i in times:
         try:
             state.retrieve(myu.vector(),i)
+            plot(myu, subplot_loc=(subplot_loc+counter), mytitle=title_stamp.format(i), colorbar=colorbar,
+                logscale=logscale, show_axis=show_axis, vmin=vmin, vmax=vmax, cmap = cmap)
+            counter = counter+1
         except:
             print( "Invalid time: ", i)
-            
-        plot(myu, subplot_loc=(subplot_loc+counter), mytitle=title_stamp.format(i), colorbar=colorbar,
-             logscale=logscale, show_axis=show_axis, vmin=vmin, vmax=vmax, cmap = cmap)
-        counter = counter+1
 
     
         
@@ -267,8 +265,7 @@ def plot_eigenvectors(Vh, U, mytitle, which = [0,1,2,5,10,15], cmap = None):
     """
     Plot specified vectors in a :code:MultiVector
     """
-    assert len(which) % 3 == 0
-    nrows = int(len(which) / 3)
+    nrows = int(np.ceil(len(which) / 3.))
     subplot_loc = nrows*100 + 30
     plt.figure(figsize=(18,4*nrows))
     

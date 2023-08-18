@@ -477,20 +477,20 @@ def BiLaplacianPrior(Vh, gamma, delta, Theta = None, mean=None, rel_tol=1e-12, m
     
     def sqrt_precision_varf_handler(trial, test): 
         if Theta == None:
-            varfL = ufl.inner(ufl.grad(trial), ufl.grad(test))*ufl.dx
+            varfL = gamma*ufl.inner(ufl.grad(trial), ufl.grad(test))*ufl.dx
         else:
-            varfL = ufl.inner( Theta*ufl.grad(trial), ufl.grad(test))*ufl.dx
+            varfL = gamma*ufl.inner( Theta*ufl.grad(trial), ufl.grad(test))*ufl.dx
         
-        varfM = ufl.inner(trial,test)*ufl.dx
-        
-        varf_robin = ufl.inner(trial,test)*ufl.ds
+        varfM = delta*ufl.inner(trial,test)*ufl.dx
         
         if robin_bc:
             robin_coeff = gamma*ufl.sqrt(delta/gamma)/dl.Constant(1.42)
         else:
             robin_coeff = dl.Constant(0.)
+            
+        varf_robin = robin_coeff*ufl.inner(trial,test)*ufl.ds
         
-        return gamma*varfL + delta*varfM + robin_coeff*varf_robin
+        return varfL + varfM + varf_robin
     
     return SqrtPrecisionPDE_Prior(Vh, sqrt_precision_varf_handler, mean, rel_tol, max_iter)
 

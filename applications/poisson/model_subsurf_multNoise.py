@@ -112,8 +112,7 @@ if __name__ == "__main__":
     #targets = np.random.uniform(0.1,0.9, [ntargets, ndim] )
     if rank == 0:
         print ("Number of observation points: {0}".format(ntargets) )
-    Mpar = 1e4
-    misfit = MultPointwiseStateObservation(Vh[STATE], targets, Mpar)
+    B = assemblePointwiseObservation(Vh[STATE], targets)
     
     gamma = .1
     delta = .5
@@ -133,16 +132,14 @@ if __name__ == "__main__":
         print ( "Prior regularization: (delta_x - gamma*Laplacian)^order: delta={0}, gamma={1}, order={2}".format(delta, gamma,2) )   
                 
     #Generate synthetic observations
+    Mpar = 1e4
     utrue = pde.generate_state()
     x = [utrue, mtrue, None]
     pde.solveFwd(x[STATE], x)
-    misfit.B.mult(x[STATE], misfit.d)
-    print(misfit.d.get_local())
-    parRandom.speckle(Mpar, misfit.d)
-    print(misfit.d.get_local())
+    data = B*x[STATE]
+    parRandom.speckle(Mpar, data)
 
-    
-    
+    misfit = MultDiscreteStateObservation(B, data, Mpar)
 
     
     model = Model(pde,prior, misfit)

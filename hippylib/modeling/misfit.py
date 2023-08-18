@@ -18,6 +18,7 @@ import ufl
 from .pointwiseObservation import assemblePointwiseObservation
 from .variables import STATE, PARAMETER
 from ..algorithms.linalg import Transpose
+from ..utils.deprecate import deprecated
 import numpy as np
 
 class Misfit(object):
@@ -60,27 +61,44 @@ class Misfit(object):
         Apply the second variation :math:`\delta_{ij}` (:code:`i,j = STATE,PARAMETER`) of the cost in direction :code:`dir`.
         """
         raise NotImplementedError("Child class should implement method apply_ij")
-        
-class PointwiseStateObservation(Misfit):
+
+
+@deprecated(version="3.1", msg="Use B = assemblePointwiseObservation(Vh, obs_points) followed by DiscreteStateObservation(B, Mpar)")       
+def PointwiseStateObservation(Vh, obs_points):
     """
-    This class implements pointwise state observations at given locations.
-    It assumes that the state variable is a scalar function.
-    """
-    def __init__(self, Vh, obs_points):
-        """
-        Constructor:
+    This function returns an instance of :code:`DiscreteStateObservation` for pointwise state observations at given locations.
+    Inputs:
 
             :code:`Vh` is the finite element space for the state variable
             
             :code:`obs_points` is a 2D array number of points by geometric dimensions that stores \
             the location of the observations.
+    """
+    B = assemblePointwiseObservation(Vh, obs_points)
+    return DiscreteStateObservation(B)
+
+class DiscreteStateObservation(Misfit):
+    """
+    This class define a misfit function for a discrete linear observation operator B
+    """
+    def __init__(self, B, data=None, noise_variance=None):
         """
-        self.B = assemblePointwiseObservation(Vh, obs_points)
-        self.d = dl.Vector(self.B.mpi_comm())
-        self.B.init_vector(self.d, 0)
+        Constructor:
+            :code:`B` is the observation operator   
+            :code:`data` is the data
+            :code:`noise_variance` is the variance of the noise
+        """
+        self.B = B
+
+        if data is None:
+            self.d = dl.Vector(self.B.mpi_comm())
+            self.B.init_vector(self.d, 0)
+        else:
+            self.d = data
+        
         self.Bu = dl.Vector(self.B.mpi_comm())
         self.B.init_vector(self.Bu, 0)
-        self.noise_variance = None
+        self.noise_variance = noise_variance
         
     def cost(self,x):
         if self.noise_variance is None: 
@@ -121,25 +139,45 @@ class PointwiseStateObservation(Misfit):
             out *= (1./self.noise_variance)
         else:
             out.zero()
-            
-            
-class MultPointwiseStateObservation(Misfit):
+
+@deprecated(version="3.1", msg="Use B = assemblePointwiseObservation(Vh, obs_points) followed by MultDiscreteStateObservation(B, None, Mpar)")       
+def MultPointwiseStateObservation(Vh, obs_points, Mpar):
     """
-    This class implements pointwise state observations at given locations.
+    This function returns an instance of :code:`DiscreteStateObservation` for pointwise state observations at given locations.
+    A multiplicative Gamma(M,M) noise model is assumed
+    Inputs:
+
+            :code:`Vh` is the finite element space for the state variable
+            :code:`data` is the data
+            :code:`obs_points` is a 2D array number of points by geometric dimensions that stores \
+            the location of the observations.
+
+            :code:`Mpar` Gamma distribution parameter
+    """
+    B = assemblePointwiseObservation(Vh, obs_points)
+    return MultDiscreteStateObservation(B, None, Mpar)
+
+
+class MultDiscreteStateObservation(Misfit):
+    """
+    This class implements discrete state observations defined by the linear operator B.
     A multiplicative Gamma(M,M) noise model is assumed
     """
-    def __init__(self, Vh, obs_points, Mpar):
+    def __init__(self, B, data=None, Mpar=1.):
         """
         Constructor:
 
-            :code:`Vh` is the finite element space for the state variable
+            :code:`B` is the observation operator
             
-            :code:`obs_points` is a 2D array number of points by geometric dimensions that stores \
-            the location of the observations.
+            :code:`Mpar` Gamma distribution parameter
         """
-        self.B = assemblePointwiseObservation(Vh, obs_points)
-        self.d = dl.Vector(self.B.mpi_comm())
-        self.B.init_vector(self.d, 0)
+        self.B = B
+        if data is None:
+            self.d = dl.Vector(self.B.mpi_comm())
+            self.B.init_vector(self.d, 0)
+        else:
+            self.d = data
+        
         self.Bu = dl.Vector(self.B.mpi_comm())
         self.B.init_vector(self.Bu, 0)
         

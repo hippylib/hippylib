@@ -15,6 +15,11 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
 
+Development version
+-------------------
+- Introduce new `DiscreteStateObservation` misfit
+- Deprecate `PointwiseStateObservation`  misfit. User will build the observation matrix `B = assemblePointwiseObservation(Vh, targets)` and then construct a `DiscreteStateObservation` misfit by passing `B` 
+
 Version 3.1.0, released on Dec 21, 2022
 -------------------
 - Switch to GitHub Actions for CI

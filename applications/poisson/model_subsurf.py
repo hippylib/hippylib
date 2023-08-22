@@ -112,7 +112,8 @@ if __name__ == "__main__":
     #targets = np.random.uniform(0.1,0.9, [ntargets, ndim] )
     if rank == 0:
         print ("Number of observation points: {0}".format(ntargets) )
-    misfit = PointwiseStateObservation(Vh[STATE], targets)
+    # Define observation operator
+    B = assemblePointwiseObservation(Vh[STATE], targets)
     
     gamma = .1
     delta = .5
@@ -135,12 +136,13 @@ if __name__ == "__main__":
     utrue = pde.generate_state()
     x = [utrue, mtrue, None]
     pde.solveFwd(x[STATE], x)
-    misfit.B.mult(x[STATE], misfit.d)
+    data = B*x[STATE]
     rel_noise = 0.01
-    MAX = misfit.d.norm("linf")
+    MAX = data.norm("linf")
     noise_std_dev = rel_noise * MAX
-    parRandom.normal_perturb(noise_std_dev, misfit.d)
-    misfit.noise_variance = noise_std_dev*noise_std_dev
+    parRandom.normal_perturb(noise_std_dev, data)
+
+    misfit = DiscreteStateObservation(B, data, noise_std_dev**2)
     
     model = Model(pde,prior, misfit)
     

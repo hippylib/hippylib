@@ -20,4 +20,6 @@ numpy2MeshFunction = cpp_module.numpy2MeshFunction
 NumpyScalarExpression3D = cpp_module.NumpyScalarExpression3D
 NumpyVectorExpression3D = cpp_module.NumpyVectorExpression3D
 NumpyScalarExpression2D = cpp_module.NumpyScalarExpression2D
+NumpyVectorExpression2D = cpp_module.NumpyVectorExpression2D
 NumpyScalarExpression1D = cpp_module.NumpyScalarExpression1D
+NumpyVectorExpression1D = cpp_module.NumpyVectorExpression1D

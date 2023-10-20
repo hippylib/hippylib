@@ -15,6 +15,13 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
 
+Development version
+-------------------
+- Extend utilities to interpolate cartesian data (expressed as `numpy arrays`) on a `dolfin` mesh to support vector function space
+- Introduce a new `DiscreteStateObservation` misfit that takes as input a linear observation operator described by `B`.
+- Support for spatially varying coefficients in `BiLaplacianPrior`
+- Extend collective functionalities
+
 Version 3.1.0, released on Dec 21, 2022
 -------------------
 - Switch to GitHub Actions for CI

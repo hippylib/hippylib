@@ -98,7 +98,48 @@ class TestNumpy2Expression(unittest.TestCase):
         f_exp = NumpyScalarExpression3D()
         f_exp.setData(f_np, hx, hy, hz)
         
-        f_exp2 = dl.Expression("x[0] + 2.*x[1] - 3.*x[2]", degree=2)
+        f_exp2 = dl.Expression( "x[0] + 2.*x[1] - 3.*x[2]", degree=2)
+        
+        fh_1 = dl.interpolate(f_exp, Vh).vector()
+        fh_2 = dl.interpolate(f_exp2, Vh).vector()
+                
+        fh_1.axpy(-1., fh_2 )
+        
+        error = fh_1.norm("l2")
+        
+        assert_allclose([error], [0.], rtol=1e-7, atol=1e-9)
+
+    def test3Dv(self):
+        """Test NumpyVectorExpression3D"""
+
+        ncomp = 2
+
+        nx = 10
+        ny = 15
+        nz = 20
+        mesh = dl.UnitCubeMesh(nx, ny, nz)
+        Vh = dl.VectorFunctionSpace(mesh, "CG", 2, ncomp)
+        
+        nx_np = 2*nx
+        ny_np = 2*ny
+        nz_np = 2*nz
+        hx = 1./float(nx_np)
+        hy = 1./float(ny_np)
+        hz = 1./float(nz_np)
+        
+        x_np = np.linspace(0., 1., nx_np+1)
+        y_np = np.linspace(0., 1., ny_np+1)
+        z_np = np.linspace(0., 1., nz_np+1)
+        
+        xx, yy, zz = np.meshgrid(x_np, y_np, z_np, indexing='ij')
+        f_np = np.zeros( (xx.shape[0], xx.shape[1], xx.shape[2], ncomp))
+        f_np[:,:,:, 0] = xx + 2.*yy - 3.*zz
+        f_np[:,:,:, 1] = xx*xx + 2.*yy*yy - 3.*zz*zz
+        f_exp = NumpyVectorExpression3D(ncomp)
+        f_exp.setData(f_np, hx, hy, hz)
+        
+        f_exp2 = dl.Expression( ("x[0] + 2.*x[1] - 3.*x[2]", 
+                                 "x[0]*x[0] + 2.*x[1]*x[1] - 3.*x[2]*x[2]"), degree=2)
         
         fh_1 = dl.interpolate(f_exp, Vh).vector()
         fh_2 = dl.interpolate(f_exp2, Vh).vector()

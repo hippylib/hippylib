@@ -17,7 +17,9 @@ from .checkDolfinVersion import dlversion, checkdlversion
 from .deprecate import deprecated
 from .experimental import experimental
 from .vector2function import vector2Function
-from .cartesian2mesh import numpy2MeshFunction, NumpyScalarExpression3D, NumpyScalarExpression2D, NumpyScalarExpression1D
+from .cartesian2mesh import numpy2MeshFunction, \
+                            NumpyScalarExpression3D, NumpyVectorExpression3D, \
+                            NumpyScalarExpression2D, NumpyScalarExpression1D
 from .random import Random, parRandom
 from .parameterList import ParameterList
 from .warnings import hIPPYlibDeprecationWarning, hIPPYlibExperimentalWarning

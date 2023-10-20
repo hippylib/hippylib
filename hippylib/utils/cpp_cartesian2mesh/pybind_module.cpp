@@ -21,6 +21,12 @@ PYBIND11_MODULE(SIGNATURE, m)
     .def("setData", &NumpyScalarExpression3D::setData, py::arg("data"), py::arg("h_x"), py::arg("h_y"), py::arg("h_z"))
 	.def("setOffset", &NumpyScalarExpression3D::setOffset, py::arg("offset_x"), py::arg("offset_y"), py::arg("offset_z"));
 
+	py::class_<NumpyVectorExpression3D, std::shared_ptr<NumpyVectorExpression3D>, dolfin::Expression>
+    (m, "NumpyVectorExpression3D")
+    .def(py::init<int>(),"Interpolate a 4D numpy array on the mesh (the component of the field is the last dimension of the array) - trilinear interpolation")
+    .def("setData", &NumpyVectorExpression3D::setData, py::arg("data"), py::arg("h_x"), py::arg("h_y"), py::arg("h_z"))
+	.def("setOffset", &NumpyVectorExpression3D::setOffset, py::arg("offset_x"), py::arg("offset_y"), py::arg("offset_z"));
+
     py::class_<NumpyScalarExpression2D, std::shared_ptr<NumpyScalarExpression2D>, dolfin::Expression>
     (m, "NumpyScalarExpression2D", "Interpolate a 2D numpy array on the mesh - bilinear interpolation")
     .def(py::init<>())

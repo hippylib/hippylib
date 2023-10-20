@@ -18,5 +18,6 @@ cpp_module = dl.compile_cpp_code(cpp_code, include_dirs=include_dirs)
 
 numpy2MeshFunction = cpp_module.numpy2MeshFunction
 NumpyScalarExpression3D = cpp_module.NumpyScalarExpression3D
+NumpyVectorExpression3D = cpp_module.NumpyVectorExpression3D
 NumpyScalarExpression2D = cpp_module.NumpyScalarExpression2D
 NumpyScalarExpression1D = cpp_module.NumpyScalarExpression1D

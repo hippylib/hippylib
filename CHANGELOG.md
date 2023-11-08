@@ -17,8 +17,12 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
 Development version
 -------------------
-- Introduce new `DiscreteStateObservation` misfit
+- Extend utilities to interpolate cartesian data (expressed as `numpy arrays`) on a `dolfin` mesh to support vector function space
+- Introduce a new `DiscreteStateObservation` misfit that takes as input a linear observation operator described by `B`.
 - Deprecate `PointwiseStateObservation`  misfit. User will build the observation matrix `B = assemblePointwiseObservation(Vh, targets)` and then construct a `DiscreteStateObservation` misfit by passing `B` 
+- Support for spatially varying coefficients in `BiLaplacianPrior`
+- Extend collective functionalities
+
 
 Version 3.1.0, released on Dec 21, 2022
 -------------------

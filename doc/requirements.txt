@@ -1,2 +1,3 @@
 m2r
 mistune==0.8.4
+sphinx-rtd-theme

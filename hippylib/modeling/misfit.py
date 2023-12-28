@@ -373,3 +373,75 @@ class MultiStateMisfit(Misfit):
                 out.axpy(1., tmp)
         else:
             raise IndexError
+
+
+class MisfitTD(Misfit):
+    """This class implements continuous state observations in a
+       subdomain X \subset \Omega or X \subset \partial\Omega.
+    """
+    def __init__(self, misfits, sim_times):
+        self.misfits = misfits
+        self.sim_times = sim_times
+
+    def cost(self,x):
+        c = 0.
+        for itime, misfit in enumerate(self.misfits):
+            c += misfit.cost([x[STATE].view(self.sim_times[itime]), x[PARAMETER], None])
+            
+        return c
+
+    def grad(self, i, x, out):
+        out.zero()
+        if i == STATE:
+            for itime, misfit in enumerate(self.misfits):
+                t = self.sim_times[itime]
+                misfit.grad(i, [x[STATE].view(t), x[PARAMETER], None], out.view(t))            
+        elif i == PARAMETER:
+            out_t = out.copy()
+            for itime, misfit in enumerate(self.misfits):
+                out_t.zero()
+                misfit.grad(i, [x[STATE].view(self.sim_times[itime]), x[PARAMETER], None], out_t)
+                out.axpy(1., out_t)
+        else:
+            raise IndexError()
+        
+    def setLinearizationPoint(self, x, gauss_newton_approx=False):
+        for itime, misfit in enumerate(self.misfits):
+            t = self.sim_times[itime]
+            misfit.setLinearizationPoint([x[STATE].view(t), x[PARAMETER], None], gauss_newton_approx)   
+        
+    def _apply_STATE_STATE(self, dir, out):
+        for itime, misfit in enumerate(self.misfits):
+            t = self.sim_times[itime]
+            misfit.apply_ij(STATE, STATE, dir.view(t), out.view(t)) 
+
+    def _apply_STATE_PARAMETER(self, dir, out):
+        for itime, misfit in enumerate(self.misfits):
+            t = self.sim_times[itime]
+            misfit.apply_ij(STATE, PARAMETER, dir, out.view(t)) 
+            
+    def _apply_PARAMETER_STATE(self, dir, out):
+        out_t = out.copy()
+        for itime, misfit in enumerate(self.misfits):
+            t = self.sim_times[itime]
+            misfit.apply_ij(PARAMETER, STATE, dir.view(t), out_t)
+            out.axpy(1., out_t)
+            
+    def _apply_PARAMETER_PARAMETER(self, dir, out):
+        out_t = out.copy()
+        for misfit in self.misfits:
+            misfit.apply_ij(PARAMETER, PARAMETER, dir, out_t)
+            out.axpy(1., out_t)
+
+    def apply_ij(self,i,j,dir,out):
+        out.zero()
+        if i == STATE and j == STATE:
+            self._apply_STATE_STATE(dir, out)
+        elif i == STATE and j == PARAMETER:
+            self._apply_STATE_PARAMETER(dir, out)
+        elif i == PARAMETER and j == STATE:
+            self._apply_PARAMETER_STATE(dir, out)
+        elif i == PARAMETER and j == PARAMETER:
+            self._apply_PARAMETER_PARAMETER(dir, out)
+        else:
+            raise

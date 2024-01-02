@@ -15,10 +15,12 @@
 
 import dolfin as dl
 import ufl
+import numpy as np
 from .variables import STATE, PARAMETER, ADJOINT
 from ..algorithms.linalg import Transpose 
 from ..algorithms.linSolvers import PETScLUSolver
 from ..utils.vector2function import vector2Function
+from .timeDependentVector import VectorTD
 
 class PDEProblem(object):
     """ Consider the PDE problem:
@@ -380,21 +382,17 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
         else:
             raise Exception('Incorrect vector component')
 
-
     def generate_state(self):
         """ return a time dependent vector in the shape of the state """
         return self.generate_vector(component=STATE)
-
 
     def generate_parameter(self):
         """ return a time dependent vector in the shape of the adjoint """
         return self.generate_vector(component=PARAMETER)
 
-
     def generate_adjoint(self):
         """ return a time dependent vector in the shape of the adjoint """
         return self.generate_vector(component=ADJOINT)
-
 
     def generate_static_state(self):
         """ return a time dependent vector in the shape of the state """
@@ -402,20 +400,17 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
         self.M.init_vector(u, 1)
         return u 
 
-
     def generate_static_adjoint(self):
         """ return a static vector in the shape of the adjoint """
         p = dl.Vector()
         self.M.init_vector(p, 0)
         return p
 
-
     def init_parameter(self, a):
         """ initialize the parameter """
         dummy = self.generate_parameter()
         a.init( dummy.mpi_comm(), dummy.local_range() )
         
-
     def _set_time(self, bcs, t):
         for bc in bcs:
             try:
@@ -588,6 +583,7 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
             self.linearize_x[STATE].retrieve(u_old.vector(), t)
             
             out.store(uhat, t)
+
   
     def _solveIncrementalAdj(self, out, rhs):
         out.zero()

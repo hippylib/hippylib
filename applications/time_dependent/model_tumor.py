@@ -1,4 +1,9 @@
-# Copyright (c) 2020, Washington University in St. Louis.
+# Copyright (c) 2016-2018, The University of Texas at Austin 
+# & University of California--Merced.
+# Copyright (c) 2019-2022, The University of Texas at Austin 
+# University of California--Merced, Washington University in St. Louis.
+# Copyright (c) 2023-2024, The University of Texas at Austin 
+# & University of California--Merced.
 #
 # All Rights reserved.
 # See file COPYRIGHT for details.
@@ -9,6 +14,7 @@
 # hIPPYlib is free software; you can redistribute it and/or modify it under the
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
+
 
 import argparse
 import dolfin as dl

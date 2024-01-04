@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 
 import sys
 import os
-sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../../hippylib-public") )
+sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
 from hippylib import *
 
 # Helper functions and classes.

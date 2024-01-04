@@ -17,7 +17,7 @@ from .variables import *
 
 from .expression import ExpressionModule
 from .pointwiseObservation import assemblePointwiseObservation, exportPointwiseObservation
-from .timeDependentVector import VectorTD
+from .timeDependentVector import TimeDependentVector
 
 from .PDEProblem import PDEProblem, PDEVariationalProblem, TimeDependentPDEVariationalProblem
 from .prior import _Prior, LaplacianPrior, SqrtPrecisionPDE_Prior, BiLaplacianPrior, MollifiedBiLaplacianPrior, GaussianRealPrior, BiLaplacianComputeCoefficients, VectorBiLaplacianPrior

@@ -17,7 +17,7 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
 Development version
 -------------------
-- Add `VectorTD`, `TimeDependentPDEVariationalProblem`, and `MisfitTD` to support time-dependent problems. `TimeDependentVector` is deprecated and replaced with `VectorTD`.
+- Introduce `TimeDependentPDEVariationalProblem`, and `MisfitTD` to support time-dependent problems. Extended functionality of `TimeDependentVector`.
 - Extend utilities to interpolate cartesian data (expressed as `numpy arrays`) on a `dolfin` mesh to support vector function space
 - Introduce a new `DiscreteStateObservation` misfit that takes as input a linear observation operator described by `B`.
 - Deprecate `PointwiseStateObservation`  misfit. User will build the observation matrix `B = assemblePointwiseObservation(Vh, targets)` and then construct a `DiscreteStateObservation` misfit by passing `B` 

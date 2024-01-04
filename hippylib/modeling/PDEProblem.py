@@ -20,7 +20,7 @@ from .variables import STATE, PARAMETER, ADJOINT
 from ..algorithms.linalg import Transpose 
 from ..algorithms.linSolvers import PETScLUSolver
 from ..utils.vector2function import vector2Function
-from .timeDependentVector import VectorTD
+from .timeDependentVector import TimeDependentVector
 
 class PDEProblem(object):
     """ Consider the PDE problem:
@@ -357,26 +357,26 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
         #self.parameters['snes_solver']["maximum_iterations"] = 100
         #self.parameters['snes_solver']["report"] = True
 
-        #TODO: Modify the VectorTD init() to get rid of this (we don't always have mass matrix in mixed problems)
+        #TODO: Modify the TimeDependentVector init() to get rid of this (we don't always have mass matrix in mixed problems)
         self.M  = dl.assemble(dl.inner(dl.TrialFunction(self.Vh[STATE]), dl.TestFunction(self.Vh[ADJOINT]))*dl.dx)
 
 
     def generate_vector(self, component = "ALL"):
         if component == "ALL":
-            u = VectorTD(self.times)
+            u = TimeDependentVector(self.times)
             u.initialize(self.M, 1)
             a = dl.Function(self.Vh[PARAMETER]).vector()
-            p = VectorTD(self.times)
+            p = TimeDependentVector(self.times)
             p.initialize(self.M, 0)
             return [u, a, p]
         elif component == STATE:
-            u = VectorTD(self.times)
+            u = TimeDependentVector(self.times)
             u.initialize(self.M, 0)
             return u
         elif component == PARAMETER:
             return dl.Function(self.Vh[PARAMETER]).vector()
         elif component == ADJOINT:
-            p = VectorTD(self.times)
+            p = TimeDependentVector(self.times)
             p.initialize(self.M, 0)
             return p
         else:

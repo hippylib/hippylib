@@ -15,7 +15,7 @@
 
 import dolfin as dl
 
-class VectorTD():
+class TimeDependentVector():
     """
     A class to store time dependent vectors.
     Snapshots are stored/retrieved by specifying
@@ -50,7 +50,7 @@ class VectorTD():
         """
         Return a copy of all the time frames and snapshots
         """        
-        res = VectorTD(self.times, tol=self.tol, mpi_comm=self.mpi_comm)
+        res = TimeDependentVector(self.times, tol=self.tol, mpi_comm=self.mpi_comm)
         res.data = []
 
         for v in self.data:

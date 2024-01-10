@@ -24,6 +24,7 @@ namespace hippylib
 class PointwiseObservation
 {
 public:
+	PointwiseObservation(const dolfin::FunctionSpace & Vh, const dolfin::Array<double> & targets, const dolfin::Array<int> & components, bool prune_and_sort);
 	PointwiseObservation(const dolfin::FunctionSpace & Vh, const dolfin::Array<double> & targets, bool prune_and_sort);
 	std::shared_ptr<dolfin::Matrix> GetMatrix();
 	~PointwiseObservation();

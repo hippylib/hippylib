@@ -12,3 +12,5 @@ cd ../poisson  && mpirun -n 2 $PYTHON model_subsurf.py --nx 32 --ny 32 --nsample
 cd ../ad_diff  && mpirun -n 2 $PYTHON model_ad_diff.py --mesh ad_20.xml
 cd ../mcmc     && mpirun -n 2 $PYTHON model_subsurf.py --nx 32 --ny 32 --nsamples 30
 cd ../forward_uq && mpirun -n 2 $PYTHON model_subsurf_effperm.py --nx 16 --ny 32 --nsamples 30
+cd ../time_dependent && mpirun -n 2 $PYTHON model_heat.py
+cd ../time_dependent && mpirun -n 2 $PYTHON model_tumor.py

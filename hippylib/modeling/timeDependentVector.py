@@ -1,7 +1,9 @@
 # Copyright (c) 2016-2018, The University of Texas at Austin 
 # & University of California--Merced.
-# Copyright (c) 2019-2020, The University of Texas at Austin 
+# Copyright (c) 2019-2022, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
+# Copyright (c) 2023-2024, The University of Texas at Austin 
+# & University of California--Merced.
 #
 # All Rights reserved.
 # See file COPYRIGHT for details.
@@ -15,7 +17,7 @@
 
 import dolfin as dl
 
-class TimeDependentVector(object):
+class TimeDependentVector():
     """
     A class to store time dependent vectors.
     Snapshots are stored/retrieved by specifying
@@ -58,7 +60,7 @@ class TimeDependentVector(object):
 
         return res
         
-    def initialize(self,M,dim):
+    def initialize(self, M, dim):
         """
         Initialize all the snapshot to be compatible
         with the range/domain of an operator :code:`M`.
@@ -110,6 +112,15 @@ class TimeDependentVector(object):
         u.zero()
         u.axpy(1., self.data[i] )
         
+    def view(self, t):
+        i = 0
+        while i < self.nsteps-1 and 2*t > self.times[i] + self.times[i+1]:
+            i += 1
+            
+        assert abs(t - self.times[i]) < self.tol
+        
+        return self.data[i]      
+        
     def norm(self, time_norm, space_norm):
         """
         Compute the space-time norm of the snapshot.
@@ -122,7 +133,7 @@ class TimeDependentVector(object):
                 s_norm = tmp
         
         return s_norm
-        
+
     def inner(self, other):
         """
         Compute the inner products: :math:`a+= (\\mbox{self[i]},\\mbox{other[i]})` for each snapshot.
@@ -131,5 +142,3 @@ class TimeDependentVector(object):
         for i in range(self.nsteps):
             a += self.data[i].inner(other.data[i])
         return a
- 
-

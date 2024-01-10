@@ -19,9 +19,11 @@ from .expression import ExpressionModule
 from .pointwiseObservation import assemblePointwiseObservation, exportPointwiseObservation
 from .timeDependentVector import TimeDependentVector
 
-from .PDEProblem import PDEProblem, PDEVariationalProblem
+from .PDEProblem import PDEProblem
+from .PDEVariationalProblem import PDEVariationalProblem
+from .TimeDependentPDEVariationalProblem import TimeDependentPDEVariationalProblem
 from .prior import _Prior, LaplacianPrior, SqrtPrecisionPDE_Prior, BiLaplacianPrior, MollifiedBiLaplacianPrior, GaussianRealPrior, BiLaplacianComputeCoefficients, VectorBiLaplacianPrior
-from .misfit import Misfit, ContinuousStateObservation, DiscreteStateObservation, MultDiscreteStateObservation, MultiStateMisfit, PointwiseStateObservation, MultPointwiseStateObservation
+from .misfit import Misfit, ContinuousStateObservation, DiscreteStateObservation, MultDiscreteStateObservation, MultiStateMisfit, PointwiseStateObservation, MultPointwiseStateObservation, MisfitTD
 from .model import Model
 from .modelVerify import modelVerify
 from .reducedHessian import ReducedHessian, FDHessian

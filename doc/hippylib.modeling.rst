@@ -11,7 +11,22 @@ hippylib.modeling.PDEProblem module
     :members:
     :undoc-members:
     :show-inheritance:
-    
+
+hippylib.modeling.PDEVariationalProblem module
+-----------------------------------
+
+.. automodule:: hippylib.modeling.PDEVariationalProblem
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+hippylib.modeling.TimeDependentPDEVariationalProblem module
+-----------------------------------
+
+.. automodule:: hippylib.modeling.TimeDependentPDEVariationalProblem
+    :members:
+    :undoc-members:
+    :show-inheritance:
     
 hippylib.modeling.expression module
 -----------------------------------

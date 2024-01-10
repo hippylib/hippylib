@@ -552,6 +552,55 @@ def MollifiedBiLaplacianPrior(Vh, gamma, delta, locations, m_true, Theta = None,
     prior.Asolver.solve(prior.mean, rhs)
     
     return prior
+
+
+def VectorBiLaplacianPrior(Vh, gamma, delta, mean=None, rel_tol=1e-12, max_iter=1000, robin_bc=False):
+    """
+    This function construct an instance of :code"`SqrtPrecisionPDE_Prior` for a vector valued
+    prior distribution with uncoupled components. The covariance matrix is thus block diagonal with components
+    :math:`C_i = (\\delta_i I + \\gamma_i \\mbox{div } \\Theta \\nabla) ^ {-2}`,
+    where C_i is the covariance block corresponding to the ith element of the prior distribution.
+    
+    The magnitude of :math:`\\delta_i\\gamma_i` governs the variance of the samples, while
+    the ratio :math:`\\frac{\\gamma_i}{\\delta_i}` governs the correlation length.
+    
+    Input:
+
+    - :code:`Vh`:              the finite element space for the parameter
+    - :code:`gamma` and :code:`delta`: list of cofficients (floats or dl.Constants)
+    - :code:`Theta`:           the SPD tensor for anisotropic diffusion of the PDE
+    - :code:`mean`:            the prior mean
+    - :code:`rel_tol`:         relative tolerance for solving linear systems involving covariance matrix
+    - :code:`max_iter`:        maximum number of iterations for solving linear systems involving covariance matrix
+    - :code:`robin_bc`:        whether to use Robin boundary condition to remove boundary artifacts
+    """
+
+    if isinstance(gamma[0], numbers.Number):
+        gamma = [dl.Constant(g) for g in gamma]
+        
+    if isinstance(delta[0], numbers.Number):
+        delta = [dl.Constant(d) for d in delta]
+
+    
+    def sqrt_precision_varf_handler(trial, test): 
+        varf = dl.Constant(0.)*ufl.inner(trial, test)*ufl.dx
+        for trial_i, test_i, gamma_i, delta_i in zip(ufl.split(trial), ufl.split(test), gamma, delta):
+             varf = varf + comp_varf(trial_i, test_i, gamma_i, delta_i)
+        return varf
+
+    def comp_varf(trial, test, gamma, delta):
+        varfL = gamma*ufl.inner(ufl.grad(trial), ufl.grad(test))*ufl.dx
+        varfM = delta*ufl.inner(trial,test)*ufl.dx
+        if robin_bc:
+            robin_coeff = gamma*ufl.sqrt(delta/gamma)/dl.Constant(1.42)
+        else:
+            robin_coeff = dl.Constant(0.)
+            
+        varf_robin = robin_coeff*ufl.inner(trial,test)*ufl.ds
+        
+        return varfL + varfM + varf_robin
+    
+    return SqrtPrecisionPDE_Prior(Vh, sqrt_precision_varf_handler, mean, rel_tol, max_iter)
     
 
 class GaussianRealPrior(_Prior):

@@ -29,6 +29,14 @@ hippylib.utils.vector2function module
     :members:
     :undoc-members:
     :show-inheritance:
+
+hippylib.utils.random module
+----------------------------
+
+.. automodule:: hippylib.utils.random
+    :members:
+    :undoc-members:
+    :show-inheritance:
     
 hippylib.utils.nb module
 ------------------------

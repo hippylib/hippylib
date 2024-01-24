@@ -29,7 +29,7 @@ hippylib.utils.vector2function module
     :members:
     :undoc-members:
     :show-inheritance:
-    
+
 hippylib.utils.random module
 ----------------------------
 

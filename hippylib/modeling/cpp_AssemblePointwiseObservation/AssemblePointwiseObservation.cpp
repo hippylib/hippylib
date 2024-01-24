@@ -205,6 +205,106 @@ PointwiseObservation::PointwiseObservation(const dolfin::FunctionSpace & Vh,
 	 MatAssemblyEnd(mat,MAT_FINAL_ASSEMBLY);
 }
 
+PointwiseObservation::PointwiseObservation(const dolfin::FunctionSpace & Vh,
+										   const dolfin::Array<double> & targets,
+										   const dolfin::Array<int> & components,
+										   bool prune_and_sort)
+{
+	 const dolfin::Mesh& mesh = *( Vh.mesh() );
+	 const int num_cells = mesh.num_cells();
+	 MPI_Comm comm = mesh.mpi_comm();
+	 int nprocs, rank;
+	 MPI_Comm_size(comm, &nprocs);
+	 MPI_Comm_rank(comm, &rank);
+
+	 const std::size_t gdim(mesh.geometry().dim());
+
+	 const std::size_t ntargets(targets.size() / gdim);
+	 assert(ntargets*gdim == targets.size() );
+
+	 std::shared_ptr<dolfin::BoundingBoxTree> bbt = mesh.bounding_box_tree();
+
+	 std::vector<dolfin::Point> points(0);
+	 std::vector<PetscInt> LGtargets(0);
+
+	 PetscInt global_ntargets = computeLGtargets(comm, bbt, gdim, targets, points, LGtargets, prune_and_sort);
+	 PetscInt local_ntargets  = points.size();
+
+	 std::shared_ptr<const dolfin::FiniteElement> element( Vh.element() );
+	 //Check that value_rank is either 0 (scalar FE or 1 vector FE)
+	 assert(element->value_rank() == 0 || element->value_rank() == 1);
+	 int value_dim = element->value_dimension(0);
+	 int output_dim = components.size();
+
+	 std::shared_ptr<const dolfin::GenericDofMap> dofmap = Vh.dofmap();
+	 PetscInt global_dof_dimension = dofmap->global_dimension();
+
+	 PetscInt local_dof_dimension = dofmap->index_map()->size(dolfin::IndexMap::MapSize::OWNED);
+
+	 std::vector<dolfin::la_index> LGdofs = dofmap->dofs();
+
+	 PetscInt global_nrows = global_ntargets*output_dim;
+	 PetscInt local_nrows = LGtargets.size()*output_dim;
+	 std::vector<PetscInt> LGrows(local_nrows);
+	 int counter = 0;
+	 for(int lt = 0; lt < LGtargets.size(); ++lt)
+		 for(int ival = 0; ival < output_dim; ++ival, ++ counter)
+			 LGrows[counter] = LGtargets[lt]*output_dim + ival;
+
+	 MatCreate(comm,&mat);
+	 MatSetSizes(mat,local_nrows,local_dof_dimension,global_nrows,global_dof_dimension);
+	 MatSetType(mat,MATAIJ);
+	 MatSetUp(mat);
+	 ISLocalToGlobalMapping rmapping, cmapping;
+	 PetscCopyMode mode = PETSC_COPY_VALUES;
+#if PETSC_VERSION_LT(3,5,0)
+	 ISLocalToGlobalMappingCreate(comm, LGrows.size(), &LGrows[0], mode, &rmapping);
+	 ISLocalToGlobalMappingCreate(comm, LGdofs.size(),&LGdofs[0],mode,&cmapping);
+#else
+	 PetscInt bs = 1;
+	 ISLocalToGlobalMappingCreate(comm, bs, LGrows.size(), &LGrows[0], mode, &rmapping);
+	 ISLocalToGlobalMappingCreate(comm, bs, LGdofs.size(),&LGdofs[0],mode,&cmapping);
+#endif
+	 MatSetLocalToGlobalMapping(mat,rmapping,cmapping);
+
+	 //Space dimension is the local number of Dofs
+	 std::size_t sdim = element->space_dimension();
+	 std::vector<double> basis_matrix(sdim*value_dim);
+	 std::vector<double> output_matrix_row_major(sdim*output_dim);
+	 std::vector<PetscInt> cols(sdim);
+
+	 for(int lt = 0; lt < local_ntargets; ++lt)
+	 {
+		 int cell_id = bbt->compute_first_entity_collision(points[lt]);
+
+		 if(cell_id < 0 or cell_id > num_cells)
+		 {
+			 std::cout << "Pid" << rank << ": Something went wrong. cell_id is " << cell_id << std::endl;
+			 MPI_Abort(comm, 1);
+		 }
+
+		 dolfin::Cell cell(mesh, cell_id);
+		 std::vector<double> coords;
+		 cell.get_vertex_coordinates(coords);
+		 element->evaluate_basis_all(&basis_matrix[0], points[lt].coordinates(), &coords[0], cell.orientation());
+		 auto cell_dofs = dofmap->cell_dofs(cell_id);
+		 auto it_col = cols.begin();
+		 for(auto it = cell_dofs.data(); it != cell_dofs.data()+cell_dofs.size(); ++it, ++it_col)
+			 *it_col = dofmap->local_to_global_index(*it);
+		 for(std::size_t i = 0; i < sdim; ++i)
+			 for(int j_index = 0; j_index < output_dim; ++j_index)
+				 output_matrix_row_major[i+j_index*sdim] = basis_matrix[value_dim*i+components[j_index]];
+
+		 PetscErrorCode ierr = MatSetValues(mat,output_dim,&LGrows[output_dim*lt],sdim, &cols[0],&output_matrix_row_major[0],INSERT_VALUES);
+		 if (ierr != 0)
+			 std::cout << "Rank "<< rank << "lt = " << lt << std::endl;
+	 }
+
+	 MatAssemblyBegin(mat,MAT_FINAL_ASSEMBLY);
+	 MatAssemblyEnd(mat,MAT_FINAL_ASSEMBLY);
+}
+
+
 PointwiseObservation::~PointwiseObservation()
 {
 	MatDestroy(&mat);
@@ -224,6 +324,13 @@ PYBIND11_MODULE(SIGNATURE, m) {
     				dolfin::Array<double> targets_dolfin(targets.size(), targets.mutable_data());
     				return std::unique_ptr<hippylib::PointwiseObservation>(new hippylib::PointwiseObservation(Vh,targets_dolfin, prune_and_sort));
 		          }), py::arg("Vh"), py::arg("targets"), py::arg("prune_and_sort")=false
+		)
+		.def(py::init([](const dolfin::FunctionSpace & Vh, py::array_t<double> & targets, py::array_t<int> & components, bool prune_and_sort)
+		          {
+    				dolfin::Array<double> targets_dolfin(targets.size(), targets.mutable_data());
+					dolfin::Array<int> components_dolfin(components.size(), components.mutable_data());
+    				return std::unique_ptr<hippylib::PointwiseObservation>(new hippylib::PointwiseObservation(Vh,targets_dolfin,components_dolfin, prune_and_sort));
+		          }), py::arg("Vh"), py::arg("targets"), py::arg("components"), py::arg("prune_and_sort")=false
 		)
 		.def("GetMatrix", &hippylib::PointwiseObservation::GetMatrix);
 }

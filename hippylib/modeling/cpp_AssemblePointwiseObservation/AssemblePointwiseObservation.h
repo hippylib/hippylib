@@ -18,6 +18,9 @@
 #include <dolfin/la/PETScMatrix.h>
 #include <dolfin/la/Matrix.h>
 
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+
 namespace hippylib
 {
 
@@ -26,6 +29,7 @@ class PointwiseObservation
 public:
 	PointwiseObservation(const dolfin::FunctionSpace & Vh, const dolfin::Array<double> & targets, const dolfin::Array<int> & components, bool prune_and_sort);
 	PointwiseObservation(const dolfin::FunctionSpace & Vh, const dolfin::Array<double> & targets, bool prune_and_sort);
+	std::shared_ptr<dolfin::Matrix> GetLOSMatrix(const dolfin::Array<double> & loss_coeffs);
 	std::shared_ptr<dolfin::Matrix> GetMatrix();
 	~PointwiseObservation();
 
@@ -38,6 +42,9 @@ private:
 					 bool prune_and_sort);
 
 	Mat mat;
+	PetscInt global_ntargets;
+	PetscInt local_ntargets;
+	std::vector<PetscInt> LGtargets;
 	std::vector<int> old_new;
 };
 

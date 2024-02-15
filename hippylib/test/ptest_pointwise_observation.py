@@ -62,6 +62,23 @@ class TestPointwiseObservation(unittest.TestCase):
         if self.rank == 0:
             assert_allclose(self.targets, np.reshape(out_np, (self.ntargets, self.ndim), 'C'))
 
+    def testLOSObservations(self):
+        Vh = dl.VectorFunctionSpace(self.mesh, "CG", 2)
+        xvect = dl.interpolate(dl.Expression(("x[0]", "x[1]"), degree=1), Vh).vector()
+
+        los_coeff = np.ones_like(self.targets)
+        
+        B = assemblePointwiseLOSObservation(Vh, self.targets, los_coeff, prune_and_sort=False)
+        out = dl.Vector()
+        B.init_vector(out,0)
+        B.mult(xvect, out)
+        
+        out_np =  out.gather_on_zero()
+        
+        if self.rank == 0:
+            assert_allclose(np.sum(self.targets*los_coeff,1), out_np)
+
+
     def testVectorComponentObservations(self):
         Vh = dl.VectorFunctionSpace(self.mesh, "CG", 2, 5)
         xvect = dl.interpolate(dl.Expression(("x[0]", "x[1]", "x[0]*x[0]", "x[1]*x[0]", "x[1]*x[1]"), degree=1), Vh).vector()

@@ -16,7 +16,7 @@
 from .variables import *
 
 from .expression import ExpressionModule
-from .pointwiseObservation import assemblePointwiseObservation, exportPointwiseObservation
+from .pointwiseObservation import assemblePointwiseObservation, exportPointwiseObservation, assemblePointwiseLOSObservation
 from .timeDependentVector import TimeDependentVector
 
 from .PDEProblem import PDEProblem

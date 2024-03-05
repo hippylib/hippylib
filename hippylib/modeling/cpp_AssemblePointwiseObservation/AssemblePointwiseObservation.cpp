@@ -24,6 +24,8 @@
 #include <cassert>
 
 #include "AssemblePointwiseObservation.h"
+#include "petscmat.h" 
+#include "petscsys.h"  
 
 
 namespace py = pybind11;
@@ -127,10 +129,9 @@ PointwiseObservation::PointwiseObservation(const dolfin::FunctionSpace & Vh,
 	 std::shared_ptr<dolfin::BoundingBoxTree> bbt = mesh.bounding_box_tree();
 
 	 std::vector<dolfin::Point> points(0);
-	 std::vector<PetscInt> LGtargets(0);
 
-	 PetscInt global_ntargets = computeLGtargets(comm, bbt, gdim, targets, points, LGtargets, prune_and_sort);
-	 PetscInt local_ntargets  = points.size();
+	 global_ntargets = computeLGtargets(comm, bbt, gdim, targets, points, LGtargets, prune_and_sort);
+	 local_ntargets  = points.size();
 
 	 std::shared_ptr<const dolfin::FiniteElement> element( Vh.element() );
 	 //Check that value_rank is either 0 (scalar FE or 1 vector FE)
@@ -225,10 +226,9 @@ PointwiseObservation::PointwiseObservation(const dolfin::FunctionSpace & Vh,
 	 std::shared_ptr<dolfin::BoundingBoxTree> bbt = mesh.bounding_box_tree();
 
 	 std::vector<dolfin::Point> points(0);
-	 std::vector<PetscInt> LGtargets(0);
 
-	 PetscInt global_ntargets = computeLGtargets(comm, bbt, gdim, targets, points, LGtargets, prune_and_sort);
-	 PetscInt local_ntargets  = points.size();
+	 global_ntargets = computeLGtargets(comm, bbt, gdim, targets, points, LGtargets, prune_and_sort);
+	 local_ntargets  = points.size();
 
 	 std::shared_ptr<const dolfin::FiniteElement> element( Vh.element() );
 	 //Check that value_rank is either 0 (scalar FE or 1 vector FE)
@@ -310,6 +310,48 @@ PointwiseObservation::~PointwiseObservation()
 	MatDestroy(&mat);
 }
 
+std::shared_ptr<dolfin::Matrix> PointwiseObservation::GetLOSMatrix(const dolfin::Array<double> & loss_coeffs)
+{
+	MPI_Comm comm;
+	PetscObjectGetComm((PetscObject)mat, &comm);
+
+	// Get Information on the range
+	PetscInt local_ncol;
+	MatGetLocalSize(mat, &local_ncol, NULL);
+	PetscInt global_ncol;
+	MatGetSize(mat, &global_ncol, NULL);
+	ISLocalToGlobalMapping col_map, dof_map;
+	MatGetLocalToGlobalMapping(mat, &col_map, &dof_map);
+
+	ISLocalToGlobalMapping row_map;
+	PetscCopyMode mode = PETSC_COPY_VALUES;
+	PetscInt bs = 1;
+	ISLocalToGlobalMappingCreate(comm, bs, LGtargets.size(), &LGtargets[0], mode, &row_map);
+
+	Mat loss_mat;
+	MatCreate(comm,&loss_mat);
+	MatSetSizes(loss_mat,local_ntargets,local_ncol,global_ntargets,global_ncol);
+	MatSetType(loss_mat,MATAIJ);
+	MatSetUp(loss_mat);
+	MatSetLocalToGlobalMapping(loss_mat,row_map,col_map);
+
+	int ncomp = global_ncol/global_ntargets;
+	std::vector<PetscInt> cols(ncomp);
+	for( int i=0; i<LGtargets.size(); ++i) {
+		for(int j=0; j<ncomp; ++j) { cols[j] = LGtargets[i]*ncomp+j; }
+		PetscErrorCode ierr = MatSetValues(loss_mat,1,&LGtargets[i],ncomp, &cols[0],&loss_coeffs[LGtargets[i]*ncomp],INSERT_VALUES);
+	}
+
+	MatAssemblyBegin(loss_mat,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(loss_mat,MAT_FINAL_ASSEMBLY);
+	
+	Mat out;
+	MatMatMult(loss_mat, mat, MAT_INITIAL_MATRIX, 1.0 /*fill*/, &out);
+	MatSetLocalToGlobalMapping(out,row_map,dof_map);
+
+	return std::shared_ptr<dolfin::Matrix>( new dolfin::Matrix( dolfin::PETScMatrix(out) ) );
+}
+
 std::shared_ptr<dolfin::Matrix> PointwiseObservation::GetMatrix()
 {
 	return std::shared_ptr<dolfin::Matrix>( new dolfin::Matrix( dolfin::PETScMatrix(mat) ) );
@@ -332,6 +374,11 @@ PYBIND11_MODULE(SIGNATURE, m) {
     				return std::unique_ptr<hippylib::PointwiseObservation>(new hippylib::PointwiseObservation(Vh,targets_dolfin,components_dolfin, prune_and_sort));
 		          }), py::arg("Vh"), py::arg("targets"), py::arg("components"), py::arg("prune_and_sort")=false
 		)
-		.def("GetMatrix", &hippylib::PointwiseObservation::GetMatrix);
+		.def("GetMatrix", &hippylib::PointwiseObservation::GetMatrix)
+		.def("GetLOSMatrix", [](hippylib::PointwiseObservation & obj, py::array_t<double> & loss_coeff)
+		                     {
+								dolfin::Array<double> lcoeff_dolfin(loss_coeff.size(), loss_coeff.mutable_data());
+								return obj.GetLOSMatrix(lcoeff_dolfin);
+							 });
 }
 

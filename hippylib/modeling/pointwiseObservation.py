@@ -46,6 +46,26 @@ def assemblePointwiseObservation(Vh, targets, components=None, prune_and_sort=Fa
     #return the matrix
     return tmp.GetMatrix()
 
+def assemblePointwiseLOSObservation(Vh, targets, los_coeff, components=None, prune_and_sort=False):
+    """
+    Assemble the pointwise observation matrix:
+
+    Inputs
+
+        - :code:`Vh`: FEniCS finite element space.
+        - :code:`targets`: observation points (numpy array).
+    """
+    #Ensure that PetscInitialize is called
+    dummy = dl.assemble( ufl.inner(dl.TrialFunction(Vh), dl.TestFunction(Vh))*ufl.dx )
+    #Call the cpp module to compute the pointwise observation matrix
+    if components is None:
+        tmp = cpp_module.PointwiseObservation(Vh._cpp_object,targets.flatten(), prune_and_sort)
+    else:
+        tmp = cpp_module.PointwiseObservation(Vh._cpp_object,targets.flatten(), components.flatten(), prune_and_sort)
+    #return the matrix
+    return tmp.GetLOSMatrix(los_coeff)
+
+
 def exportPointwiseObservation(Vh, B, data, fname, varname="observation"):
     """
     This function writes a VTK PolyData file to visualize pointwise data.

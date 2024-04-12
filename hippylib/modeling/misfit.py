@@ -244,7 +244,7 @@ class ContinuousStateObservation(Misfit):
     This class implements continuous state observations in a 
     subdomain :math:`X \subset \Omega` or :math:`X \subset \partial \Omega`.
     """
-    def __init__(self, Vh, dX, bcs, form = None):
+    def __init__(self, Vh, dX, bcs, data=None, noise_variance=None, form=None):
         """
         Constructor:
 
@@ -255,6 +255,10 @@ class ContinuousStateObservation(Misfit):
             
             :code:`bcs`: If the forward problem imposes Dirichlet boundary conditions :math:`u = u_D \mbox{ on } \Gamma_D`;  \
             :code:`bcs` is a list of :code:`dolfin.DirichletBC` object that prescribes homogeneuos Dirichlet conditions :math:`u = 0 \mbox{ on } \Gamma_D`.
+            
+            :code:`data` is the data
+            
+            :code:`noise_variance` is the variance of the noise
             
             :code:`form`: if :code:`form = None` we compute the :math:`L^2(X)` misfit: :math:`\int_X (u - u_d)^2 dX,` \
             otherwise the integrand specified in the given form will be used.
@@ -275,10 +279,14 @@ class ContinuousStateObservation(Misfit):
             [bc.zero(Wt) for bc in bcs]
             self.W = Transpose(Wt)
             [bc.zero(self.W) for bc in bcs]
+
+        if data is None:
+            self.d = dl.Vector(self.W.mpi_comm())
+            self.W.init_vector(self.d, 1)
+        else:
+            self.d = data
                 
-        self.d = dl.Vector(self.W.mpi_comm())
-        self.W.init_vector(self.d,1)
-        self.noise_variance = None
+        self.noise_variance = noise_variance
         
     def cost(self,x):
         if self.noise_variance is None:

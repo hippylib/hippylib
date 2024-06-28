@@ -129,9 +129,14 @@ def multi1_plot(objs, titles, same_colorbar=True, show_axis='off', logscale=Fals
         raise AttributeError("Too many figures")
              
     for i in range(nobj):
+        if type(cmap) is list:
+            assert len(cmap) == nobj
+            cmapi = cmap[i]
+        else:
+            cmapi = cmap
         plot(objs[i], colorbar=True,
              subplot_loc=(subplot_loc+i+1), mytitle=titles[i],
-             show_axis='off', vmin=vmin, vmax=vmax, logscale=logscale, cmap=cmap,fontsize=fontsize)
+             show_axis='off', vmin=vmin, vmax=vmax, logscale=logscale, cmap=cmapi,fontsize=fontsize)
 
 
 def plot_pts(points, values, colorbar=True, subplot_loc=None, mytitle=None, show_axis='on', vmin=None, vmax=None, xlim=(0,1), ylim=(0,1),cmap=None):

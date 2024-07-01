@@ -21,6 +21,8 @@ jobs:
      steps:
         - name: Fix ufl
           run: ln -s /usr/lib/python3/dist-packages/ufl_legacy/ /usr/lib/python3/dist-packages/ufl 
+        - name: Install jupyter
+          run: pip install notebook
         - name: Checkout code
           uses: actions/checkout@v2
         - name: Import hippylib

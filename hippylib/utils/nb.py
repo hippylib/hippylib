@@ -63,7 +63,7 @@ def _mplot_function(f, vmin, vmax, logscale):
         C = np.sqrt(U*U+V*V)
         return plt.quiver(X,Y,U,V, C, units='x', headaxislength=7, headwidth=7, headlength=7, scale=4, pivot='middle')
     
-def plot(obj, colorbar=True, subplot_loc=None, mytitle=None, show_axis='off', vmin=None, vmax=None, logscale=False, cmap=None):
+def plot(obj, colorbar=True, subplot_loc=None, mytitle=None, show_axis='off', vmin=None, vmax=None, logscale=False, cmap=None,fontsize=20):
     """
     Plot a generic dolfin object (if supported)
     """
@@ -90,7 +90,7 @@ def plot(obj, colorbar=True, subplot_loc=None, mytitle=None, show_axis='off', vm
         plt.gca().set_aspect('equal')
         
     if mytitle is not None:
-        plt.title(mytitle, fontsize=20)
+        plt.title(mytitle, fontsize=fontsize)
         
     if cmap:
         plt.set_cmap(cmap)
@@ -99,7 +99,7 @@ def plot(obj, colorbar=True, subplot_loc=None, mytitle=None, show_axis='off', vm
         
     return pp
         
-def multi1_plot(objs, titles, same_colorbar=True, show_axis='off', logscale=False, vmin=None, vmax=None, cmap=None):
+def multi1_plot(objs, titles, same_colorbar=True, show_axis='off', logscale=False, vmin=None, vmax=None, cmap=None,fontsize = 20):
     """
     Plot a list of generic dolfin object in a single row
     """       
@@ -120,7 +120,7 @@ def multi1_plot(objs, titles, same_colorbar=True, show_axis='off', logscale=Fals
         plt.figure(figsize=(7.5,5))
         subplot_loc = 110
     elif nobj == 2:
-        plt.figure(figsize=(15,5))
+        plt.figure(figsize=(13,5))
         subplot_loc = 120
     elif nobj == 3:
         plt.figure(figsize=(18,4))
@@ -129,9 +129,14 @@ def multi1_plot(objs, titles, same_colorbar=True, show_axis='off', logscale=Fals
         raise AttributeError("Too many figures")
              
     for i in range(nobj):
+        try:
+            cmapi = cmap[i]
+        except:
+            cmapi = cmap    
+       
         plot(objs[i], colorbar=True,
              subplot_loc=(subplot_loc+i+1), mytitle=titles[i],
-             show_axis='off', vmin=vmin, vmax=vmax, logscale=logscale, cmap=cmap)
+             show_axis='off', vmin=vmin, vmax=vmax, logscale=logscale, cmap=cmapi,fontsize=fontsize)
 
 
 def plot_pts(points, values, colorbar=True, subplot_loc=None, mytitle=None, show_axis='on', vmin=None, vmax=None, xlim=(0,1), ylim=(0,1),cmap=None):

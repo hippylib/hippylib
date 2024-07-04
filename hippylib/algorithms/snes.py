@@ -166,3 +166,7 @@ class SNES_VariationalSolver():
     def getIterationNumber(self):
         return self.snes.getIterationNumber()
     
+    
+    def cleanup(self):
+        self.snes.destroy()  # destroy the SNES object to avoid memory leak
+        

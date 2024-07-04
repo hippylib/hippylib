@@ -25,3 +25,5 @@ from .random import Random, parRandom
 from .parameterList import ParameterList
 from .warnings import hIPPYlibDeprecationWarning, hIPPYlibExperimentalWarning
 from . import nb
+
+from .petsc import OptionsManager

@@ -82,20 +82,20 @@ class TestSNES(unittest.TestCase):
             snes.destroy()
             
             
-        def test_snes_variational_solver(self):
-            """Test Newton Problem/Solver for a simple nonlinear PDE
-            
-            FEniCS 2019.1.0 version of the DolfinX example:
-            https://github.com/FEniCS/dolfinx/blob/b6864c032e5e282f9b73f80523f8c264d0c7b3e5/python/test/unit/nls/test_newton.py#L190
-            """
-            opts = {"ksp_type": "preonly", "ksp_rtol": 1.0e-9, "pc_type": "lu"}
-            optmgr = hp.OptionsManager(opts, "solver")
-            
-            problem = hp.SNES_VariationalProblem(self.F, self.u, [self.bc])
-            self.u.assign(dl.Constant(0.9))  # initial guess
-            solver = hp.SNES_VariationalSolver(problem, MPI.COMM_WORLD, optmgr)
-            solver.solve()
-            
-            breakpoint()
-            
+    def test_snes_variational_solver(self):
+        """Test Newton Problem/Solver for a simple nonlinear PDE
+        
+        FEniCS 2019.1.0 version of the DolfinX example:
+        https://github.com/FEniCS/dolfinx/blob/b6864c032e5e282f9b73f80523f8c264d0c7b3e5/python/test/unit/nls/test_newton.py#L190
+        """
+        opts = {"ksp_type": "preonly", "ksp_rtol": 1.0e-9, "pc_type": "lu"}
+        optmgr = hp.OptionsManager(opts, "solver")
+        
+        problem = hp.SNES_VariationalProblem(self.F, self.u, [self.bc])
+        self.u.assign(dl.Constant(0.9))  # initial guess
+        solver = hp.SNES_VariationalSolver(problem, MPI.COMM_WORLD, optmgr)
+        its, reason = solver.solve()
+        
+        assert its > 0
+        assert solver.snes.getConvergedReason() > 0
             

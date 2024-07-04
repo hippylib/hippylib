@@ -18,15 +18,10 @@
 import time
 import dolfin as dl
 import ufl
-import numpy as np
 from .TimeDependentPDEVariationalProblem import TimeDependentPDEVariationalProblem
 from .variables import STATE, PARAMETER, ADJOINT
-from ..algorithms.linalg import Transpose 
-from ..algorithms.linSolvers import PETScLUSolver
 from ..algorithms import SNES_VariationalProblem, SNES_VariationalSolver
 from ..utils.vector2function import vector2Function
-from .timeDependentVector import TimeDependentVector
-
 from ..utils.petsc import OptionsManager
 
 class SNES_TimeDependentPDEVariationalProblem(TimeDependentPDEVariationalProblem):
@@ -36,9 +31,11 @@ class SNES_TimeDependentPDEVariationalProblem(TimeDependentPDEVariationalProblem
         conds = [u0, fwd_bc, adj_bc] : initial condition, (essential) fwd_bc, (essential) adj_bc
         When Vh[STATE] is MixedFunctionSpace, bc's are lists of DirichletBC classes 
         """
-        super().__init__(Vh, varf_handler, bc, bc0, u0, t_init, t_final, is_fwd_linear, solver_params)
+        super().__init__(Vh, varf_handler, bc, bc0, u0, t_init, t_final, is_fwd_linear)
+        self.solver_params = solver_params
+        self.comm = self.mesh.mpi_comm()
 
-    def solveFwd(self, out, x):
+    def solveFwd(self, out, x, verbose=False):
         """ Solve the possibly nonlinear time dependent Fwd Problem:
         Given a, find u such that
         \delta_p F(u,m,p;\hat_p) = 0 \for all \hat_p"""
@@ -99,9 +96,10 @@ class SNES_TimeDependentPDEVariationalProblem(TimeDependentPDEVariationalProblem
             u_old_old.vector().axpy(1, u_old.vector())
             
             for i, t in enumerate(self.times[1:]):
-                # if self.comm.rank == 0:
-                #     print(f"solving at time:\t{t}", flush=True)
-                start = time.perf_counter()
+                if verbose:
+                    start = time.perf_counter()
+                    if self.comm.rank == 0:
+                        print(f"solving at time:\t{t}", flush=True)
                 
                 # Richardson exptrapolation for initial guess, u = 2u_old - u_old_old
                 u.vector().zero()
@@ -112,32 +110,24 @@ class SNES_TimeDependentPDEVariationalProblem(TimeDependentPDEVariationalProblem
                 res_form = self.varf(u, u_old, m, dp, t)
                 self._set_time(self.fwd_bc, t)
                 
-                # TODO: double check segfaults with this?
                 optmgr = OptionsManager(self.solver_params, "fwd")
                 if i != 0:
+                    # Turn off SNES/KSP view for all but the first time step.
+                    # Only works if the user set these options in the solver_params.
                     optmgr.parameters.pop("snes_view", None)
                     optmgr.parameters.pop("ksp_view", None)
+                
                 nl_problem = SNES_VariationalProblem(res_form, u, self.fwd_bc)
                 solver = SNES_VariationalSolver(nl_problem, self.comm, optmgr)
                 
-                # TODO: this is the built in way?
-                # J_form = dl.derivative(res_form, u)
-                # nl_problem = dl.NonlinearVariationalProblem(res_form, u, self.fwd_bc, J=J_form)
-                # solver = dl.NonlinearVariationalSolver(nl_problem)
-                # solver.parameters['nonlinear_solver'] = "snes"
-                # solver.parameters['snes_solver']['linear_solver'] = "cg"
-                # solver.parameters['snes_solver']['preconditioner'] = "petsc_amg"
-                
                 niters, converged = solver.solve()
+                solver.cleanup()
                 
-                # cleanup?
-                solver.snes.destroy()
-                
-                # if self.comm.rank == 0:
-                    # print(f"I took {niters} iterations.", flush=True)
-                    # print(f"Time step took:\t{time.perf_counter()-start}", flush=True)
+                if verbose:
+                    if self.comm.rank == 0:
+                        print(f"Time Step took:\t{niters} iterations.", flush=True)
+                        print(f"Time step took:\t{time.perf_counter()-start}", flush=True)
                 
                 out.store(u.vector(), t)
                 u_old_old.assign(u_old)
                 u_old.assign(u)
-                

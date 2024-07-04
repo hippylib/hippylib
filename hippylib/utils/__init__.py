@@ -26,4 +26,4 @@ from .parameterList import ParameterList
 from .warnings import hIPPYlibDeprecationWarning, hIPPYlibExperimentalWarning
 from . import nb
 
-from .petsc import OptionsManager
+from .petsc import OptionsManager, getPETScReasons

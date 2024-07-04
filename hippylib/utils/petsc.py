@@ -14,6 +14,9 @@
 # hIPPYlib is free software; you can redistribute it and/or modify it under the
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
+
+# The functions and classes in this file are modified versions from those
+# in the firedrake project. https://github.com/firedrakeproject/firedrake
     
 import itertools
 from warnings import warn
@@ -24,6 +27,7 @@ from petsc4py import PETSc
 __all__ = (
     "PETSc",
     "OptionsManager",
+    "getPETScReasons"
 )
 
 
@@ -216,7 +220,7 @@ class OptionsManager(object):
                 del self.options_object[self.options_prefix + k]
 
 
-def _make_reasons(reasons):
+def getPETScReasons(reasons):
     return dict([(getattr(reasons, r), r)
                  for r in dir(reasons) if not r.startswith('_')])
 

@@ -15,12 +15,46 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+# todo: add preconditioner for jacobian
+
 from typing import List
 import dolfin as dl
 import ufl
 from petsc4py import PETSc
 
-# todo: add preconditioner for jacobian
+from ..utils.petsc import getPETScReasons
+
+KSPReasons = getPETScReasons(PETSc.KSP.ConvergedReason())
+SNESReasons = getPETScReasons(PETSc.SNES.ConvergedReason())
+
+class ConvergenceError(Exception):
+    """Error raised when a solver fails to converge"""
+
+def check_snes_convergence(snes):
+    """Check the convergence reason(s) for a PETSc.SNES object.
+    Modified from the firedrake project. https://github.com/firedrakeproject/firedrake
+    """
+    r = snes.getConvergedReason()
+    try:
+        reason = SNESReasons[r]
+        inner = False
+    except KeyError:
+        r = snes.getKSP().getConvergedReason()
+        try:
+            inner = True
+            reason = KSPReasons[r]
+        except KeyError:
+            reason = "unknown reason (petsc4py enum incomplete?), try with -snes_converged_reason and -ksp_converged_reason"
+    if r < 0:
+        if inner:
+            msg = "Inner linear solve failed to converge after %d iterations with reason: %s" % \
+                  (snes.getKSP().getIterationNumber(), reason)
+        else:
+            msg = reason
+        raise ConvergenceError(f"Nonlinear solve failed to converge after {snes.getIterationNumber()} nonlinear iterations. Reason:\n{msg}")
+    
+    return reason
+
 
 class SNES_VariationalProblem():
     """Direct use of PETSc SNES interface to solve
@@ -126,8 +160,9 @@ class SNES_VariationalSolver():
 
 
     def getConvergedReason(self):
-        return self.snes.getConvergedReason()
+        return check_snes_convergence(self.snes)
 
 
     def getIterationNumber(self):
         return self.snes.getIterationNumber()
+    

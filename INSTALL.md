@@ -150,7 +150,6 @@ docker logs hippylib-nb
 
 For instructions on other ways to build `FEniCS`,
 we refer to the FEniCS project [download
-page](https://fenicsproject.org/download/).  Note that this
-instructions always refer to the latest version of `FEniCS` which may or
+page](https://fenicsproject.org/download/).  Note that these instructions always refer to the latest version of `FEniCS` which may or
 may not be yet supported by `hIPPYlib`. Always check the `hIPPYlib`
 website for supported `FEniCS` versions.

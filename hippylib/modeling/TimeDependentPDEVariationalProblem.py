@@ -567,6 +567,13 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
         with  dl.XDMFFile(fname) as fid:
             fid.parameters["functions_share_mesh"] = True
             fid.parameters["rewrite_function_mesh"] = False
+            
+            # write the initial condition to file first.
+            ufun.vector().zero()
+            ufun.vector().axpy(1., self.init_cond.vector())
+            fid.write(ufun, self.times[0])
+            
+            # retrieve the snapshots and write those to file.
             for t in self.times[1:]:
                 u.retrieve(ufun.vector(), t)
                 fid.write(ufun, t)

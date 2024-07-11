@@ -27,8 +27,9 @@ from ..utils.petsc import getPETScReasons
 KSPReasons = getPETScReasons(PETSc.KSP.ConvergedReason())
 SNESReasons = getPETScReasons(PETSc.SNES.ConvergedReason())
 
-class ConvergenceError(Exception):
+class SNESConvergenceError(Exception):
     """Error raised when a solver fails to converge"""
+    pass
 
 def check_snes_convergence(snes):
     """Check the convergence reason(s) for a PETSc.SNES object.
@@ -47,11 +48,10 @@ def check_snes_convergence(snes):
             reason = "unknown reason (petsc4py enum incomplete?), try with -snes_converged_reason and -ksp_converged_reason"
     if r < 0:
         if inner:
-            msg = "Inner linear solve failed to converge after %d iterations with reason: %s" % \
-                  (snes.getKSP().getIterationNumber(), reason)
+            msg = f"Inner linear solve failed to converge after {snes.getKSP().getIterationNumber()} iteration(s) with reason: {reason}"
         else:
             msg = reason
-        raise ConvergenceError(f"Nonlinear solve failed to converge after {snes.getIterationNumber()} nonlinear iterations. Reason:\n{msg}")
+        raise SNESConvergenceError(f"Nonlinear solve failed to converge after {snes.getIterationNumber()} nonlinear iteration(s). Reason:\n{msg}")
     
     return reason
 

@@ -142,3 +142,16 @@ class TimeDependentVector():
         for i in range(self.nsteps):
             a += self.data[i].inner(other.data[i])
         return a
+    
+    def matmul(self, mat, out):
+        """
+        Compute the matrix-vector product :math:`y = A*x` for each snapshot.
+        """
+        
+        assert mat.size(1) == self.data[0].size(), f"Matrix and vector are not compatible. Matrix columns: {mat.size(1)} Vector size: {self.data[0].size()}."
+        assert self.nsteps == out.nsteps, "time dependent vectors do not have the same number of snapshots"
+        assert hasattr(mat, "mult"), "Matrix mat has no method: mult"
+        
+        for i in range(self.nsteps):
+            mat.mult(self.data[i], out.data[i])
+    

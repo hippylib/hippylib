@@ -106,7 +106,7 @@ class ReducedSpaceNewtonCG:
                            "Maximum number of Iteration reached",      #0
                            "Norm of the gradient less than tolerance", #1
                            "Maximum number of backtracking reached",   #2
-                           "Norm of (g, dm) less than tolerance"       #3
+                           "Norm of (g, dm) less than tolerance",       #3
                            "Forward solve failed" #4
                            ]
     

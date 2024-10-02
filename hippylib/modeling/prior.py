@@ -227,6 +227,7 @@ class LaplacianPrior(_Prior):
         ones = dl.Vector(self.R.mpi_comm())
         Mqh.init_vector(ones,0)
         ones.set_local( np.ones(ones.get_local().shape, dtype =ones.get_local().dtype ) )
+        ones.apply("")
         dMqh = Mqh*ones
         dMqh.set_local( ones.get_local() / np.sqrt(dMqh.get_local() ) )
         Mqh.zero()

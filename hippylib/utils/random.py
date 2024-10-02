@@ -62,7 +62,7 @@ class Random(cpp_module.Random):
                 super(Random, self).uniform(out.data[i], a,b)
             return None
         elif type( dl.as_backend_type(out) ) is dl.PETScVector:
-            super(Random, self).uniform(out[i], a,b)
+            super(Random, self).uniform(out, a,b)
             return None
     
     def normal(self, sigma, out=None):

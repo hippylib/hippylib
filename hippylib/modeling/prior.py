@@ -227,7 +227,6 @@ class LaplacianPrior(_Prior):
         ones = dl.Vector(self.R.mpi_comm())
         Mqh.init_vector(ones,0)
         ones.set_local( np.ones(ones.get_local().shape, dtype =ones.get_local().dtype ) )
-        ones.apply("")
         dMqh = Mqh*ones
         dMqh.set_local( ones.get_local() / np.sqrt(dMqh.get_local() ) )
         Mqh.zero()
@@ -658,13 +657,11 @@ class GaussianRealPrior(_Prior):
         self.M = dl.assemble(domain_measure_inv * ufl.inner(trial, test) * ufl.dx)
         self.Msolver = Operator2Solver(self.M)
 
-        if mean:
-            self.mean = mean
-        else:
-            tmp = dl.Vector()
-            self.M.init_vector(tmp, 0)
-            tmp.zero()
-            self.mean = tmp
+        self.mean = mean
+
+        if self.mean is None:
+            self.mean = dl.Vector(Vh.mesh().mpi_comm())
+            self.M.init_vector(self.mean, 0)
 
         if Vh.dim() == 1:
             trial = ufl.as_matrix([[trial]])

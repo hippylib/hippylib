@@ -41,7 +41,9 @@ def MatMatMult(A,B):
     rmap, _ = Amat.getLGMap()
     _, cmap = Bmat.getLGMap()
     out.setLGMap(rmap, cmap)
-    return dl.Matrix(dl.PETScMatrix(out))
+    out_dl = dl.Matrix(dl.PETScMatrix(out))
+    out.destroy()
+    return out_dl
 
 def MatPtAP(A,P):
     """
@@ -52,7 +54,9 @@ def MatPtAP(A,P):
     out = Amat.PtAP(Pmat, fill=1.0)
     _, out_map = Pmat.getLGMap()
     out.setLGMap(out_map, out_map)
-    return dl.Matrix(dl.PETScMatrix(out))
+    out_dl = dl.Matrix(dl.PETScMatrix(out))
+    out.destroy()
+    return out_dl
 
 def MatAtB(A,B):
     """
@@ -64,7 +68,9 @@ def MatAtB(A,B):
     _, rmap = Amat.getLGMap()
     _, cmap = Bmat.getLGMap()
     out.setLGMap(rmap, cmap)
-    return dl.Matrix(dl.PETScMatrix(out))
+    out_dl = dl.Matrix(dl.PETScMatrix(out))
+    out.destroy()
+    return out_dl
 
 def Transpose(A):
     """
@@ -75,7 +81,9 @@ def Transpose(A):
     Amat.transpose(AT)
     rmap, cmap = Amat.getLGMap()
     AT.setLGMap(cmap, rmap)
-    return dl.Matrix( dl.PETScMatrix(AT) )
+    out_dl = dl.Matrix(dl.PETScMatrix(AT))
+    AT.destroy()
+    return out_dl
 
 def SetToOwnedGid(v, gid, val):
     v[gid] = val

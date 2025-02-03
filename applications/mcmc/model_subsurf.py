@@ -22,8 +22,43 @@ import argparse
 
 import sys
 import os
-sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
+# sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
+sys.path.append( os.environ.get('HIPPYLIB_PATH') )
 from hippylib import *
+
+
+def write_mv_to_xdmf(comm, data: list | MultiVector, Vh, filename:str, name=None) -> None:
+    """Write a list of functions to an HDF5 file.
+
+    Args:
+        comm: MPI communicator.
+        data (list or hp.MultiVector): List of dolfin Vectors or a hIPPYlib MultiVector to be exported.
+        Vh (dl.FunctionSpace): FEniCS function space to project vectors onto.
+        filename (str): Filename to which the functions will be written.
+        name (optional): Name for data series. Defaults to None. If None, the series name will be "data".
+    """
+    
+    # check data type and get number of functions to write.
+    assert isinstance(data, list) or isinstance(data, MultiVector), "Data must be a list of dolfin Vectors or a hIPPYlib MultiVector."
+    if isinstance(data, MultiVector):
+        ndata = data.nvec()
+    else:
+        ndata = len(data)
+    
+    if name is None:
+        # build list of names if none is provided.
+        NAME_2_READ = "data"
+    else:
+        # assumed to be a single name, but a series of functions.
+        assert isinstance(name, str), "Please provide the name as a string."
+        NAME_2_READ = name
+
+    with dl.XDMFFile(comm, filename) as fid:
+        fid.parameters["functions_share_mesh"] = True
+        fid.parameters["rewrite_function_mesh"] = False
+        for i in range(ndata):
+            fid.write(vector2Function(data[i], Vh, name=NAME_2_READ), i)
+
 
 class FluxQOI(object):
     def __init__(self, Vh, dsGamma):
@@ -247,11 +282,20 @@ if __name__ == "__main__":
         chain.parameters["burn_in"] = 0
         chain.parameters["number_of_samples"] = args.nsamples
         chain.parameters["print_progress"] = 10            
-        tracer = FullTracer(chain.parameters["number_of_samples"], Vh, fid_m, fid_u)
+        # tracer = FullTracer(chain.parameters["number_of_samples"], Vh, fid_m, fid_u)
+        
+        par_mv = MultiVector(x[PARAMETER], chain.parameters["number_of_samples"])
+        state_mv = MultiVector(x[STATE], chain.parameters["number_of_samples"])
+        
+        tracer = RealizationTracer(chain.parameters["number_of_samples"], par_mv, state_mv)
+        
         if rank != 0:
             chain.parameters["print_level"] = -1
         
         n_accept = chain.run(post_s, qoi, tracer)
+        
+        write_mv_to_xdmf(mesh.mpi_comm(), par_mv, Vh[PARAMETER], "results/"+kernel.name()+"/parameter.xdmf")
+        write_mv_to_xdmf(mesh.mpi_comm(), state_mv, Vh[STATE], "results/"+kernel.name()+"/state.xdmf")
         
         iact, lags, acoors = integratedAutocorrelationTime(tracer.data[:,0])
         if rank == 0:

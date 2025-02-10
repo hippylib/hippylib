@@ -330,7 +330,7 @@ class ReducedSpaceNewtonCG:
             if self.it > 1:
                 solver.set_TR(delta_TR, self.model.prior.R)
             solver.parameters["rel_tolerance"] = tolcg
-            self.parameters["max_iter"]        = cg_max_iter
+            solver.parameters["max_iter"] = cg_max_iter
             solver.parameters["zero_initial_guess"] = True
             solver.parameters["print_level"] = print_level-1
             

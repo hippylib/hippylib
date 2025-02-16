@@ -60,6 +60,7 @@ class TimeDependentVector():
 
         return res
         
+    # todo: initialize from a function space
     def initialize(self, M, dim):
         """
         Initialize all the snapshot to be compatible

@@ -60,17 +60,19 @@ class TimeDependentVector():
 
         return res
         
-    # todo: initialize from a function space
-    def initialize(self, M, dim):
+    def initialize(self, Vh):
         """
-        Initialize all the snapshot to be compatible
-        with the range/domain of an operator :code:`M`.
+        Initialize all the snapshots to be compatible
+        with the function space :code:`Vh`.
         """
         
-        for d in self.data:
-            M.init_vector(d,dim)
-            d.zero()
-            
+        template_fun = dl.Function(Vh)
+        
+        self.data = []
+        
+        for i in range(self.nsteps):
+            self.data.append( template_fun.vector().copy() )
+    
     def axpy(self, a, other):
         """
         Compute :math:`x = x + \\mbox{a*other}` snapshot per snapshot.

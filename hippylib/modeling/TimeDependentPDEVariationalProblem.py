@@ -94,7 +94,7 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
         return self.generate_vector(component=STATE)
 
     def generate_parameter(self):
-        """ return a time dependent vector in the shape of the adjoint """
+        """ return a vector in the shape of the parameter """
         return self.generate_vector(component=PARAMETER)
 
     def generate_adjoint(self):

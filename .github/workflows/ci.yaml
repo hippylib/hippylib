@@ -12,7 +12,7 @@ defaults:
 
 jobs:
    style:
-     runs-on: ubuntu-20.04
+     runs-on: ubuntu-24.04
      container:
        image: ghcr.io/scientificcomputing/fenics:2024-05-28
        options: --privileged

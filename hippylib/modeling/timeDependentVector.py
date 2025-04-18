@@ -1,8 +1,8 @@
-# Copyright (c) 2016-2018, The University of Texas at Austin 
+# Copyright (c) 2016-2018, The University of Texas at Austin
 # & University of California--Merced.
-# Copyright (c) 2019-2022, The University of Texas at Austin 
+# Copyright (c) 2019-2022, The University of Texas at Austin
 # University of California--Merced, Washington University in St. Louis.
-# Copyright (c) 2023-2024, The University of Texas at Austin 
+# Copyright (c) 2023-2024, The University of Texas at Austin
 # & University of California--Merced.
 #
 # All Rights reserved.
@@ -16,16 +16,18 @@
 # Software Foundation) version 2.0 dated June 1991.
 
 import dolfin as dl
+import numpy as np
 
-class TimeDependentVector():
+
+class TimeDependentVector:
     """
     A class to store time dependent vectors.
     Snapshots are stored/retrieved by specifying
     the time of the snapshot. Times at which the snapshot are taken must be
     specified in the constructor.
     """
-    
-    def __init__(self, times, tol=1e-10, mpi_comm = dl.MPI.comm_world):
+
+    def __init__(self, times, tol=1e-10, mpi_comm=dl.MPI.comm_world):
         """
         Constructor:
 
@@ -34,24 +36,24 @@ class TimeDependentVector():
         """
         self.nsteps = len(times)
         self.data = []
-        
+
         for i in range(self.nsteps):
-            self.data.append( dl.Vector(mpi_comm) )
-             
+            self.data.append(dl.Vector(mpi_comm))
+
         self.times = times
         self.tol = tol
         self.mpi_comm = mpi_comm
+        self.Vh = None
 
     def __imul__(self, other):
         for d in self.data:
             d *= other
         return self
-    
 
     def copy(self):
         """
         Return a copy of all the time frames and snapshots
-        """        
+        """
         res = TimeDependentVector(self.times, tol=self.tol, mpi_comm=self.mpi_comm)
         res.data = []
 
@@ -59,71 +61,73 @@ class TimeDependentVector():
             res.data.append(v.copy())
 
         return res
-        
+
     def initialize(self, Vh):
         """
         Initialize all the snapshots to be compatible
         with the function space :code:`Vh`.
         """
-        
         template_fun = dl.Function(Vh)
-        
         self.data = []
-        
+
         for i in range(self.nsteps):
-            self.data.append( template_fun.vector().copy() )
-    
+            self.data.append(template_fun.vector().copy())
+
     def axpy(self, a, other):
         """
         Compute :math:`x = x + \\mbox{a*other}` snapshot per snapshot.
         """
         for i in range(self.nsteps):
-            self.data[i].axpy(a,other.data[i])
-        
+            self.data[i].axpy(a, other.data[i])
+
     def zero(self):
         """
         Zero out each snapshot.
         """
         for d in self.data:
             d.zero()
-            
+
     def store(self, u, t):
         """
         Store snapshot :code:`u` relative to time :code:`t`.
         If :code:`t` does not belong to the list of time frame an error is raised.
         """
         i = 0
-        while i < self.nsteps-1 and 2*t > self.times[i] + self.times[i+1]:
+        while i < self.nsteps - 1 and 2 * t > self.times[i] + self.times[i + 1]:
             i += 1
-            
+
         assert abs(t - self.times[i]) < self.tol
-        
+
         self.data[i].zero()
-        self.data[i].axpy(1., u )
-        
+        self.data[i].axpy(1.0, u)
+
     def retrieve(self, u, t):
         """
         Retrieve snapshot :code:`u` relative to time :code:`t`.
         If :code:`t` does not belong to the list of time frame an error is raised.
         """
         i = 0
-        while i < self.nsteps-1 and 2*t > self.times[i] + self.times[i+1]:
+        while i < self.nsteps - 1 and 2 * t > self.times[i] + self.times[i + 1]:
             i += 1
-            
+
         assert abs(t - self.times[i]) < self.tol
-        
+
         u.zero()
-        u.axpy(1., self.data[i] )
-        
+        u.axpy(1.0, self.data[i])
+
     def view(self, t):
+        """
+        Return a view of the snapshot at time :code:`t`.
+        If :code:`t` does not belong to the list of time frame an error is raised.
+        """
         i = 0
-        while i < self.nsteps-1 and 2*t > self.times[i] + self.times[i+1]:
+        while i < self.nsteps - 1 and 2 * t > self.times[i] + self.times[i + 1]:
             i += 1
-            
+
         assert abs(t - self.times[i]) < self.tol
-        
-        return self.data[i]      
-        
+
+        return self.data[i]
+
     def norm(self, time_norm, space_norm):
         """
         Compute the space-time norm of the snapshot.
@@ -134,27 +138,66 @@ class TimeDependentVector():
             tmp = self.data[i].norm(space_norm)
             if tmp > s_norm:
                 s_norm = tmp
-        
+
         return s_norm
 
     def inner(self, other):
         """
         Compute the inner products: :math:`a+= (\\mbox{self[i]},\\mbox{other[i]})` for each snapshot.
         """
-        a = 0.
+        assert (
+            other.nsteps == self.nsteps
+        ), "vectors do not have the same number of snapshots"
+        a = 0.0
         for i in range(self.nsteps):
             a += self.data[i].inner(other.data[i])
         return a
-    
+
+    def element_wise_inner(self, other):
+        """
+        Compute the element-wise inner products: :math:`a[i] = (\\mbox{self[i]},\\mbox{other[i]})` for each snapshot.
+        """
+        assert (
+            other.nsteps == self.nsteps
+        ), "vectors do not have the same number of snapshots"
+        out = np.zeros(self.nsteps)
+        for i in range(self.nsteps):
+            out[i] += self.data[i].inner(other.data[i])
+
+        return out
+
     def matmul(self, mat, out):
         """
         Compute the matrix-vector product :math:`y = A*x` for each snapshot.
         """
-        
-        assert mat.size(1) == self.data[0].size(), f"Matrix and vector are not compatible. Matrix columns: {mat.size(1)} Vector size: {self.data[0].size()}."
-        assert self.nsteps == out.nsteps, "time dependent vectors do not have the same number of snapshots"
+        assert (
+            mat.size(1) == self.data[0].size()
+        ), f"Matrix and vector are not compatible. Matrix columns: {mat.size(1)} Vector size: {self.data[0].size()}."
+        assert (
+            self.nsteps == out.nsteps
+        ), "time dependent vectors do not have the same number of snapshots"
         assert hasattr(mat, "mult"), "Matrix mat has no method: mult"
-        
+
         for i in range(self.nsteps):
             mat.mult(self.data[i], out.data[i])
-    
+
+    def get_local(self):
+        """
+        Return the local part of the vector.
+        """
+        return np.array([v.get_local() for v in self.data]).flatten()
+
+    def set_local(self, v):
+        """
+        Set the local part of the vector.
+        """
+        vv = np.reshape(v, (self.nsteps, -1))
+        assert (
+            vv.shape[0] == self.nsteps
+        ), "The number of snapshots does not match the number of time steps"
+        assert (
+            vv.shape[1] == self.data[0].get_local().size
+        ), "The size of the vector does not match the size of the snapshot"
+        for i in range(self.nsteps):
+            self.data[i].set_local(vv[i])
+            self.data[i].apply("")

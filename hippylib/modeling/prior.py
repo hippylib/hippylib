@@ -22,7 +22,7 @@ import math
 import numbers
 
 from ..algorithms.linalg import MatMatMult, get_diagonal, amg_method, estimate_diagonal_inv2, Solver2Operator, Operator2Solver
-from ..algorithms.linSolvers import PETScKrylovSolver
+from ..algorithms.linSolvers import PETScKrylovSolver, PETScLUSolver
 from ..algorithms.traceEstimator import TraceEstimator
 from ..algorithms.multivector import MultiVector
 from ..algorithms.randomizedEigensolver import doublePass, doublePassG
@@ -166,7 +166,7 @@ class LaplacianPrior(_Prior):
         .. note:: :math:`C` is a trace class operator only in 1D while it is not a valid prior in 2D and 3D.
     """
     
-    def __init__(self, Vh, gamma, delta, mean=None, rel_tol=1e-12, max_iter=100):
+    def __init__(self, Vh, gamma, delta, mean=None, rel_tol=1e-12, max_iter=100, solver_type="krylov", lu_method="default"):
         """
         Construct the prior model.
         Input:
@@ -175,6 +175,10 @@ class LaplacianPrior(_Prior):
         - :code:`gamma` and :code:`delta`: the coefficient in the PDE
         - :code:`Theta`:           the SPD tensor for anisotropic diffusion of the PDE
         - :code:`mean`:            the prior mean
+        - :code:`rel_tol`:         relative tolerance for solving linear systems involving covariance matrix (used when :code:`solver_type == "krylov"`)
+        - :code:`max_iter`:        maximum number of iterations for solving linear systems involving covariance matrix (used when :code:`solver_type == "krylov"`)
+        - :code:`solver_type`:     type of solver to use for solving linear systems involving covariance matrix. Options are "krylov" or "lu" (default is krylov)
+        - :code:`lu_method`:       method to use for the LU solver (used when :code:`solver_type == "lu"`, default is "default") 
         """        
         assert delta != 0., "Intrinsic Gaussian Prior are not supported"
         self.Vh = Vh
@@ -189,20 +193,33 @@ class LaplacianPrior(_Prior):
         self.R = dl.assemble(gamma*varfL + delta*varfM)
         
 
-        self.Rsolver = PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
-        self.Rsolver.set_operator(self.R)
-        self.Rsolver.parameters["maximum_iterations"] = max_iter
-        self.Rsolver.parameters["relative_tolerance"] = rel_tol
-        self.Rsolver.parameters["error_on_nonconvergence"] = True
-        self.Rsolver.parameters["nonzero_initial_guess"] = False
-        
+        if solver_type == "krylov":
+            self.Rsolver = PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+            self.Rsolver.set_operator(self.R)
+            self.Rsolver.parameters["maximum_iterations"] = max_iter
+            self.Rsolver.parameters["relative_tolerance"] = rel_tol
+            self.Rsolver.parameters["error_on_nonconvergence"] = True
+            self.Rsolver.parameters["nonzero_initial_guess"] = False
+            
+            self.Msolver = PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
+            self.Msolver.set_operator(self.M)
+            self.Msolver.parameters["maximum_iterations"] = max_iter
+            self.Msolver.parameters["relative_tolerance"] = rel_tol
+            self.Msolver.parameters["error_on_nonconvergence"] = True
+            self.Msolver.parameters["nonzero_initial_guess"] = False
 
-        self.Msolver = PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
-        self.Msolver.set_operator(self.M)
-        self.Msolver.parameters["maximum_iterations"] = max_iter
-        self.Msolver.parameters["relative_tolerance"] = rel_tol
-        self.Msolver.parameters["error_on_nonconvergence"] = True
-        self.Msolver.parameters["nonzero_initial_guess"] = False
+        elif solver_type == 'lu': 
+            self.Rsolver = PETScLUSolver(self.Vh.mesh().mpi_comm(), method=lu_method)
+            self.Rsolver.set_operator(self.R)
+            # self.Rsolver.parameters["symmetric"] = True
+
+            self.Msolver = PETScLUSolver(self.Vh.mesh().mpi_comm(), method=lu_method)
+            self.Msolver.set_operator(self.M)
+            # self.Msolver.parameters["symmetric"] = True
+
+        else:
+            raise ValueError("Unknown solver type %s" %(solver_type))
+
         
         ndim = Vh.mesh().geometry().dim()
         old_qr = dl.parameters["form_compiler"]["quadrature_degree"]
@@ -349,7 +366,7 @@ class SqrtPrecisionPDE_Prior(_Prior):
     
     """
     
-    def __init__(self, Vh, sqrt_precision_varf_handler, mean=None, rel_tol=1e-12, max_iter=1000):
+    def __init__(self, Vh, sqrt_precision_varf_handler, mean=None, rel_tol=1e-12, max_iter=1000, solver_type="krylov", lu_method="default"):
         """
         Construct the prior model.
         Input:
@@ -357,6 +374,10 @@ class SqrtPrecisionPDE_Prior(_Prior):
         - :code:`Vh`:              the finite element space for the parameter
         - :code:sqrt_precision_varf_handler: the PDE representation of the  sqrt of the covariance operator
         - :code:`mean`:            the prior mean
+        - :code:`rel_tol`:         relative tolerance for solving linear systems involving covariance matrix (used when :code:`solver_type == "krylov"`)
+        - :code:`max_iter`:        maximum number of iterations for solving linear systems involving covariance matrix (used when :code:`solver_type == "krylov"`)
+        - :code:`solver_type`:     type of solver to use for solving linear systems involving covariance matrix. Options are "krylov" or "lu" (default is krylov)
+        - :code:`lu_method`:       method to use for the LU solver (used when :code:`solver_type == "lu"`, default is "default") 
         """
 
         self.Vh = Vh
@@ -366,20 +387,34 @@ class SqrtPrecisionPDE_Prior(_Prior):
         
         varfM = ufl.inner(trial,test)*ufl.dx       
         self.M = dl.assemble(varfM)
-        self.Msolver = PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
-        self.Msolver.set_operator(self.M)
-        self.Msolver.parameters["maximum_iterations"] = max_iter
-        self.Msolver.parameters["relative_tolerance"] = rel_tol
-        self.Msolver.parameters["error_on_nonconvergence"] = True
-        self.Msolver.parameters["nonzero_initial_guess"] = False
-        
         self.A = dl.assemble( sqrt_precision_varf_handler(trial, test) )        
-        self.Asolver = PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
-        self.Asolver.set_operator(self.A)
-        self.Asolver.parameters["maximum_iterations"] = max_iter
-        self.Asolver.parameters["relative_tolerance"] = rel_tol
-        self.Asolver.parameters["error_on_nonconvergence"] = True
-        self.Asolver.parameters["nonzero_initial_guess"] = False
+
+        if solver_type == "krylov":
+            self.Msolver = PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", "jacobi")
+            self.Msolver.set_operator(self.M)
+            self.Msolver.parameters["maximum_iterations"] = max_iter
+            self.Msolver.parameters["relative_tolerance"] = rel_tol
+            self.Msolver.parameters["error_on_nonconvergence"] = True
+            self.Msolver.parameters["nonzero_initial_guess"] = False
+        
+            self.Asolver = PETScKrylovSolver(self.Vh.mesh().mpi_comm(), "cg", amg_method())
+            self.Asolver.set_operator(self.A)
+            self.Asolver.parameters["maximum_iterations"] = max_iter
+            self.Asolver.parameters["relative_tolerance"] = rel_tol
+            self.Asolver.parameters["error_on_nonconvergence"] = True
+            self.Asolver.parameters["nonzero_initial_guess"] = False
+
+        elif solver_type == "lu":
+            self.Msolver = PETScLUSolver(self.Vh.mesh().mpi_comm(), method=lu_method)
+            self.Msolver.set_operator(self.M)
+            self.Msolver.parameters["symmetric"] = True
+
+            self.Asolver = PETScLUSolver(self.Vh.mesh().mpi_comm(), method=lu_method)
+            self.Asolver.set_operator(self.A)
+            self.Asolver.parameters["symmetric"] = True
+
+        else:
+            raise ValueError("Unknown solver type %s" %(solver_type))
         
         old_qr = dl.parameters["form_compiler"]["quadrature_degree"]
         dl.parameters["form_compiler"]["quadrature_degree"] = -1
@@ -449,7 +484,7 @@ class SqrtPrecisionPDE_Prior(_Prior):
         if add_mean:
             s.axpy(1., self.mean)
             
-def BiLaplacianPrior(Vh, gamma, delta, Theta = None, mean=None, rel_tol=1e-12, max_iter=1000, robin_bc=False):
+def BiLaplacianPrior(Vh, gamma, delta, Theta = None, mean=None, rel_tol=1e-12, max_iter=1000, robin_bc=False, solver_type="krylov", lu_method="default"):
     """
     This function construct an instance of :code"`SqrtPrecisionPDE_Prior`  with covariance matrix
     :math:`C = (\\delta I + \\gamma \\mbox{div } \\Theta \\nabla) ^ {-2}`.
@@ -465,9 +500,11 @@ def BiLaplacianPrior(Vh, gamma, delta, Theta = None, mean=None, rel_tol=1e-12, m
     - :code:`gamma` and :code:`delta`: the coefficient in the PDE (floats, dl.Constant, dl.Expression, or dl.Function)
     - :code:`Theta`:           the SPD tensor for anisotropic diffusion of the PDE
     - :code:`mean`:            the prior mean
-    - :code:`rel_tol`:         relative tolerance for solving linear systems involving covariance matrix
-    - :code:`max_iter`:        maximum number of iterations for solving linear systems involving covariance matrix
+    - :code:`rel_tol`:         relative tolerance for solving linear systems involving covariance matrix (used when :code:`solver_type == "krylov"`)
+    - :code:`max_iter`:        maximum number of iterations for solving linear systems involving covariance matrix (used when :code:`solver_type == "krylov"`)
     - :code:`robin_bc`:        whether to use Robin boundary condition to remove boundary artifacts
+    - :code:`solver_type`:     type of solver to use for solving linear systems involving covariance matrix. Options are "krylov" or "lu" (default is krylov)
+    - :code:`lu_method`:       method to use for the LU solver (used when :code:`solver_type == "lu"`, default is "default") 
     """
     if isinstance(gamma, numbers.Number):
         gamma = dl.Constant(gamma)
@@ -493,9 +530,9 @@ def BiLaplacianPrior(Vh, gamma, delta, Theta = None, mean=None, rel_tol=1e-12, m
         
         return varfL + varfM + varf_robin
     
-    return SqrtPrecisionPDE_Prior(Vh, sqrt_precision_varf_handler, mean, rel_tol, max_iter)
+    return SqrtPrecisionPDE_Prior(Vh, sqrt_precision_varf_handler, mean, rel_tol, max_iter, solver_type=solver_type, lu_method=lu_method)
 
-def MollifiedBiLaplacianPrior(Vh, gamma, delta, locations, m_true, Theta = None, pen = 1e1, order=2, rel_tol=1e-12, max_iter=1000):
+def MollifiedBiLaplacianPrior(Vh, gamma, delta, locations, m_true, Theta = None, pen = 1e1, order=2, rel_tol=1e-12, max_iter=1000, solver_type="krylov", lu_method="default"):
     """
     This function construct an instance of :code"`SqrtPrecisionPDE_Prior`  with covariance matrix
     :math:`C = \\left( [\\delta + \\mbox{pen} \\sum_i m(x - x_i) ] I + \\gamma \\mbox{div } \\Theta \\nabla\\right) ^ {-2}`,
@@ -524,6 +561,10 @@ def MollifiedBiLaplacianPrior(Vh, gamma, delta, locations, m_true, Theta = None,
     - :code:`Theta`:           the SPD tensor for anisotropic diffusion of the PDE
     - :code:`pen`:             a penalization parameter for the mollifier
 
+    - :code:`rel_tol`:         relative tolerance for solving linear systems involving covariance matrix (used when :code:`solver_type == "krylov"`)
+    - :code:`max_iter`:        maximum number of iterations for solving linear systems involving covariance matrix (used when :code:`solver_type == "krylov"`)
+    - :code:`solver_type`:     type of solver to use for solving linear systems involving covariance matrix. Options are "krylov" or "lu" (default is krylov)
+    - :code:`lu_method`:       method to use for the LU solver (used when :code:`solver_type == "lu"`, default is "default") 
     """
     assert delta != 0. or pen != 0, "Intrinsic Gaussian Prior are not supported"
     
@@ -542,7 +583,7 @@ def MollifiedBiLaplacianPrior(Vh, gamma, delta, locations, m_true, Theta = None,
         varfmo = mfun*ufl.inner(trial,test)*ufl.dx
         return dl.Constant(gamma)*varfL+dl.Constant(delta)*varfM + dl.Constant(pen)*varfmo
     
-    prior = SqrtPrecisionPDE_Prior(Vh, sqrt_precision_varf_handler, None, rel_tol, max_iter)
+    prior = SqrtPrecisionPDE_Prior(Vh, sqrt_precision_varf_handler, None, rel_tol, max_iter, solver_type=solver_type, lu_method=lu_method)  
     
     prior.mean = dl.Vector(prior.R.mpi_comm())
     prior.init_vector(prior.mean, 0)
@@ -555,7 +596,7 @@ def MollifiedBiLaplacianPrior(Vh, gamma, delta, locations, m_true, Theta = None,
     return prior
 
 
-def VectorBiLaplacianPrior(Vh, gamma, delta, mean=None, rel_tol=1e-12, max_iter=1000, robin_bc=False):
+def VectorBiLaplacianPrior(Vh, gamma, delta, mean=None, rel_tol=1e-12, max_iter=1000, robin_bc=False, solver_type="krylov", lu_method="default"):
     """
     This function construct an instance of :code"`SqrtPrecisionPDE_Prior` for a vector valued
     prior distribution with uncoupled components. The covariance matrix is thus block diagonal with components
@@ -571,9 +612,11 @@ def VectorBiLaplacianPrior(Vh, gamma, delta, mean=None, rel_tol=1e-12, max_iter=
     - :code:`gamma` and :code:`delta`: list of cofficients (floats or dl.Constants)
     - :code:`Theta`:           the SPD tensor for anisotropic diffusion of the PDE
     - :code:`mean`:            the prior mean
-    - :code:`rel_tol`:         relative tolerance for solving linear systems involving covariance matrix
-    - :code:`max_iter`:        maximum number of iterations for solving linear systems involving covariance matrix
+    - :code:`rel_tol`:         relative tolerance for solving linear systems involving covariance matrix (used when :code:`solver_type == "krylov"`)
+    - :code:`max_iter`:        maximum number of iterations for solving linear systems involving covariance matrix (used when :code:`solver_type == "krylov"`)
     - :code:`robin_bc`:        whether to use Robin boundary condition to remove boundary artifacts
+    - :code:`solver_type`:     type of solver to use for solving linear systems involving covariance matrix. Options are "krylov" or "lu" (default is krylov)
+    - :code:`lu_method`:       method to use for the LU solver (used when :code:`solver_type == "lu"`, default is "default") 
     """
 
     if isinstance(gamma[0], numbers.Number):
@@ -601,7 +644,7 @@ def VectorBiLaplacianPrior(Vh, gamma, delta, mean=None, rel_tol=1e-12, max_iter=
         
         return varfL + varfM + varf_robin
     
-    return SqrtPrecisionPDE_Prior(Vh, sqrt_precision_varf_handler, mean, rel_tol, max_iter)
+    return SqrtPrecisionPDE_Prior(Vh, sqrt_precision_varf_handler, mean, rel_tol, max_iter, solver_type=solver_type, lu_method=lu_method)
     
 
 class GaussianRealPrior(_Prior):

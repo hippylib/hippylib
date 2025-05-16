@@ -17,6 +17,7 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
 Development version
 -------------------
+- Introduce `SNES_TimeDependentPDEVariationalProblem`, and `PETSc` interfaces: `SNES_VariationalProblem`, `SNES_VariationalSolver`, and `OptionsManager`. Extended functionality of `TimeDependentVector`.
 - Introduce `TimeDependentPDEVariationalProblem`, and `MisfitTD` to support time-dependent problems. Extended functionality of `TimeDependentVector`.
 - Extend utilities to interpolate cartesian data (expressed as `numpy arrays`) on a `dolfin` mesh to support vector function space
 - Introduce a new `DiscreteStateObservation` misfit that takes as input a linear observation operator described by `B`.

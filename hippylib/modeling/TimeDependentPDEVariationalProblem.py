@@ -557,7 +557,7 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
         
     def exportState(self, u, fname):
         ufun = dl.Function(self.Vh[STATE], name="state")
-        with  dl.XDMFFile(fname) as fid:
+        with dl.XDMFFile(self.mesh.mpi_comm(), fname) as fid:
             fid.parameters["functions_share_mesh"] = True
             fid.parameters["rewrite_function_mesh"] = False
             

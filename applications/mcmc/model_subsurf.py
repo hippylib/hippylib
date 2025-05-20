@@ -22,8 +22,7 @@ import argparse
 
 import sys
 import os
-# sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
-sys.path.append( os.environ.get('HIPPYLIB_PATH') )
+sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
 from hippylib import *
 
 

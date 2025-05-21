@@ -96,7 +96,7 @@ class DiscreteStateObservation(Misfit):
             self.d = dl.Vector(self.B.mpi_comm())
             self.B.init_vector(self.d, 0)
         else:
-            self.d = data.copy()
+            self.d = data
         
         self.Bu = dl.Vector(self.B.mpi_comm())
         self.B.init_vector(self.Bu, 0)
@@ -284,7 +284,7 @@ class ContinuousStateObservation(Misfit):
             self.d = dl.Vector(self.W.mpi_comm())
             self.W.init_vector(self.d, 1)
         else:
-            self.d = data.copy()
+            self.d = data
                 
         self.noise_variance = noise_variance
         

@@ -44,22 +44,14 @@ class SNES_TimeDependentPDEVariationalProblem(TimeDependentPDEVariationalProblem
         \delta_p F(u,m,p;\hat_p) = 0 \for all \hat_p"""
         out.zero()
 
-        if self.solverA is None:
-            self.solverA = self._createLUSolver()
-
         u_old = dl.Function(self.Vh[STATE])
         u_old.vector().zero()
         u_old.vector().axpy(1., self.init_cond.vector())
         out.store(u_old.vector(), self.t_init)
-        
-        A = None
-        b = None
-
 
         m = vector2Function(x[PARAMETER], self.Vh[PARAMETER])
         u = dl.Function(self.Vh[STATE])
         dp = dl.TestFunction(self.Vh[ADJOINT])
-        u_vec = self.generate_static_state()
 
         u.assign(u_old)
         

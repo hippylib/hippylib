@@ -270,7 +270,7 @@ class ReducedSpaceNewtonCG:
             if n_backtrack == max_backtracking_iter:
                 self.converged = False
                 if self.fwd_failed:
-                    self.reasn = 2
+                    self.reason = 4
                 else:
                     self.reason = 2
                 break

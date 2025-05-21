@@ -22,14 +22,10 @@ import dolfin as dl
 import ufl
 from petsc4py import PETSc
 
-from ..utils.petsc import getPETScReasons
+from ..utils.petsc import getPETScReasons, SNESConvergenceError
 
 KSPReasons = getPETScReasons(PETSc.KSP.ConvergedReason())
 SNESReasons = getPETScReasons(PETSc.SNES.ConvergedReason())
-
-class SNESConvergenceError(Exception):
-    """Error raised when a solver fails to converge"""
-    pass
 
 def check_snes_convergence(snes):
     """Check the convergence reason(s) for a PETSc.SNES object.

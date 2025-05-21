@@ -224,3 +224,7 @@ def getPETScReasons(reasons):
     return dict([(getattr(reasons, r), r)
                  for r in dir(reasons) if not r.startswith('_')])
 
+
+class SNESConvergenceError(Exception):
+    """Error raised when a solver fails to converge"""
+    pass

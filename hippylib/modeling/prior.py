@@ -178,7 +178,7 @@ class LaplacianPrior(_Prior):
         - :code:`rel_tol`:         relative tolerance for solving linear systems involving covariance matrix (used when :code:`solver_type == "krylov"`)
         - :code:`max_iter`:        maximum number of iterations for solving linear systems involving covariance matrix (used when :code:`solver_type == "krylov"`)
         - :code:`solver_type`:     type of solver to use for solving linear systems involving covariance matrix. Options are "krylov" or "lu" (default is krylov)
-        - :code:`lu_method`:       method to use for the LU solver (used when :code:`solver_type == "lu"`, default is "default")
+        - :code:`lu_method`:       method to use for the LU solver (used when :code:`solver_type == "lu"`, default is "default") 
         """        
         assert delta != 0., "Intrinsic Gaussian Prior are not supported"
         self.Vh = Vh

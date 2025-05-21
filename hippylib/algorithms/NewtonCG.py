@@ -18,7 +18,7 @@ from ..utils.parameterList import ParameterList
 from ..modeling.reducedHessian import ReducedHessian
 from ..modeling.variables import STATE, PARAMETER, ADJOINT
 from .cgsolverSteihaug import CGSolverSteihaug
-from .snes import SNESConvergenceError
+from ..utils.warnings import ModelConvergenceError
 
 
 def LS_ParameterList():
@@ -239,7 +239,7 @@ class ReducedSpaceNewtonCG:
                     self.model.solveFwd(x_star[STATE], x_star)
                     cost_new, reg_new, misfit_new = self.model.cost(x_star)
                     self.fwd_failed = False
-                except SNESConvergenceError:
+                except ModelConvergenceError:
                     cost_new = cost_old + 1  # ensures decrease is not satisfied
                     self.fwd_failed = True
                   

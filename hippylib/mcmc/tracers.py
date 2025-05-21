@@ -52,20 +52,3 @@ class FullTracer(object):
             self.state_fid.write(vector2Function(current.u, self.Vh[STATE], name="state"), self.i)
 
         self.i+=1
-        
-class RealizationTracer(object):
-    def __init__(self, n, par_mv, state_mv):
-        self.data = np.zeros((n,2))
-        self.i = 0
-        self.par_mv = par_mv
-        self.state_mv = state_mv
-        
-    def append(self,current, q):
-        self.data[self.i, 0] = q
-        self.data[self.i, 1] = current.cost
-        
-        # append the parameter and state to the respective multi-vectors
-        self.par_mv[self.i].axpy(1., current.m)
-        self.state_mv[self.i].axpy(1., current.u)
-        
-        self.i+=1

@@ -14,6 +14,6 @@
 # Software Foundation) version 2.0 dated June 1991.
 
 from .kernels import MALAKernel, pCNKernel, gpCNKernel, ISKernel
-from .tracers import NullTracer, QoiTracer, FullTracer, RealizationTracer
+from .tracers import NullTracer, QoiTracer, FullTracer
 from .chain import MCMC, NullQoi
 from .diagnostics import integratedAutocorrelationTime

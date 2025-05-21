@@ -24,6 +24,21 @@ import os
 sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
 from hippylib import *
 
+class ObservableTimeDependentVector(TimeDependentVector):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    
+    def initialize(self, M, dim):
+        """
+        Initialize all the snapshot to be compatible
+        with the range/domain of an operator :code:`M`.
+        """
+        
+        for d in self.data:
+            M.init_vector(d,dim)
+            d.zero()
+    
+
 class SpaceTimePointwiseStateObservation(Misfit):
     def __init__(self, Vh,
                  observation_times,
@@ -38,7 +53,7 @@ class SpaceTimePointwiseStateObservation(Misfit):
         self.ntargets = targets
         
         if d is None:
-            self.d = TimeDependentVector(observation_times)
+            self.d = ObservableTimeDependentVector(observation_times)
             self.d.initialize(self.B, 0)
         else:
             self.d = d
@@ -153,15 +168,15 @@ class TimeDependentAD:
     def generate_vector(self, component = "ALL"):
         if component == "ALL":
             u = TimeDependentVector(self.simulation_times)
-            u.initialize(self.M, 0)
+            u.initialize(self.Vh[STATE])
             m = dl.Vector()
             self.prior.init_vector(m,0)
             p = TimeDependentVector(self.simulation_times)
-            p.initialize(self.M, 0)
+            p.initialize(self.Vh[ADJOINT])
             return [u, m, p]
         elif component == STATE:
             u = TimeDependentVector(self.simulation_times)
-            u.initialize(self.M, 0)
+            u.initialize(self.Vh[STATE])
             return u
         elif component == PARAMETER:
             m = dl.Vector()
@@ -169,7 +184,7 @@ class TimeDependentAD:
             return m
         elif component == ADJOINT:
             p = TimeDependentVector(self.simulation_times)
-            p.initialize(self.M, 0)
+            p.initialize(self.Vh[ADJOINT])
             return p
         else:
             raise
@@ -205,7 +220,7 @@ class TimeDependentAD:
     def solveAdj(self, out, x):
         
         grad_state = TimeDependentVector(self.simulation_times)
-        grad_state.initialize(self.M, 0)
+        grad_state.initialize(self.Vh[STATE])
         self.misfit.grad(STATE, x, grad_state)
         
         out.zero()

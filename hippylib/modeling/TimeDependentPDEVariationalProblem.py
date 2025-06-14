@@ -67,27 +67,24 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
         #self.parameters['snes_solver']["maximum_iterations"] = 100
         #self.parameters['snes_solver']["report"] = True
 
-        #TODO: Modify the TimeDependentVector init() to get rid of this (we don't always have mass matrix in mixed problems)
-        self.M  = dl.assemble(dl.inner(dl.TrialFunction(self.Vh[STATE]), dl.TestFunction(self.Vh[ADJOINT]))*dl.dx)
-
 
     def generate_vector(self, component = "ALL"):
         if component == "ALL":
             u = TimeDependentVector(self.times)
-            u.initialize(self.M, 1)
+            u.initialize(self.Vh[STATE])
             a = dl.Function(self.Vh[PARAMETER]).vector()
             p = TimeDependentVector(self.times)
-            p.initialize(self.M, 0)
+            p.initialize(self.Vh[ADJOINT])
             return [u, a, p]
         elif component == STATE:
             u = TimeDependentVector(self.times)
-            u.initialize(self.M, 0)
+            u.initialize(self.Vh[STATE])
             return u
         elif component == PARAMETER:
             return dl.Function(self.Vh[PARAMETER]).vector()
         elif component == ADJOINT:
             p = TimeDependentVector(self.times)
-            p.initialize(self.M, 0)
+            p.initialize(self.Vh[ADJOINT])
             return p
         else:
             raise Exception('Incorrect vector component')
@@ -97,7 +94,7 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
         return self.generate_vector(component=STATE)
 
     def generate_parameter(self):
-        """ return a time dependent vector in the shape of the adjoint """
+        """ return a vector in the shape of the parameter """
         return self.generate_vector(component=PARAMETER)
 
     def generate_adjoint(self):
@@ -105,16 +102,12 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
         return self.generate_vector(component=ADJOINT)
 
     def generate_static_state(self):
-        """ return a time dependent vector in the shape of the state """
-        u = dl.Vector()
-        self.M.init_vector(u, 1)
-        return u 
+        """ Return a static vector in the shape of the parameter. """
+        return dl.Function(self.Vh[STATE]).vector()
 
     def generate_static_adjoint(self):
         """ return a static vector in the shape of the adjoint """
-        p = dl.Vector()
-        self.M.init_vector(p, 0)
-        return p
+        return dl.Function(self.Vh[ADJOINT]).vector()
 
     def init_parameter(self, a):
         """ initialize the parameter """
@@ -564,9 +557,16 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
         
     def exportState(self, u, fname):
         ufun = dl.Function(self.Vh[STATE], name="state")
-        with  dl.XDMFFile(fname) as fid:
+        with dl.XDMFFile(self.mesh.mpi_comm(), fname) as fid:
             fid.parameters["functions_share_mesh"] = True
             fid.parameters["rewrite_function_mesh"] = False
+            
+            # write the initial condition to file first.
+            ufun.vector().zero()
+            ufun.vector().axpy(1., self.init_cond.vector())
+            fid.write(ufun, self.times[0])
+            
+            # retrieve the snapshots and write those to file.
             for t in self.times[1:]:
                 u.retrieve(ufun.vector(), t)
                 fid.write(ufun, t)

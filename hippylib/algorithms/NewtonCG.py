@@ -18,6 +18,7 @@ from ..utils.parameterList import ParameterList
 from ..modeling.reducedHessian import ReducedHessian
 from ..modeling.variables import STATE, PARAMETER, ADJOINT
 from .cgsolverSteihaug import CGSolverSteihaug
+from ..utils.warnings import ModelConvergenceError
 
 
 def LS_ParameterList():
@@ -105,7 +106,8 @@ class ReducedSpaceNewtonCG:
                            "Maximum number of Iteration reached",      #0
                            "Norm of the gradient less than tolerance", #1
                            "Maximum number of backtracking reached",   #2
-                           "Norm of (g, dm) less than tolerance"       #3
+                           "Norm of (g, dm) less than tolerance",       #3
+                           "Forward solve failed" #4
                            ]
     
     def __init__(self, model, parameters=ReducedSpaceNewtonCG_ParameterList(), callback = None):
@@ -126,6 +128,7 @@ class ReducedSpaceNewtonCG:
         
         self.it = 0
         self.converged = False
+        self.fwd_failed = False
         self.total_cg_iter = 0
         self.ncalls = 0
         self.reason = 0
@@ -231,9 +234,14 @@ class ReducedSpaceNewtonCG:
                 x_star[PARAMETER].axpy(alpha, mhat)
                 x_star[STATE].zero()
                 x_star[STATE].axpy(1., x[STATE])
-                self.model.solveFwd(x_star[STATE], x_star)
                 
-                cost_new, reg_new, misfit_new = self.model.cost(x_star)
+                try:
+                    self.model.solveFwd(x_star[STATE], x_star)
+                    cost_new, reg_new, misfit_new = self.model.cost(x_star)
+                    self.fwd_failed = False
+                except ModelConvergenceError:
+                    cost_new = cost_old + 1  # ensures decrease is not satisfied
+                    self.fwd_failed = True
                   
                 # Check if armijo conditions are satisfied
                 if (cost_new < cost_old + alpha * c_armijo * mg_mhat) or (-mg_mhat <= self.parameters["gdm_tolerance"]):
@@ -261,7 +269,10 @@ class ReducedSpaceNewtonCG:
                 
             if n_backtrack == max_backtracking_iter:
                 self.converged = False
-                self.reason = 2
+                if self.fwd_failed:
+                    self.reason = 4
+                else:
+                    self.reason = 2
                 break
             
             if -mg_mhat <= self.parameters["gdm_tolerance"]:

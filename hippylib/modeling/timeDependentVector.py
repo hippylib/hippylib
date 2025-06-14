@@ -73,6 +73,9 @@ class TimeDependentVector:
         for i in range(self.nsteps):
             self.data.append(template_fun.vector().copy())
 
+        self.mpi_comm = Vh.mesh().mpi_comm()  # update the communicator
+        self.Vh = Vh  # store the function space
+
     def axpy(self, a, other):
         """
         Compute :math:`x = x + \\mbox{a*other}` snapshot per snapshot.

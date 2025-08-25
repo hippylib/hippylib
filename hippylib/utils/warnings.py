@@ -18,3 +18,7 @@ class hIPPYlibDeprecationWarning(DeprecationWarning):
 
 class hIPPYlibExperimentalWarning(UserWarning):
 	pass
+
+class ModelConvergenceError(Exception):
+    """Exception raised when the model does not converge."""
+    pass

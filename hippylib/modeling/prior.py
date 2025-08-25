@@ -767,4 +767,3 @@ class GaussianRealPrior(_Prior):
 
         if add_mean:
             s.axpy(1.0, self.mean)
-

@@ -32,3 +32,4 @@ from .randomizedSVD import accuracyEnhancedSVD, singlePassSVD
 from .lowRankOperator import LowRankOperator
 from .traceEstimator import TraceEstimator
 from .cgsampler import CGSampler
+from .snes import SNES_VariationalProblem, SNES_VariationalSolver

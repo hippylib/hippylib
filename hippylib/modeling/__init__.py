@@ -21,7 +21,7 @@ from .timeDependentVector import TimeDependentVector
 
 from .PDEProblem import PDEProblem
 from .PDEVariationalProblem import PDEVariationalProblem
-from .TimeDependentPDEVariationalProblem import TimeDependentPDEVariationalProblem
+from .TimeDependentPDEVariationalProblem import TimeDependentPDEVariationalProblem, OneStepTimeDependentPDEVariationalProblem
 from .SNES_TimeDependentVariationalProblem import SNES_TimeDependentPDEVariationalProblem
 from .prior import _Prior, LaplacianPrior, SqrtPrecisionPDE_Prior, BiLaplacianPrior, MollifiedBiLaplacianPrior, GaussianRealPrior, BiLaplacianComputeCoefficients, VectorBiLaplacianPrior
 from .misfit import Misfit, ContinuousStateObservation, DiscreteStateObservation, MultDiscreteStateObservation, MultiStateMisfit, PointwiseStateObservation, MultPointwiseStateObservation, MisfitTD

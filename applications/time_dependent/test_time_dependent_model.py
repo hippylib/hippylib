@@ -37,7 +37,7 @@ class LinearHeatEquationThetaMethodVarf:
     """
     Variational form for the heat equation with sinusoidal forcing term using theta method time stepping 
     """
-    def __init__(self, dt, theta):
+    def __init__(self, dt : float, theta : float):
         self._dt = dt
         self.dt_inv = dl.Constant(1./dt)
         self.theta = theta 
@@ -62,14 +62,16 @@ class LinearHeatEquationThetaMethodVarf:
         return varf
 
 
-class NonlinearHeatEquationThetaMethodVarf:
+class NonlinearHeatEquationOneStepMethodVarf:
     """
-    Variational form for the nonlinear heat equation using theta method time stepping 
+    Variational form for the nonlinear heat equation using one-step time stepping method.
+    Options are theta method or operator splitting.
     """
-    def __init__(self, dt, theta):
+    def __init__(self, dt : float, theta : float, splitting: bool=False):
         self._dt = dt
         self.dt_inv = dl.Constant(1./dt)
         self.theta = theta 
+        self.splitting = splitting 
 
         self.f = dl.Expression("4 * (sin(k * t) + 1) * (1 - x[0]) * x[0]", k=2.*np.pi, t=0., degree=2)
         self.f_old = dl.Expression("4 * (sin(k * t) + 1) * (1 - x[0]) * x[0]", k=2.*np.pi, t=0., degree=2)
@@ -81,6 +83,12 @@ class NonlinearHeatEquationThetaMethodVarf:
         return self._dt
         
     def __call__(self,u,u_old, m, p, t):
+        if self.splitting:
+            return self._splitting_varf(u,u_old, m, p, t)
+        else:
+            return self._theta_method_varf(u,u_old, m, p, t)
+
+    def _theta_method_varf(self,u,u_old, m, p, t):
         self.f.t = t 
         self.f_old.t = t - self.dt
 
@@ -91,24 +99,7 @@ class NonlinearHeatEquationThetaMethodVarf:
         varf -= dl.Constant(1-self.theta) * self.f_old * p*ufl.dx
         return varf
 
-
-class NonlinearHeatEquationSplittingVarf:
-    """
-    Variational form for the nonlinear heat equation with operator splitting.
-    """
-    def __init__(self, dt):
-        self._dt = dt
-        self.dt_inv = dl.Constant(1./dt)
-
-        self.f = dl.Expression("4 * (sin(k * t) + 1) * (1 - x[0]) * x[0]", k=2.*np.pi, t=0., degree=2)
-        self.small_conductivity = dl.Constant(0.01)
-        print("Using operator splitting for nonlinear heat equation.")
-
-    @property
-    def dt(self):
-        return self._dt
-        
-    def __call__(self,u,u_old, m, p, t):
+    def _splitting_varf(self,u,u_old, m, p, t):
         self.f.t = t 
 
         varf = (u - u_old)*p*self.dt_inv*ufl.dx
@@ -168,10 +159,7 @@ def make_heat_equation_pde_problem(Vh : list[dl.FunctionSpace],
 
     if is_nonlinear:
         is_fwd_linear = False
-        if is_splitting:
-            varf = NonlinearHeatEquationSplittingVarf(dt)
-        else:
-            varf = NonlinearHeatEquationThetaMethodVarf(dt, theta)
+        varf = NonlinearHeatEquationOneStepMethodVarf(dt, theta, splitting=is_splitting)
     else:
         is_fwd_linear = True
         varf = LinearHeatEquationThetaMethodVarf(dt, theta)
@@ -288,7 +276,19 @@ def run_heat_equation_comparison(nx : int,
                                  no_plots : bool = True):
 
     """
-    Run a time-dependent PDE variational problem for the heat equation.
+    Run a finite difference check time-dependent PDE variational problem for the heat equation.
+    Compare results using the original TimeDependentPDEVariationalProblem class
+    and the OneStepTimeDependentPDEVariationalProblem class.
+
+    :param nx: Number of elements in x-direction.
+    :param ny: Number of elements in y-direction.
+    :param t_final: Final time.
+    :param nt: Number of time steps.
+    :param theta: Theta parameter for theta method (0 <= theta <= 1). Not
+                    used if using operator splitting.
+    :param is_nonlinear: Use nonlinear heat equation.
+    :param is_splitting: Use operator splitting for nonlinear heat equation. Only used if is_nonlinear is set.
+    :param no_plots: Do not show plots.
     """
     PLOT_DIR = "test_plots"
     SOLUTION_DIR = "test_solutions"
@@ -349,10 +349,14 @@ def run_heat_equation_comparison(nx : int,
     x = original_model.generate_vector()
     x[PARAMETER].axpy(1.0, m0.vector())
 
+    SEP = "-"*80
 
     # -------------------------------------------------------------- # 
     # Solve forward problem and FD check for ORIGINAL PDE class 
     # -------------------------------------------------------------- # 
+    print(SEP)
+    print("Check using original TimeDependentPDEVariationalProblem class:")
+    print(SEP)
     print("Solving forward problem using original PDE class...")
     original_model.solveFwd(x[STATE], x)
     original_pde_problem.exportState(x[STATE], f"{SOLUTION_DIR}/{original_problem_name}_state.xdmf")
@@ -364,6 +368,7 @@ def run_heat_equation_comparison(nx : int,
     fig.set_size_inches(12,6)
     plt.savefig(f"{PLOT_DIR}/{original_problem_name}_fdcheck.png")
 
+    print(SEP, "\n")
 
 
     # -------------------------------------------------------------- # 
@@ -373,6 +378,9 @@ def run_heat_equation_comparison(nx : int,
     x = one_step_model.generate_vector()
     x[PARAMETER].axpy(1.0, m0.vector())
 
+    print(SEP)
+    print("Check using OneStepTimeDependentPDEVariationalProblem class:")
+    print(SEP)
     print("Solving forward problem using one-step PDE class...")
     one_step_model.solveFwd(x[STATE], x)
     one_step_pde_problem.exportState(x[STATE], f"{SOLUTION_DIR}/{one_step_problem_name}_state.xdmf")
@@ -384,8 +392,25 @@ def run_heat_equation_comparison(nx : int,
     fig.set_size_inches(12,6)
     plt.savefig(f"{PLOT_DIR}/{one_step_problem_name}_fdcheck.png")
 
+    print(SEP, "\n")
     if not no_plots:
         plt.show()
+
+
+def main(args):
+
+    print(args)
+
+    nx = args.nx
+    ny = args.ny
+    t_final = args.tfinal
+    nt = args.nt
+    theta = args.theta
+    is_nonlinear = args.nonlinear
+    is_splitting = args.splitting
+    no_plots = args.no_plots
+
+    run_heat_equation_comparison(nx, ny, t_final, nt, theta, is_nonlinear, is_splitting, no_plots)
 
 
 if __name__ == "__main__":
@@ -418,13 +443,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    nx = args.nx
-    ny = args.ny
-    t_final = args.tfinal
-    nt = args.nt
-    theta = args.theta
-    is_nonlinear = args.nonlinear
-    is_splitting = args.splitting
-    no_plots = args.no_plots
-
-    run_heat_equation_comparison(nx, ny, t_final, nt, theta, is_nonlinear, is_splitting, no_plots)
+    main(args)

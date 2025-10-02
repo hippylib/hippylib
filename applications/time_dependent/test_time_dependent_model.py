@@ -44,7 +44,7 @@ class LinearHeatEquationThetaMethodVarf:
 
         self.f = dl.Expression("4 * (sin(k * t) + 1) * (1 - x[0]) * x[0]", k=2.*np.pi, t=0., degree=2)
         self.f_old = dl.Expression("4 * (sin(k * t) + 1) * (1 - x[0]) * x[0]", k=2.*np.pi, t=0., degree=2)
-        print("Using theta method for linear heat equation.")
+        print("Testing linear heat equation")
 
     @property
     def dt(self):
@@ -76,7 +76,7 @@ class NonlinearHeatEquationOneStepMethodVarf:
         self.f = dl.Expression("4 * (sin(k * t) + 1) * (1 - x[0]) * x[0]", k=2.*np.pi, t=0., degree=2)
         self.f_old = dl.Expression("4 * (sin(k * t) + 1) * (1 - x[0]) * x[0]", k=2.*np.pi, t=0., degree=2)
         self.small_conductivity = dl.Constant(0.01)
-        print("Using theta method for nonlinear heat equation.")
+        print("Testing nonlinear heat equation")
 
     @property
     def dt(self):

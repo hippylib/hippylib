@@ -42,14 +42,21 @@ class TimeDependentVector:
 
         self.times = times
         self.tol = tol
-        self.mpi_comm = mpi_comm
+        self._mpi_comm = mpi_comm
         self.Vh = None
+
+
+    def mpi_comm(self):
+        """
+        Return the MPI communicator associated to the vector.
+        """
+        return self._mpi_comm
 
     def copy(self):
         """
         Return a copy of all the time frames and snapshots
         """
-        res = TimeDependentVector(self.times, tol=self.tol, mpi_comm=self.mpi_comm)
+        res = TimeDependentVector(self.times, tol=self.tol, mpi_comm=self._mpi_comm)
         res.data = []
 
         for v in self.data:
@@ -68,7 +75,7 @@ class TimeDependentVector:
         for i in range(self.nsteps):
             self.data.append(template_fun.vector().copy())
 
-        self.mpi_comm = Vh.mesh().mpi_comm()  # update the communicator
+        self._mpi_comm = Vh.mesh().mpi_comm()  # update the communicator
         self.Vh = Vh  # store the function space
 
     def axpy(self, a, other):
@@ -215,13 +222,13 @@ class TimeDependentVector:
         """
         vec_size = self.data[0].size()
 
-        if self.mpi_comm.rank == 0:
+        if self._mpi_comm.rank == 0:
             vec_as_array = np.zeros((self.nsteps, vec_size))
         else:
             vec_as_array = np.array([])
         for i, d in enumerate(self.data):
             d_gathered = d.gather_on_zero()
-            if self.mpi_comm.rank == 0:
+            if self._mpi_comm.rank == 0:
                 vec_as_array[i, :] = d_gathered
 
         vec = vec_as_array.flatten()

@@ -57,6 +57,7 @@ class TimeDependentVector:
         Return a copy of all the time frames and snapshots
         """
         res = TimeDependentVector(self.times, tol=self.tol, mpi_comm=self._mpi_comm)
+        res.Vh = self.Vh
         res.data = []
 
         for v in self.data:

@@ -338,7 +338,7 @@ class TestTimeDependentVector(unittest.TestCase):
 
         gathered = self.tdvector.gather_on_zero()
 
-        if self.tdvector.mpi_comm.rank == 0:
+        if self.tdvector.mpi_comm().rank == 0:
             vec_size = self.tdvector.data[0].size()
             nsteps = self.tdvector.nsteps
             assert gathered.shape[0] == vec_size * nsteps

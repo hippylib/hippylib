@@ -15,6 +15,15 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
+# This script runs a finite difference check for time-dependent PDE variational problems
+# using parabolic PDEs as an example. It demonstrates the difference between 
+# the TimeDependentPDEVariationalProblem class which implements derivatives for general one-step time stepping schemes
+# and the ImplicitEulerTimeDependentPDEVariationalProblem class, which only handles the implicit Euler method.
+# Note that the finite difference check should pass for both classes when `theta` is set to 1.0 (implicit Euler method)
+# in the theta method, while the ImplicitEulerTimeDependentPDEVariationalProblem class will fail for other values of `theta`
+# and for operator splitting schemes.
+
+
 import argparse
 import dolfin as dl
 dl.set_log_active(False)
@@ -27,7 +36,7 @@ import sys
 import os
 sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
 from hippylib import STATE, ADJOINT, PARAMETER, ADJOINT, \
-    TimeDependentPDEVariationalProblem, OneStepTimeDependentPDEVariationalProblem, \
+    TimeDependentPDEVariationalProblem, ImplicitEulerTimeDependentPDEVariationalProblem, \
     ContinuousStateObservation, MisfitTD, parRandom, BiLaplacianPrior, \
     Model, modelVerify
 
@@ -165,9 +174,9 @@ def make_heat_equation_pde_problem(Vh : list[dl.FunctionSpace],
         varf = LinearHeatEquationThetaMethodVarf(dt, theta)
 
     if one_step_pde_class:
-        pde_problem = OneStepTimeDependentPDEVariationalProblem(Vh, varf, bc, bc0, u0, t_init, t_final, is_fwd_linear=is_fwd_linear)
-    else:
         pde_problem = TimeDependentPDEVariationalProblem(Vh, varf, bc, bc0, u0, t_init, t_final, is_fwd_linear=is_fwd_linear)
+    else:
+        pde_problem = ImplicitEulerTimeDependentPDEVariationalProblem(Vh, varf, bc, bc0, u0, t_init, t_final, is_fwd_linear=is_fwd_linear)
 
     return pde_problem 
 
@@ -234,9 +243,9 @@ def make_problem_name(theta, is_nonlinear, is_splitting, one_step_pde_class):
         problem_name += f"_theta{theta}"
     
     if one_step_pde_class:
-        problem_name += f"_onestepclass"
+        problem_name += f"_one_step_class"
     else:
-        problem_name += f"_originalclass"
+        problem_name += f"_implicit_euler_class"
 
     return problem_name
 
@@ -258,9 +267,9 @@ def make_problem_title(theta, is_nonlinear, is_splitting, one_step_pde_class):
         problem_title += f" with Theta Method (theta={theta})"
     
     if one_step_pde_class:
-        problem_title += f"\n[OneStepTimeDependentPDEVariationalProblem]"
-    else:
         problem_title += f"\n[TimeDependentPDEVariationalProblem]"
+    else:
+        problem_title += f"\n[ImplicitEulerTimeDependentPDEVariationalProblem]"
 
     return problem_title
 
@@ -277,8 +286,8 @@ def run_heat_equation_comparison(nx : int,
 
     """
     Run a finite difference check time-dependent PDE variational problem for the heat equation.
-    Compare results using the original TimeDependentPDEVariationalProblem class
-    and the OneStepTimeDependentPDEVariationalProblem class.
+    Compare results using the TimeDependentPDEVariationalProblem class
+    and the ImplicitEulerTimeDependentPDEVariationalProblem class.
 
     :param nx: Number of elements in x-direction.
     :param ny: Number of elements in y-direction.
@@ -299,7 +308,7 @@ def run_heat_equation_comparison(nx : int,
 
     prior = make_prior(Vh)
 
-    original_pde_problem = make_heat_equation_pde_problem(Vh, 
+    implicit_euler_pde_problem = make_heat_equation_pde_problem(Vh, 
                                                           t_final, 
                                                           nt, 
                                                           theta, 
@@ -307,19 +316,19 @@ def run_heat_equation_comparison(nx : int,
                                                           is_splitting, 
                                                           one_step_pde_class=False)
 
-    original_misfit = make_continuous_observation_misfit(Vh, original_pde_problem)
+    implicit_euler_misfit = make_continuous_observation_misfit(Vh, implicit_euler_pde_problem)
 
-    original_problem_name = make_problem_name(theta, 
+    implicit_euler_problem_name = make_problem_name(theta, 
                                               is_nonlinear, 
                                               is_splitting, 
                                               one_step_pde_class=False)
 
-    original_plot_title = make_problem_title(theta, 
+    implicit_euler_plot_title = make_problem_title(theta, 
                                              is_nonlinear, 
                                              is_splitting, 
                                              one_step_pde_class=False)
 
-    original_model = Model(original_pde_problem, prior, original_misfit)
+    implicit_euler_model = Model(implicit_euler_pde_problem, prior, implicit_euler_misfit)
 
 
     one_step_pde_problem = make_heat_equation_pde_problem(Vh, 
@@ -346,30 +355,29 @@ def run_heat_equation_comparison(nx : int,
 
     m0 = sample_from_prior(prior)
 
-    x = original_model.generate_vector()
+    x = implicit_euler_model.generate_vector()
     x[PARAMETER].axpy(1.0, m0.vector())
 
     SEP = "-"*80
 
     # -------------------------------------------------------------- # 
-    # Solve forward problem and FD check for ORIGINAL PDE class 
+    # Solve forward problem and FD check for IMPLICIT-EULER PDE class 
     # -------------------------------------------------------------- # 
     print(SEP)
-    print("Check using original TimeDependentPDEVariationalProblem class:")
+    print("Check using ImplicitEulerTimeDependentPDEVariationalProblem class:")
     print(SEP)
-    print("Solving forward problem using original PDE class...")
-    original_model.solveFwd(x[STATE], x)
-    original_pde_problem.exportState(x[STATE], f"{SOLUTION_DIR}/{original_problem_name}_state.xdmf")
+    print("Solving forward problem using ImplicitEuler PDE class...")
+    implicit_euler_model.solveFwd(x[STATE], x)
+    implicit_euler_pde_problem.exportState(x[STATE], f"{SOLUTION_DIR}/{implicit_euler_problem_name}_state.xdmf")
 
-    print("Finite difference check for original PDE class...")
-    modelVerify(original_model, m0.vector(), misfit_only=True)
+    print("Finite difference check for ImplicitEuler PDE class...")
+    modelVerify(implicit_euler_model, m0.vector(), misfit_only=True)
     fig = plt.gcf()
-    fig.suptitle(original_plot_title)
+    fig.suptitle(implicit_euler_plot_title)
     fig.set_size_inches(12,6)
-    plt.savefig(f"{PLOT_DIR}/{original_problem_name}_fdcheck.png")
+    plt.savefig(f"{PLOT_DIR}/{implicit_euler_problem_name}_fdcheck.png")
 
     print(SEP, "\n")
-
 
     # -------------------------------------------------------------- # 
     # Solve forward problem and FD check for ONE-STEP PDE class 
@@ -379,7 +387,7 @@ def run_heat_equation_comparison(nx : int,
     x[PARAMETER].axpy(1.0, m0.vector())
 
     print(SEP)
-    print("Check using OneStepTimeDependentPDEVariationalProblem class:")
+    print("Check using one-step TimeDependentPDEVariationalProblem class:")
     print(SEP)
     print("Solving forward problem using one-step PDE class...")
     one_step_model.solveFwd(x[STATE], x)

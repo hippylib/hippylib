@@ -23,9 +23,11 @@ from .variables import STATE, PARAMETER, ADJOINT
 from ..algorithms.linalg import Transpose 
 from ..algorithms.linSolvers import PETScLUSolver
 from ..utils.vector2function import vector2Function
+from ..utils.deprecate import deprecated
 from .timeDependentVector import TimeDependentVector
 
-class TimeDependentPDEVariationalProblem(PDEProblem):
+@deprecated("ImplicitEulerTimeDependentPDEVariationalProblem", "3.1.0", "Please use TimeDependentPDEVariationalProblem instead unless you specifically need this class.")
+class ImplicitEulerTimeDependentPDEVariationalProblem(PDEProblem):
     def __init__(self, Vh, varf_handler, bc, bc0, u0, t_init, t_final, is_fwd_linear = False):
         """
         varf_handler class
@@ -576,9 +578,7 @@ class TimeDependentPDEVariationalProblem(PDEProblem):
         return PETScLUSolver(self.Vh[STATE].mesh().mpi_comm() )
 
 
-
-
-class OneStepTimeDependentPDEVariationalProblem(PDEProblem):
+class TimeDependentPDEVariationalProblem(PDEProblem):
     def __init__(self, Vh, varf_handler, bc, bc0, u0, t_init, t_final, is_fwd_linear = False):
         """
         Time-dependent PDE problem class for generic one-step methods. The time-stepping scheme is implemented but the :code:varf_handler`, which defines the variation form relating the state at the current and previous time step,
@@ -1230,3 +1230,6 @@ class OneStepTimeDependentPDEVariationalProblem(PDEProblem):
 
     def _createLUSolver(self):
         return PETScLUSolver(self.Vh[STATE].mesh().mpi_comm() )
+
+
+

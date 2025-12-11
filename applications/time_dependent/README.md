@@ -7,14 +7,16 @@ Here we consider the adjoint equations for gradient actions and Hessian actions 
 \sum_{n=1}^{N} r(u_n, u_{n-1}, m, p_n, t_n) = 0 \quad \forall p_n
 ```
 
+We look at the components for computing the gradient and Hessian action as implemented by the `TimeDependentPDEVariationalProblem` class in `hippylib`
+
 ## Adjoint equations for Gradient 
 We define the Lagrangian
 
 ```math
-L(u,m,p) = \sum_{n=1}^{N} q_n (u_n, m) + \sum_{n=1}^{N} r(u_n, u_{n-1}, m, p_n, t_n)
+\mathcal{L}(u,m,p) = \sum_{n=1}^{N} q_n (u_n, m) + \sum_{n=1}^{N} r(u_n, u_{n-1}, m, p_n, t_n)
 ```
 
-The adjoint equation can be derived by differentiating the Lagrangian with respect to the state $u$. Considering each $u_k$ separately, $\partial_{u_k} L = 0$ becomes
+The adjoint equation can be derived by differentiating the Lagrangian with respect to the state $u$. Considering each $u_k$ separately, $\partial_{u_k} \mathcal{L} = 0$ becomes
 
 ```math
 \partial_u q(u_k, m) \tilde{u} + \partial_1 r(u_k, u_{k-1}, m, p_k, t_k) \tilde{u}
@@ -24,7 +26,7 @@ The adjoint equation can be derived by differentiating the Lagrangian with respe
 where $\tilde{u}$ is any test function for the state space (we will use $\tilde{u}, \tilde{m}, \tilde{p}$ to denote test directions corresponding to the state, parameter, and adjoint variables).
 Note the term involving $u_{k+1}, p_{k+1}$ does not appear when $k = N$ (i.e., for the final time step of the forward problem). In what's to follow, we won't spell this out directly and instead abuse notation with this fact in mind.
 
-This corresponds to the adjoint equation
+This corresponds to the adjoint equation for each $k = 1, \dots, N$.
 
 ```math
 \partial_1 r(u_k, u_{k-1}, m, p_k) \tilde{u}
@@ -33,7 +35,7 @@ This corresponds to the adjoint equation
 \; \underbrace{- \partial_u q_k (u_k, m) \tilde{u}}_{\text{ given by adj\_rhs}}
 ```
 
-### Simplification for implicit Euler methods 
+### Simplification for implicit Euler 
 When using a $\theta$ method for a PDE of the form $\partial_t u = f(u,m)$, we have  
 
 ```math
@@ -69,7 +71,7 @@ and
 (1-\theta) \langle \partial_u f(u_k, m)\tilde{u}, p_{k+1} \rangle.
 ```
 
-For implicit Euler ($\theta  = 1$), the second part of $\partial_2 r$ disappears. In this case, one can cheat a little in assembling the RHS by plugging in anything for $u_{k+1}, u_{k}$ in the form $\partial_2 r(u_{k+1}, u_{k}, m, p_{k}, t_k)$ since this form $r(u_{k+1}, u_{k}, m, p_{k+1}, t_{k+1})$ is always linear in the second argument $u_{k}$. This is currently implemented in `hippylib`.
+For implicit Euler ($\theta  = 1$), the second part of $\partial_2 r$ disappears. In this case, one can cheat a little in assembling the RHS by plugging in anything for $u_{k+1}, u_{k}$ in the form $\partial_2 r(u_{k+1}, u_{k}, m, p_{k}, t_k)$ since this form $r(u_{k+1}, u_{k}, m, p_{k+1}, t_{k+1})$ is always linear in the second argument $u_{k}$. This is currently implemented in `ImplicitEulerTimeDependentPDEVariationalProblem`.
 
 For completeness, in this case, the adjoint equation is
 
@@ -85,10 +87,10 @@ or equivalently
 
 ```math
 \frac{1}{\tau} \langle p_k,  \tilde{u} \rangle
-+ \theta \langle f'(u_k, m)\tilde{u}, p_k \rangle 
++ \theta \langle \partial_u f(u_k, m)\tilde{u}, p_k \rangle 
 =
 \frac{1}{\tau} \langle p_{k+1},  \tilde{u} \rangle
-- (1-\theta) \langle f'(u_k, m)\tilde{u}, p_{k+1} \rangle 
+- (1-\theta) \langle \partial_u f(u_k, m)\tilde{u}, p_{k+1} \rangle 
 -\partial_u q_k (u_k, m) \tilde{u}.
 ```
 
@@ -100,30 +102,31 @@ or equivalently
 We consider the Hessian Lagrangian, defined as
 
 ```math
-\begin{align}
-L^H &= 
+\begin{align*}
+\mathcal{L}^H(u,m,p,\hat{u},\hat{m},\hat{p}) &= 
 \sum_{n=1}^{N} r(u_n, u_{n-1}, m, \hat{p}_n, t_n) \\
 & + 
 \sum_{n=1}^{N} \partial_u q_n (u_n, m) \hat{u}_n + \partial_1 r(u_n, u_{n-1}, m, p_n, t_n) \hat{u}_n
 + \partial_2 r(u_{n+1}, u_n, m, p_{n+1}, t_{n+1}) \hat{u}_n  \\
 & + \sum_{n=1}^{N} \partial_m r(u_n, u_{n-1}, m, p_n, t_n) \hat{m}
-\end{align}
+\end{align*}
 ```
+where $\hat{m}$ is the direction for the Hessian action and $\hat{u},\hat{p}$ are the incremental forward/adjoint variables.
 
-The incremental equations can be obtained through derivatives of this Lagrangian. The incremental forward problem is straightforwardly derived as $\partial_p L^{H} = 0$.
+The incremental equations can be obtained through derivatives of this Lagrangian. The incremental forward problem is straightforwardly derived as $\partial_p \mathcal{L}^{H} = 0$.
 
 ### Incremental adjoint
 The incremental adjoint equation, given by 
 
 ```math 
-\partial_u L^H = 0 
+\partial_u \mathcal{L}^H = 0 
 ```
 
 is slightly more involved. Computing this derivative with respect to each snapshot $u_{k}$, we have 
 
 ```math
-\begin{align}
-\partial_u L^H \tilde{u}_k = & 
+\begin{align*}
+\partial_u \mathcal{L}^H \tilde{u}_k = & 
 \partial_1 r(u_k, u_{k-1}, m, \hat{p}_k, t_k)\tilde{u}_k 
 + 
 \partial_2 r(u_{k+1}, u_{k}, m, \hat{p}_{k+1}, t_{k+1})\tilde{u}_k 
@@ -137,10 +140,10 @@ is slightly more involved. Computing this derivative with respect to each snapsh
 & 
 + \partial_1 \partial_m r(u_k, u_{k-1}, m, p_k, t_k) \hat{m} \tilde{u}_n\\
 & + \partial_2 \partial_m r(u_{k+1}, u_{k}, m, p_{k+1}, t_{k+1}) \hat{m} \tilde{u}_n
-\end{align}
+\end{align*}
 ```
 
-In `hippylib`, only the first line, i.e.,
+In the convention of `hippylib` , only the first line, i.e.,
 
 ```math
 \partial_1 r(u_k, u_{k-1}, m, \hat{p}_k, t_k)\tilde{u}_k 
@@ -156,11 +159,11 @@ The remaining parts of the adjoint RHS are given through the `rhs` argument, whe
 
 - the second derivatives with respect to $u$,
 ```math
-  \begin{align}
+  \begin{align*}
   \partial_1 \partial_1 r(u_k, u_{k-1}, m, p_k, t_k) \hat{u}_k \tilde{u}_k + \partial_2 \partial_1 r(u_{k}, u_{k-1}, m, p_{k}, t_k) \hat{u}_{k-1} \tilde{u}_k
   \\
   \partial_2 \partial_2 r(u_{k+1}, u_k, m, p_{k+1}, t_{k+1}) \hat{u}_k \tilde{u}_k + \partial_1 \partial_2 r(u_{k+1}, u_{k}, m, p_{k+1}, t_{k+1}) \hat{u}_{k+1} \tilde{u}_{k}
-  \end{align}
+  \end{align*}
 ```
   &emsp;&ensp;
   are assembled through calls to `applyWuu`.
@@ -228,6 +231,6 @@ and
 ```
 
 
-#### Simplifications for implicit Euler
+### Simplifications for implicit Euler
 
-As with the adjoint equation, simplifications can be made when using implicit Euler. For any form with $\partial_2 r(u_{k+1}, u_{k}, m, p_{k+1}, t_{k+1})$, one can again plug in any $u_{k+1}, u_{k}$ due to linearity in the second argument (and $u_k$ never has mixed nonlinearities with $u_{k+1}$ or $m$). This often saves the need to retrieve $u_{k+1}$ in addition to $u_{k}, u_{k-1}$ within a time step. Again, the current `hippylib` implementation makes these simplifications.
+As with the adjoint equation, simplifications can be made when using implicit Euler. For any form with $\partial_2 r(u_{k+1}, u_{k}, m, p_{k+1}, t_{k+1})$, one can again plug in any $u_{k+1}, u_{k}$ due to linearity in the second argument (and $u_k$ never has mixed nonlinearities with $u_{k+1}$ or $m$). This often saves the need to retrieve $u_{k+1}$ in addition to $u_{k}, u_{k-1}$ within a time step. Again, the implementation in `ImplicitEulerTimeDependentPDEVariationalProblem` makes these simplifications.

@@ -19,7 +19,7 @@ from .variables import STATE, PARAMETER, ADJOINT
 from .reducedHessian import ReducedHessian
 from ..utils.random import parRandom
     
-def modelVerify(model,m0, is_quadratic = False, misfit_only=False, verbose = True, eps = None):
+def modelVerify(model,m0, is_quadratic = False, misfit_only=False, verbose = True, eps = None, h = None):
     """
     Verify the reduced Gradient and the Hessian of a model.
     It will produce two loglog plots of the finite difference checks for the gradient and for the Hessian.
@@ -29,9 +29,10 @@ def modelVerify(model,m0, is_quadratic = False, misfit_only=False, verbose = Tru
         index = 2
     else:
         index = 0
-    
-    h = model.generate_vector(PARAMETER)
-    parRandom.normal(1., h)
+
+    if h is None:
+        h = model.generate_vector(PARAMETER)
+        parRandom.normal(1., h)
 
     
     x = model.generate_vector()

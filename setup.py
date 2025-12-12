@@ -2,6 +2,8 @@
 # & University of California--Merced.
 # Copyright (c) 2019-2020, The University of Texas at Austin 
 # University of California--Merced, Washington University in St. Louis.
+# Copyright (c) 2020-2025, The University of Texas at Austin 
+# University of California--Merced.
 #
 # All Rights reserved.
 # See file COPYRIGHT for details.

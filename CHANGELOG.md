@@ -15,6 +15,11 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
 
                           https://hippylib.github.io
 
+Development version
+-------------------
+- Support more advanced one-step time integrators in `TimeDependentPDEVariationalProblem`
+- Add the option to provide the test direction in the finite difference checks of `model_verify`
+
 Version 3.2.0, released on Dec 12, 2025
 -------------------
 - Introduce `SNES_TimeDependentPDEVariationalProblem`, and `PETSc` interfaces: `SNES_VariationalProblem`, `SNES_VariationalSolver`, and `OptionsManager`. Extended functionality of `TimeDependentVector`.

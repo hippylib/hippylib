@@ -42,19 +42,22 @@ class TimeDependentVector:
 
         self.times = times
         self.tol = tol
-        self.mpi_comm = mpi_comm
+        self._mpi_comm = mpi_comm
         self.Vh = None
 
-    def __imul__(self, other):
-        for d in self.data:
-            d *= other
-        return self
+
+    def mpi_comm(self):
+        """
+        Return the MPI communicator associated to the vector.
+        """
+        return self._mpi_comm
 
     def copy(self):
         """
         Return a copy of all the time frames and snapshots
         """
-        res = TimeDependentVector(self.times, tol=self.tol, mpi_comm=self.mpi_comm)
+        res = TimeDependentVector(self.times, tol=self.tol, mpi_comm=self._mpi_comm)
+        res.Vh = self.Vh
         res.data = []
 
         for v in self.data:
@@ -73,7 +76,7 @@ class TimeDependentVector:
         for i in range(self.nsteps):
             self.data.append(template_fun.vector().copy())
 
-        self.mpi_comm = Vh.mesh().mpi_comm()  # update the communicator
+        self._mpi_comm = Vh.mesh().mpi_comm()  # update the communicator
         self.Vh = Vh  # store the function space
 
     def axpy(self, a, other):
@@ -204,3 +207,135 @@ class TimeDependentVector:
         for i in range(self.nsteps):
             self.data[i].set_local(vv[i])
             self.data[i].apply("")
+
+
+    def apply(self, mode):
+        """
+        Apply the changes to the vector.
+        """
+        for d in self.data:
+            d.apply(mode)
+
+
+    def gather_on_zero(self):
+        """
+        Gather the vector on process 0.
+        """
+        vec_size = self.data[0].size()
+
+        if self._mpi_comm.rank == 0:
+            vec_as_array = np.zeros((self.nsteps, vec_size))
+        else:
+            vec_as_array = np.array([])
+        for i, d in enumerate(self.data):
+            d_gathered = d.gather_on_zero()
+            if self._mpi_comm.rank == 0:
+                vec_as_array[i, :] = d_gathered
+
+        vec = vec_as_array.flatten()
+        return vec
+
+
+    def __add__(self, other):
+        if isinstance(other, TimeDependentVector):
+            assert (
+                other.nsteps == self.nsteps
+            ), "vectors do not have the same number of snapshots"
+
+            sum_vec = self.copy()
+            sum_vec.axpy(1.0, other)
+
+        elif isinstance(other, (int, float)):
+            sum_vec = self.copy() 
+            for d in sum_vec.data:
+                d += other
+        else:
+            raise TypeError(f"Unsupported type {type(other)} for addition with TimeDependentVector")
+
+        return sum_vec
+
+    def __sub__(self, other):
+        if isinstance(other, TimeDependentVector):
+            assert (
+                other.nsteps == self.nsteps
+            ), "vectors do not have the same number of snapshots"
+
+            diff_vec = self.copy()
+            diff_vec.axpy(-1.0, other)
+
+        elif isinstance(other, (int, float)):
+            diff_vec = self.copy() 
+            for d in diff_vec.data:
+                d -= other
+        else:
+            raise TypeError(f"Unsupported type {type(other)} for subtraction with TimeDependentVector")
+
+        return diff_vec
+
+
+    def __mul__(self, other):
+        if isinstance(other, (int, float)):
+            prod_vec = self.copy() 
+            for d in prod_vec.data:
+                d *= other
+        else:
+            raise TypeError(f"Unsupported type {type(other)} for multiplication with TimeDependentVector")
+
+        return prod_vec
+
+
+    def __iadd__(self, other):
+        if isinstance(other, TimeDependentVector):
+            assert (
+                other.nsteps == self.nsteps
+            ), "vectors do not have the same number of snapshots"
+            self.axpy(1.0, other)
+
+        elif isinstance(other, (int, float)):
+            for d in self.data:
+                d += other
+        else:
+            raise TypeError(f"Unsupported type {type(other)} for addition with TimeDependentVector")
+
+        return self
+
+
+    def __isub__(self, other):
+        if isinstance(other, TimeDependentVector):
+            assert (
+                other.nsteps == self.nsteps
+            ), "vectors do not have the same number of snapshots"
+            self.axpy(-1.0, other)
+
+        elif isinstance(other, (int, float)):
+            for d in self.data:
+                d -= other
+        else:
+            raise TypeError(f"Unsupported type {type(other)} for subtraction with TimeDependentVector")
+
+        return self
+
+
+    def __imul__(self, other):
+        if isinstance(other, (int, float)):
+            for d in self.data:
+                d *= other
+        else:
+            raise TypeError(f"Unsupported type {type(other)} for multiplication with TimeDependentVector")
+        return self
+
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __rsub__(self, other):
+        return self.__sub__(other)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __neg__(self):
+        neg_vec = self.copy()
+        for d in neg_vec.data:
+            d *= -1
+        return neg_vec

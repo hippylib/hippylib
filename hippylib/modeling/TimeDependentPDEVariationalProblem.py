@@ -26,7 +26,7 @@ from ..utils.vector2function import vector2Function
 from ..utils.deprecate import deprecated
 from .timeDependentVector import TimeDependentVector
 
-@deprecated("ImplicitEulerTimeDependentPDEVariationalProblem", "3.1.0", "Please use TimeDependentPDEVariationalProblem instead unless you specifically need this class.")
+@deprecated("ImplicitEulerTimeDependentPDEVariationalProblem", "3.3.0", "Please use TimeDependentPDEVariationalProblem instead unless you specifically need this class.")
 class ImplicitEulerTimeDependentPDEVariationalProblem(PDEProblem):
     def __init__(self, Vh, varf_handler, bc, bc0, u0, t_init, t_final, is_fwd_linear = False):
         """

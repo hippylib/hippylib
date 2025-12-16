@@ -1,4 +1,4 @@
-name: CI
+name: Unit Tests
 
 on:
   push:
@@ -28,8 +28,4 @@ jobs:
           run: python3 -c 'import hippylib' && pwd && ls
         - name: Unit test
           run: source .github/workflows/run_unittest.sh
-        - name: Test applications
-          run:  source .github/workflows/run_applications.sh
-        - name: Run notebooks
-          run: source .github/workflows/run_notebooks.sh
 

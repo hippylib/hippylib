@@ -15,16 +15,16 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
-
-import os
-import sys
 import argparse
 import numpy as np
-import ufl
+try:
+    import ufl_legacy as ufl
+except ImportError:
+    import ufl
 import dolfin as dl
 import matplotlib.pyplot as plt
 
-sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
+
 from hippylib import *
 
 # Helper functions and classes.

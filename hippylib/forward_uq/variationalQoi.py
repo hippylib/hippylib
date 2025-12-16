@@ -15,7 +15,6 @@
 
 import dolfin as dl
 
-# import ufl
 from ..modeling.variables import STATE, PARAMETER
 from ..utils import experimental
 from ..utils.vector2function import vector2Function

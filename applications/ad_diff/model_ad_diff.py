@@ -19,9 +19,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 
-import sys
-import os
-sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
 from hippylib import *
 
 class ObservableTimeDependentVector(TimeDependentVector):

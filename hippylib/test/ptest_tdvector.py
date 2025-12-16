@@ -15,12 +15,10 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
-import sys
 import unittest
 import dolfin as dl
 import numpy as np
 
-sys.path.append("../../")
 import hippylib as hp
 
 

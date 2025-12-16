@@ -15,11 +15,12 @@
 
 import unittest 
 import dolfin as dl
-import ufl
+try:
+    import ufl_legacy as ufl
+except ImportError:
+    import ufl
 import numpy as np
 
-import sys
-sys.path.append('../../')
 from hippylib import (MultiVector, Random, assemblePointwiseObservation, amg_method,
                       singlePass, singlePassG, doublePass, doublePassG, MatMvMult, PETScKrylovSolver)
                       

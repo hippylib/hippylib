@@ -15,13 +15,12 @@
 # terms of the GNU General Public License (as published by the Free
 # Software Foundation) version 2.0 dated June 1991.
 
-import sys
 import unittest
 from mpi4py import MPI
 from petsc4py import PETSc
 import dolfin as dl
 
-sys.path.append('../../')
+
 import hippylib as hp
 
 class TestSNES(unittest.TestCase):

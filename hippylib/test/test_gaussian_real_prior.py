@@ -19,8 +19,6 @@ import numpy as np
 
 from numpy.testing import assert_allclose
 
-import sys
-sys.path.append('../../')
 from hippylib import *
 
 def get_prior_sample(pr):

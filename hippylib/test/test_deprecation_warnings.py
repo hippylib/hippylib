@@ -16,8 +16,6 @@
 import unittest 
 import warnings
 
-import sys
-sys.path.append('../../')
 from hippylib import deprecated
 
 @deprecated(version='2.2.0', msg='Blah')

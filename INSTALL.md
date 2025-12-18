@@ -27,26 +27,34 @@ $$/   $$/ $$$$$$/ $$/       $$/           $$/     $$/ $$/ $$$$$$$/
  
 ## Install hIPPYlib using pip
 
-### Latest release
+### Stable release
 
 With the supported version of `FEniCS` and its dependencies installed on your 
-machine, `hIPPYlib` can be installed via `pip` as follows
+machine, `hIPPYlib` can be installed via `pip`/`pip3` as follows
+
 ```
-pip install hippylib --user
+pip3 install hippylib --user
 ```
 
 In order for `pip` to install extra requirements (e.g. `Jupyter`) the following
 command should be used
+
 ```
-pip install hippylib[notebook] --user
+pip3 install hippylib[notebook] --user
 ```
 
 ### Development version/topic branches
 
-To pip install the development version of `hIPPYlib` use the command
+To install an editable version of `hIPPYlib` use he command from inside the `hippylib` folder
 
 ```
-pip install -e git+https://github.com/hippylib/hippylib.git@master#egg=hippylib
+python3 -m pip install -e .
+```
+
+To pip install the development version of `hIPPYlib` from GitHub use the command
+
+```
+pip3 install -e git+https://github.com/hippylib/hippylib.git@master#egg=hippylib
 ```
 
 To pip install a topic branch (e.g. the `2019.1-dev2` branch) use
@@ -55,8 +63,9 @@ To pip install a topic branch (e.g. the `2019.1-dev2` branch) use
 pip install -e git+https://github.com/hippylib/hippylib.git@2019.1-dev2#egg=hippylib
 ```
 
-> **NOTE:** `hIPPYlib` applications and tutorials can also be executed directly from
-the source folder without `pip` installation.
+> **NOTE:** To exectute `hIPPYlib` applications and tutorials directly from
+the source folder without `pip` installation, you can simply add `hippylib` to your `PYTHON_PATH`
+
 
 ## Build the hIPPYlib documentation using Sphinx
 

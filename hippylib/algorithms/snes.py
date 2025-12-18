@@ -19,7 +19,11 @@
 
 from typing import List
 import dolfin as dl
-import ufl
+
+try:
+    import ufl_legacy as ufl
+except:
+    import ufl
 from petsc4py import PETSc
 
 from ..utils.petsc import getPETScReasons, SNESConvergenceError

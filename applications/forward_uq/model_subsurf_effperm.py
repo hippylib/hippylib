@@ -16,17 +16,19 @@
 import math
 import argparse
 import dolfin as dl
-import ufl
-import sys
-import os
-sys.path.append( os.environ.get('HIPPYLIB_BASE_DIR', "../../") )
+try:
+    import ufl_legacy as ufl
+except ImportError:
+    import ufl
+
+
 from hippylib import *
 import numpy as np
 
 try:
     import matplotlib.pyplot as plt
     has_plt = True
-except:
+except ImportError:
     has_plt = False
 
 class GammaCenter(dl.SubDomain):

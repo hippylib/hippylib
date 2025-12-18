@@ -1,0 +1,28 @@
+name: Run applications
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+defaults:
+  run:
+    shell: bash -l {0}
+  
+
+jobs:
+   applications:
+     runs-on: ubuntu-24.04
+     container:
+       image: ghcr.io/scientificcomputing/fenics:2024-05-28
+       options: --privileged
+     name: Hippylib applications
+
+     steps:
+        - name: Checkout code
+          uses: actions/checkout@v6
+        - name: Install hippylib
+          run: python3 -m pip install .
+        - name: Test applications
+          run:  source .github/workflows/run_applications.sh

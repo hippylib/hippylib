@@ -1,4 +1,4 @@
-name: CI
+name: Unit Tests
 
 on:
   push:
@@ -9,9 +9,10 @@ on:
 defaults:
   run:
     shell: bash -l {0}
+  
 
 jobs:
-   style:
+   test:
      runs-on: ubuntu-24.04
      container:
        image: ghcr.io/scientificcomputing/fenics:2024-05-28
@@ -19,18 +20,12 @@ jobs:
      name: Hippylib test
 
      steps:
-        - name: Fix ufl
-          run: ln -s /usr/lib/python3/dist-packages/ufl_legacy/ /usr/lib/python3/dist-packages/ufl 
-        - name: Install jupyter
-          run: pip install notebook
         - name: Checkout code
-          uses: actions/checkout@v2
+          uses: actions/checkout@v6
+        - name: Install hippylib
+          run: python3 -m pip install .
         - name: Import hippylib
           run: python3 -c 'import hippylib' && pwd && ls
         - name: Unit test
           run: source .github/workflows/run_unittest.sh
-        - name: Test applications
-          run:  source .github/workflows/run_applications.sh
-        - name: Run notebooks
-          run: source .github/workflows/run_notebooks.sh
 

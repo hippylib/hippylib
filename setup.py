@@ -25,7 +25,7 @@ try:
     from dolfin import __version__ as dolfin_version
     from dolfin import has_linear_algebra_backend, has_slepc
 except ImportError:
-    raise
+    print("Dolfin not found. hIPPYlib may not work")
 else:
     fenics_version_major = int(dolfin_version[0:4])
     if (fenics_version_major < 2019 or fenics_version_major >= 2020):
@@ -71,15 +71,13 @@ setup(
     long_description_content_type='text/markdown',
     url='https://hippylib.github.io/',
     author='Umberto Villa, Noemi Petra, Omar Ghattas',
-    author_email='uvilla@wustl.edu',
+    author_email='uvilla@austin.utexas.edu',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering',
         'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
     ],
     keywords=KEYWORDS,
     packages=find_packages(exclude=['applications', 'doc', 'test']),

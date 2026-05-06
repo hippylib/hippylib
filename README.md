@@ -1,4 +1,4 @@
-[![CI](https://github.com/hippylib/hippylib/actions/workflows/ci.yaml/badge.svg)](https://github.com/hippylib/hippylib/actions/workflows/ci.yaml)
+[![Unit Tests](https://github.com/hippylib/hippylib/actions/workflows/test.yaml/badge.svg)](https://github.com/hippylib/hippylib/actions/workflows/test.yaml)
 [![Doc Status](https://readthedocs.org/projects/hippylib/badge/?version=latest&style=flat)](https://hippylib.readthedocs.io/en/latest/)
 [![status](http://joss.theoj.org/papers/053e0d08a5e9755e7b78898cff6f6208/status.svg)](http://joss.theoj.org/papers/053e0d08a5e9755e7b78898cff6f6208) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.596931.svg)](https://doi.org/10.5281/zenodo.596931)
 

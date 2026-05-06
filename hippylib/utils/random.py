@@ -45,7 +45,7 @@ class Random(cpp_module.Random):
         - :code:`seed`: random seed to initialize the random engine.
         """
         super(Random, self).__init__(seed)
-        self.split(myid, nproc, blocksize)
+        super(Random, self).split(myid, nproc, blocksize)
         
     def uniform(self,a,b, out=None):
         """

@@ -49,11 +49,11 @@ release = VERSION
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.todo',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
-    'm2r'
+    "sphinx.ext.autodoc",
+    "sphinx.ext.todo",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.viewcode",
+    "sphinx_mdinclude",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
